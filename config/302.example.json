@@ -1,0 +1,5 @@
+{
+  "apiKeyEnv": "BAOFANG_302_API_KEY",
+  "route": "domestic",
+  "budgetLimitPTC": 0
+}

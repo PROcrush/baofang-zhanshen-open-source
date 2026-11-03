@@ -1,0 +1,1450 @@
+{
+  "schema": "baofang-subtitle-presets/v1",
+  "count": 27,
+  "schemeCount": 88,
+  "source": {
+    "artifact": "analysis/gemu-8800-full-20261012/package/structured.json",
+    "artifactSHA256": "5c72a7cec6904427d5647836b31455eeddd7d807bc5a1bbadda6537cd94a8b8b",
+    "resource": "Contents/Resources/Jizura/style-cards.json",
+    "upstreamCommit": "8da975fb362d966b065217618aedafd5a35a39e0",
+    "referenceSHA256": "0fd8a99e3e460b6c3a53ff91491479d509045e07537da1960d1a77d8454c1076"
+  },
+  "styles": [
+    {
+      "id": "jizura-noir",
+      "decorationMode": "noir",
+      "name": "黑白色差",
+      "detail": "黑白基调，加上青色与琥珀色的色彩错位",
+      "category": "经典排版",
+      "fontKind": "gothic",
+      "fontWeight": 900,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#F5A50C",
+          "accent2": "#16F4D4",
+          "bg": "#060607",
+          "dim": "#2A2A2E",
+          "fg": "#F5EEEA",
+          "ghostA": "#F5A50C",
+          "ghostB": "#16F4D4",
+          "ink": "#F5EEEA",
+          "sub": "#BDB6B2"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#E0600C",
+          "accent2": "#0FAE98",
+          "bg": "#F2EDE8",
+          "dim": "#D9D2CC",
+          "fg": "#0B0B0C",
+          "ghostA": "#F5A50C",
+          "ghostB": "#16C4B4",
+          "ink": "#0B0B0C",
+          "sub": "#4A4644",
+          "swap": true
+        }
+      ]
+    },
+    {
+      "id": "jizura-crimson",
+      "decorationMode": "crimson",
+      "name": "深红信号",
+      "detail": "深红色、单色文字与损坏的数据",
+      "category": "经典排版",
+      "fontKind": "gothic",
+      "fontWeight": 900,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#140509",
+          "accent2": "#39F2C8",
+          "bg": "#C8103F",
+          "dim": "#B00D37",
+          "fg": "#FFFFFF",
+          "ghostA": "#FFFFFF",
+          "ghostB": "#39F2C8",
+          "ink": "#140509",
+          "sub": "#FFD9E2"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#1A0710",
+          "accent2": "#39F2C8",
+          "bg": "#FF6F98",
+          "dim": "#F25C87",
+          "fg": "#FFFFFF",
+          "ghostA": "#FFFFFF",
+          "ghostB": "#1A0710",
+          "ink": "#1A0710",
+          "sub": "#FFE3EB"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#FFFFFF",
+          "accent2": "#39F2C8",
+          "bg": "#150509",
+          "dim": "#2A0B14",
+          "fg": "#FF3D6E",
+          "ghostA": "#FF3D6E",
+          "ghostB": "#39F2C8",
+          "ink": "#FF3D6E",
+          "sub": "#FF9DB6"
+        }
+      ]
+    },
+    {
+      "id": "jizura-caution",
+      "decorationMode": "caution",
+      "name": "警示",
+      "detail": "黄、红、蓝三色配仪表图形",
+      "category": "舞台标识",
+      "fontKind": "mincho",
+      "fontWeight": 900,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#E0231C",
+          "accent2": "#1F3FD8",
+          "bg": "#F4D21F",
+          "dim": "#E6C413",
+          "fg": "#141414",
+          "ghostA": "#E0231C",
+          "ghostB": "#1F3FD8",
+          "ink": "#141414",
+          "sub": "#3A3510"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#141414",
+          "accent2": "#FFFFFF",
+          "bg": "#E0231C",
+          "dim": "#C81E17",
+          "fg": "#F4D21F",
+          "ghostA": "#141414",
+          "ghostB": "#F4D21F",
+          "ink": "#141414",
+          "sub": "#FFE9A0"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#E0231C",
+          "accent2": "#FFFFFF",
+          "bg": "#18181A",
+          "dim": "#26262A",
+          "fg": "#F4D21F",
+          "ghostA": "#E0231C",
+          "ghostB": "#1F3FD8",
+          "ink": "#F4D21F",
+          "sub": "#DDD6B0"
+        }
+      ]
+    },
+    {
+      "id": "jizura-magenta",
+      "decorationMode": "magenta",
+      "name": "波普洋红",
+      "detail": "亮粉色、圆润粗体与引线标注",
+      "category": "柔和彩色",
+      "fontKind": "round",
+      "fontWeight": 800,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#FFFFFF",
+          "accent2": "#2B2BD9",
+          "bg": "#FF0A8C",
+          "dim": "#F0077F",
+          "fg": "#FFFFFF",
+          "ghostA": "#FF8CC8",
+          "ghostB": "#2B2BD9",
+          "ink": "#FFFFFF",
+          "sub": "#FFD2EA"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#2B2BD9",
+          "accent2": "#FF0A8C",
+          "bg": "#FFFFFF",
+          "dim": "#FFE4F2",
+          "fg": "#FF0A8C",
+          "ghostA": "#2B2BD9",
+          "ghostB": "#FF8CC8",
+          "ink": "#FF0A8C",
+          "sub": "#FF6DB6"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#FF0A8C",
+          "accent2": "#FFFFFF",
+          "bg": "#2B2BD9",
+          "dim": "#2424C4",
+          "fg": "#FFFFFF",
+          "ghostA": "#FF0A8C",
+          "ghostB": "#FFFFFF",
+          "ink": "#FFFFFF",
+          "sub": "#C9C9FF"
+        }
+      ]
+    },
+    {
+      "id": "jizura-paper",
+      "decorationMode": "paper",
+      "name": "纸与墨",
+      "detail": "纸张质感、靛蓝与洋红，衬线体重影",
+      "category": "纸感印刷",
+      "fontKind": "mincho",
+      "fontWeight": 900,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#C2185B",
+          "accent2": "#111111",
+          "bg": "#ECE9E3",
+          "dim": "#DAD6CE",
+          "fg": "#1B2350",
+          "ghostA": "#C2185B",
+          "ghostB": "#1B2350",
+          "ink": "#111111",
+          "paper": true,
+          "sub": "#4D5270"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#C2185B",
+          "accent2": "#1B2350",
+          "bg": "#151515",
+          "dim": "#232323",
+          "fg": "#F0EDE7",
+          "ghostA": "#C2185B",
+          "ghostB": "#3A4690",
+          "ink": "#F0EDE7",
+          "paper": true,
+          "sub": "#B8B4AC"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#1B2350",
+          "accent2": "#111111",
+          "bg": "#C2185B",
+          "dim": "#B5154F",
+          "fg": "#FFFFFF",
+          "ghostA": "#1B2350",
+          "ghostB": "#FFFFFF",
+          "ink": "#1B2350",
+          "paper": true,
+          "sub": "#F6C6D8"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#C2185B",
+          "accent2": "#FFFFFF",
+          "bg": "#1B2350",
+          "dim": "#1F2858",
+          "fg": "#F0EDE7",
+          "ghostA": "#C2185B",
+          "ghostB": "#FFFFFF",
+          "ink": "#F0EDE7",
+          "paper": true,
+          "sub": "#AEB2CC"
+        }
+      ]
+    },
+    {
+      "id": "jizura-hud",
+      "decorationMode": "hud",
+      "name": "暗色 HUD",
+      "detail": "炭灰色、细线框、橙色点缀与日食图形",
+      "category": "科技霓虹",
+      "fontKind": "gothic",
+      "fontWeight": 900,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#F25A2B",
+          "accent2": "#FFFFFF",
+          "bg": "#131315",
+          "dim": "#1E1E21",
+          "fg": "#EFEDEA",
+          "ghostA": "#F25A2B",
+          "ghostB": "#7FD7FF",
+          "ink": "#EFEDEA",
+          "sub": "#8E8B88"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#F25A2B",
+          "accent2": "#FFFFFF",
+          "bg": "#0B0B0C",
+          "dim": "#18181A",
+          "fg": "#FFFFFF",
+          "ghostA": "#F25A2B",
+          "ghostB": "#FFFFFF",
+          "ink": "#F25A2B",
+          "sub": "#9A9796"
+        }
+      ]
+    },
+    {
+      "id": "jizura-mint",
+      "decorationMode": "mint",
+      "name": "薄荷终端",
+      "detail": "黑、青绿与青柠色，带扫描效果",
+      "category": "科技霓虹",
+      "fontKind": "gothic",
+      "fontWeight": 900,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#9CFF3A",
+          "accent2": "#2E8C74",
+          "bg": "#0A0E0D",
+          "dim": "#142420",
+          "fg": "#E6FFF5",
+          "ghostA": "#FF3B6B",
+          "ghostB": "#2EE6C8",
+          "ink": "#E6FFF5",
+          "sub": "#7FB9A8"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#FFFFFF",
+          "accent2": "#9CFF3A",
+          "bg": "#3FAE93",
+          "dim": "#39A087",
+          "fg": "#0A0E0D",
+          "ghostA": "#FFFFFF",
+          "ghostB": "#0A0E0D",
+          "ink": "#0A0E0D",
+          "sub": "#123A31"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#2E8C74",
+          "accent2": "#9CFF3A",
+          "bg": "#F2F2EE",
+          "dim": "#E2E4DE",
+          "fg": "#0A0E0D",
+          "ghostA": "#2E8C74",
+          "ghostB": "#9CFF3A",
+          "ink": "#0A0E0D",
+          "sub": "#40504B"
+        }
+      ]
+    },
+    {
+      "id": "jizura-specimen",
+      "decorationMode": "specimen",
+      "name": "字体样本",
+      "detail": "墨色背景配衬线体注释",
+      "category": "经典排版",
+      "fontKind": "mincho",
+      "fontWeight": 700,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#F2F0EC",
+          "accent2": "#C8B98C",
+          "bg": "#1B1A1C",
+          "dim": "#2A292C",
+          "fg": "#F2F0EC",
+          "ghostA": "#6E6A66",
+          "ghostB": "#C8B98C",
+          "ink": "#F2F0EC",
+          "sub": "#A19E99"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#1B1A1C",
+          "accent2": "#8A7A4E",
+          "bg": "#F2F0EC",
+          "dim": "#E3E0DA",
+          "fg": "#1B1A1C",
+          "ghostA": "#B9B4AD",
+          "ghostB": "#8A7A4E",
+          "ink": "#1B1A1C",
+          "sub": "#5E5B57"
+        }
+      ]
+    },
+    {
+      "id": "jizura-transit",
+      "decorationMode": "transit",
+      "name": "交通标识",
+      "detail": "橄榄绿与黄色，标识牌与网点",
+      "category": "舞台标识",
+      "fontKind": "gothic",
+      "fontWeight": 900,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#E8C21A",
+          "accent2": "#1A1A1A",
+          "bg": "#5B582B",
+          "dim": "#67633A",
+          "fg": "#FFFFFF",
+          "ghostA": "#E8C21A",
+          "ghostB": "#1A1A1A",
+          "ink": "#E8C21A",
+          "sub": "#E6E2BC"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#E8C21A",
+          "accent2": "#FFFFFF",
+          "bg": "#1A1A1A",
+          "dim": "#242424",
+          "fg": "#FFFFFF",
+          "ghostA": "#E8C21A",
+          "ghostB": "#7C7A55",
+          "ink": "#E8C21A",
+          "sub": "#B8B5A0"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#E8C21A",
+          "accent2": "#1A1A1A",
+          "bg": "#9C9A94",
+          "dim": "#A6A49E",
+          "fg": "#FFFFFF",
+          "ghostA": "#E8C21A",
+          "ghostB": "#1A1A1A",
+          "ink": "#1A1A1A",
+          "sub": "#F0EEE6"
+        }
+      ]
+    },
+    {
+      "id": "jizura-blueprint",
+      "decorationMode": "blueprint",
+      "name": "蓝图",
+      "detail": "蓝、白、黑的图形拼贴",
+      "category": "科技霓虹",
+      "fontKind": "display",
+      "fontWeight": 400,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#000000",
+          "accent2": "#FFFFFF",
+          "bg": "#1B1BE8",
+          "dim": "#2323F0",
+          "fg": "#FFFFFF",
+          "ghostA": "#000000",
+          "ghostB": "#8C8CFF",
+          "ink": "#000000",
+          "sub": "#C7C7FF"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#1B1BE8",
+          "accent2": "#FFFFFF",
+          "bg": "#000000",
+          "dim": "#0A0A30",
+          "fg": "#FFFFFF",
+          "ghostA": "#1B1BE8",
+          "ghostB": "#FFFFFF",
+          "ink": "#1B1BE8",
+          "sub": "#9A9AFF"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#000000",
+          "accent2": "#1B1BE8",
+          "bg": "#FFFFFF",
+          "dim": "#EDEDFF",
+          "fg": "#1B1BE8",
+          "ghostA": "#000000",
+          "ghostB": "#8C8CFF",
+          "ink": "#1B1BE8",
+          "sub": "#5A5AF0"
+        }
+      ]
+    },
+    {
+      "id": "jizura-rouge",
+      "decorationMode": "rouge",
+      "name": "胭脂渐变",
+      "detail": "浅灰与红色渐变，配胶囊图形",
+      "category": "柔和彩色",
+      "fontKind": "gothic",
+      "fontWeight": 900,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#D40F1C",
+          "accent2": "#141414",
+          "bg": "#E4E2E0",
+          "dim": "#D8D6D4",
+          "fg": "#141414",
+          "ghostA": "#D40F1C",
+          "ghostB": "#6B6866",
+          "grad": [
+            "#E3141F",
+            "#4A0005"
+          ],
+          "ink": "#141414",
+          "sub": "#6B6866"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#E3141F",
+          "accent2": "#FFFFFF",
+          "bg": "#140405",
+          "dim": "#220A0C",
+          "fg": "#FFFFFF",
+          "ghostA": "#E3141F",
+          "ghostB": "#FFFFFF",
+          "grad": [
+            "#FF4A52",
+            "#6A0008"
+          ],
+          "ink": "#E3141F",
+          "sub": "#C98A8E"
+        }
+      ]
+    },
+    {
+      "id": "jizura-mono",
+      "decorationMode": "mono",
+      "name": "单色 RGB",
+      "detail": "灰色空间、白色衬线体与强烈的 RGB 分离",
+      "category": "经典排版",
+      "fontKind": "mincho",
+      "fontWeight": 900,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#FFFFFF",
+          "accent2": "#FFE34D",
+          "bg": "#3B3D41",
+          "dim": "#45474C",
+          "fg": "#FFFFFF",
+          "ghostA": "#FF2A2A",
+          "ghostB": "#2AA8FF",
+          "ink": "#1A1B1D",
+          "sub": "#B9BBBF"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#FFE34D",
+          "accent2": "#FFFFFF",
+          "bg": "#141517",
+          "dim": "#1E1F22",
+          "fg": "#FFFFFF",
+          "ghostA": "#FF2A2A",
+          "ghostB": "#2AFF7A",
+          "ink": "#FFFFFF",
+          "sub": "#9EA0A4"
+        }
+      ]
+    },
+    {
+      "id": "jizura-hrRuin",
+      "decorationMode": "hrRuin",
+      "name": "废墟",
+      "detail": "褪色灰绿、锈红与回响的宋体",
+      "category": "复古影像",
+      "fontKind": "mincho",
+      "fontWeight": 900,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#B0473A",
+          "accent2": "#6E8B6B",
+          "bg": "#161B18",
+          "dim": "#1F2621",
+          "fg": "#D3DACF",
+          "ghostA": "#5E7A62",
+          "ghostB": "#8A3A30",
+          "ink": "#D3DACF",
+          "sub": "#7D887E"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#6A1A14",
+          "accent2": "#E4E8DF",
+          "bg": "#8C958A",
+          "dim": "#848D82",
+          "fg": "#141814",
+          "ghostA": "#3F4D41",
+          "ghostB": "#6A1A14",
+          "ink": "#141814",
+          "sub": "#2E362F"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#C24A3A",
+          "accent2": "#A9B8A6",
+          "bg": "#0C0F0D",
+          "dim": "#161B17",
+          "fg": "#A9B8A6",
+          "ghostA": "#2F4A36",
+          "ghostB": "#5E1E18",
+          "ink": "#A9B8A6",
+          "sub": "#5D6B5E"
+        }
+      ]
+    },
+    {
+      "id": "jizura-hrNightRec",
+      "decorationMode": "hrNightRec",
+      "name": "深夜录像",
+      "detail": "漆黑画面、监控影像的白与红、雪花噪点",
+      "category": "复古影像",
+      "fontKind": "gothic",
+      "fontWeight": 700,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#E3261E",
+          "accent2": "#FFFFFF",
+          "bg": "#050505",
+          "dim": "#121212",
+          "fg": "#EDEDED",
+          "ghostA": "#6E6E6E",
+          "ghostB": "#E3261E",
+          "ink": "#EDEDED",
+          "sub": "#8A8A8A"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#FF3A2A",
+          "accent2": "#D8F0D8",
+          "bg": "#0B0E0B",
+          "dim": "#141A14",
+          "fg": "#D8F0D8",
+          "ghostA": "#3E6B3E",
+          "ghostB": "#FF3A2A",
+          "ink": "#D8F0D8",
+          "sub": "#6F866F"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#C8140E",
+          "accent2": "#0A0A0A",
+          "bg": "#DADADA",
+          "dim": "#CCCCCC",
+          "fg": "#0A0A0A",
+          "ghostA": "#8A8A8A",
+          "ghostB": "#C8140E",
+          "ink": "#0A0A0A",
+          "sub": "#4A4A4A"
+        }
+      ]
+    },
+    {
+      "id": "jizura-hrCurse",
+      "decorationMode": "hrCurse",
+      "name": "诅咒之信",
+      "detail": "泛黄信纸、褪色墨迹与暗红笔迹",
+      "category": "复古影像",
+      "fontKind": "hand",
+      "fontWeight": 600,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#7E1410",
+          "accent2": "#3F3326",
+          "bg": "#D8CBA4",
+          "dim": "#CDBF97",
+          "fg": "#2A2017",
+          "ghostA": "#9A2A20",
+          "ghostB": "#8A7A5E",
+          "ink": "#2A2017",
+          "paper": true,
+          "sub": "#6B5B45"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#B8261C",
+          "accent2": "#E3D5B0",
+          "bg": "#1C140E",
+          "dim": "#271D15",
+          "fg": "#E3D5B0",
+          "ghostA": "#6E1510",
+          "ghostB": "#5A4A34",
+          "ink": "#E3D5B0",
+          "paper": true,
+          "sub": "#9A8866"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#1E1812",
+          "accent2": "#7E1410",
+          "bg": "#C4B28A",
+          "dim": "#B9A67D",
+          "fg": "#3A0D0A",
+          "ghostA": "#7E1410",
+          "ghostB": "#6E5E44",
+          "ink": "#3A0D0A",
+          "paper": true,
+          "sub": "#6E4A3A"
+        }
+      ]
+    },
+    {
+      "id": "jizura-sakura",
+      "decorationMode": "sakura",
+      "name": "樱花",
+      "detail": "柔和的樱粉与梅紫，圆体与衬线体",
+      "category": "柔和彩色",
+      "fontKind": "round",
+      "fontWeight": 500,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#D93A74",
+          "accent2": "#6F8F4E",
+          "bg": "#F8E4EB",
+          "dim": "#F0D3DE",
+          "fg": "#4A1434",
+          "ghostA": "#EC6A9A",
+          "ghostB": "#9A8AE6",
+          "ink": "#4A1434",
+          "paper": true,
+          "sub": "#8A4A69"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#FF86B0",
+          "accent2": "#B9E0A2",
+          "bg": "#26091B",
+          "dim": "#351127",
+          "fg": "#FCE8F0",
+          "ghostA": "#FF5C95",
+          "ghostB": "#8A78FF",
+          "ink": "#FCE8F0",
+          "sub": "#D69DB6"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#3A0B26",
+          "accent2": "#FFF3F7",
+          "bg": "#E77FA3",
+          "dim": "#DE7499",
+          "fg": "#3A0B26",
+          "ghostA": "#B4205A",
+          "ghostB": "#6A4CC8",
+          "ink": "#3A0B26",
+          "sub": "#65173F"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#E0457F",
+          "accent2": "#4A1434",
+          "bg": "#FFFAF8",
+          "dim": "#F8ECEE",
+          "fg": "#A01E4A",
+          "ghostA": "#F07AA4",
+          "ghostB": "#A898EA",
+          "ink": "#A01E4A",
+          "paper": true,
+          "sub": "#B45F7E"
+        }
+      ]
+    },
+    {
+      "id": "jizura-ocean",
+      "decorationMode": "ocean",
+      "name": "深海",
+      "detail": "藏青、发光的青色、气泡与细黑体",
+      "category": "科技霓虹",
+      "fontKind": "gothic",
+      "fontWeight": 300,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#1FD2E6",
+          "accent2": "#4C7DFF",
+          "bg": "#031A2E",
+          "dim": "#0A2842",
+          "fg": "#E4FAFF",
+          "ghostA": "#1FD2E6",
+          "ghostB": "#3B5BFF",
+          "ink": "#E4FAFF",
+          "sub": "#7FB2C8"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#04182A",
+          "accent2": "#7FF3FF",
+          "bg": "#0B5566",
+          "dim": "#0E6173",
+          "fg": "#FFFFFF",
+          "ghostA": "#27E3F2",
+          "ghostB": "#031A2E",
+          "ink": "#E4FAFF",
+          "sub": "#A9E3EA"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#0A7F98",
+          "accent2": "#3B5BFF",
+          "bg": "#DCF1F2",
+          "dim": "#CBE6E8",
+          "fg": "#06243A",
+          "ghostA": "#16B4CC",
+          "ghostB": "#5A6BFF",
+          "ink": "#06243A",
+          "sub": "#3E6A7C"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#FFFFFF",
+          "accent2": "#2E6BFF",
+          "bg": "#01060D",
+          "dim": "#081521",
+          "fg": "#7FF6FF",
+          "ghostA": "#2E6BFF",
+          "ghostB": "#00FFC2",
+          "ink": "#7FF6FF",
+          "sub": "#3E9AAE"
+        }
+      ]
+    },
+    {
+      "id": "jizura-sunset",
+      "decorationMode": "sunset",
+      "name": "日落渐变",
+      "detail": "橙到紫的渐变、粗衬线体与逆光",
+      "category": "柔和彩色",
+      "fontKind": "mincho",
+      "fontWeight": 800,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#FF7A30",
+          "accent2": "#FF4A86",
+          "bg": "#2A0F44",
+          "dim": "#361456",
+          "fg": "#FFF0DC",
+          "ghostA": "#FF7A30",
+          "ghostB": "#B84BFF",
+          "grad": [
+            "#FFC15E",
+            "#FF4A7A"
+          ],
+          "ink": "#FFB347",
+          "sub": "#E6A98F"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#2A0F44",
+          "accent2": "#FFF0DC",
+          "bg": "#FF8A3D",
+          "dim": "#F57F32",
+          "fg": "#2A0F44",
+          "ghostA": "#E0306A",
+          "ghostB": "#7A2BC0",
+          "grad": [
+            "#6A1B9A",
+            "#2A0F44"
+          ],
+          "ink": "#2A0F44",
+          "sub": "#5A1F55"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#FFC15E",
+          "accent2": "#2A0F44",
+          "bg": "#B8325F",
+          "dim": "#A92C56",
+          "fg": "#FFF3E4",
+          "ghostA": "#FFC15E",
+          "ghostB": "#2A0F44",
+          "grad": [
+            "#FFF0B8",
+            "#FFC46E"
+          ],
+          "ink": "#FFF3E4",
+          "sub": "#FFC7A8"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#F2562E",
+          "accent2": "#8A3FD1",
+          "bg": "#FFE4CF",
+          "dim": "#F7D6BE",
+          "fg": "#3A1250",
+          "ghostA": "#FF6A3D",
+          "ghostB": "#9A4BE0",
+          "grad": [
+            "#E24A22",
+            "#7A2BBF"
+          ],
+          "ink": "#3A1250",
+          "sub": "#8A4A6A"
+        }
+      ]
+    },
+    {
+      "id": "jizura-forest",
+      "decorationMode": "forest",
+      "name": "森林笔记",
+      "detail": "苔绿、自然纸张与铅笔手写字",
+      "category": "纸感印刷",
+      "fontKind": "hand",
+      "fontWeight": 600,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#B7C95A",
+          "accent2": "#C4833F",
+          "bg": "#1D291B",
+          "dim": "#263423",
+          "fg": "#EFE9D6",
+          "ghostA": "#8FB04A",
+          "ghostB": "#C4833F",
+          "ink": "#EFE9D6",
+          "sub": "#A8B08A"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#4F7A35",
+          "accent2": "#8A5A32",
+          "bg": "#EDE6D1",
+          "dim": "#E1D9C2",
+          "fg": "#22301F",
+          "ghostA": "#6F9A45",
+          "ghostB": "#B0703A",
+          "ink": "#22301F",
+          "paper": true,
+          "sub": "#5D6647"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#B7C95A",
+          "accent2": "#EFE9D6",
+          "bg": "#4A3526",
+          "dim": "#55402F",
+          "fg": "#F2EAD3",
+          "ghostA": "#8FB04A",
+          "ghostB": "#D9A441",
+          "ink": "#B7C95A",
+          "paper": true,
+          "sub": "#CDB894"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#1A2618",
+          "accent2": "#F2EAD3",
+          "bg": "#A9BC96",
+          "dim": "#9FB38C",
+          "fg": "#1A2618",
+          "ghostA": "#4F7A35",
+          "ghostB": "#8A5A32",
+          "ink": "#1A2618",
+          "sub": "#34482F"
+        }
+      ]
+    },
+    {
+      "id": "jizura-vapor",
+      "decorationMode": "vapor",
+      "name": "蒸汽波",
+      "detail": "粉彩粉与蓝，带 VHS 光晕",
+      "category": "柔和彩色",
+      "fontKind": "mincho",
+      "fontWeight": 500,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#FF8FD8",
+          "accent2": "#7DF9FF",
+          "bg": "#3A2A6E",
+          "dim": "#45347C",
+          "fg": "#FFFFFF",
+          "ghostA": "#FF71CE",
+          "ghostB": "#01CDFE",
+          "grad": [
+            "#FF8FD8",
+            "#7DF9FF"
+          ],
+          "ink": "#7DF9FF",
+          "sub": "#D6C8FF"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#7A3BFF",
+          "accent2": "#0F9FC8",
+          "bg": "#FFC6EC",
+          "dim": "#F7B8E2",
+          "fg": "#3A2A6E",
+          "ghostA": "#2EC8F0",
+          "ghostB": "#B04BFF",
+          "grad": [
+            "#7A3BFF",
+            "#0B7FB0"
+          ],
+          "ink": "#3A2A6E",
+          "sub": "#74489A"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#35246A",
+          "accent2": "#FF4FC0",
+          "bg": "#8FEAF2",
+          "dim": "#82E0EA",
+          "fg": "#35246A",
+          "ghostA": "#FF5CC8",
+          "ghostB": "#8A5CFF",
+          "grad": [
+            "#D0249A",
+            "#5A2BD0"
+          ],
+          "ink": "#35246A",
+          "sub": "#4A3C8A"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#05FFA1",
+          "accent2": "#FF71CE",
+          "bg": "#1A1030",
+          "dim": "#241840",
+          "fg": "#FFFB96",
+          "ghostA": "#FF71CE",
+          "ghostB": "#01CDFE",
+          "grad": [
+            "#FFFB96",
+            "#FF71CE"
+          ],
+          "ink": "#FF71CE",
+          "sub": "#B9A6E0"
+        }
+      ]
+    },
+    {
+      "id": "jizura-newsprint",
+      "decorationMode": "newsprint",
+      "name": "新闻纸",
+      "detail": "灰色纸张、黑与红，网点套印",
+      "category": "纸感印刷",
+      "fontKind": "mincho",
+      "fontWeight": 900,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#D8141B",
+          "accent2": "#0A82C8",
+          "bg": "#E6E5E0",
+          "dim": "#D8D7D1",
+          "fg": "#111111",
+          "ghostA": "#E4007F",
+          "ghostB": "#00A0E9",
+          "ink": "#111111",
+          "paper": true,
+          "sub": "#4E4E4C"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#F5D300",
+          "accent2": "#E4007F",
+          "bg": "#111111",
+          "dim": "#1F1F1F",
+          "fg": "#F2F2EE",
+          "ghostA": "#E4007F",
+          "ghostB": "#00A0E9",
+          "ink": "#F2F2EE",
+          "paper": true,
+          "sub": "#A5A5A0"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#111111",
+          "accent2": "#F5D300",
+          "bg": "#D8141B",
+          "dim": "#C71118",
+          "fg": "#FFFFFF",
+          "ghostA": "#111111",
+          "ghostB": "#F5D300",
+          "ink": "#FFFFFF",
+          "paper": true,
+          "sub": "#FFD6D0"
+        }
+      ]
+    },
+    {
+      "id": "jizura-synth80",
+      "decorationMode": "synth80",
+      "name": "80 年代合成器",
+      "detail": "黑底配霓虹洋红、青色与扫描线",
+      "category": "科技霓虹",
+      "fontKind": "display",
+      "fontWeight": 400,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#22E6FF",
+          "accent2": "#FFE45C",
+          "bg": "#0B0414",
+          "dim": "#1A0B2E",
+          "fg": "#FF4FD8",
+          "ghostA": "#22E6FF",
+          "ghostB": "#6A3BFF",
+          "ink": "#22E6FF",
+          "sub": "#A98BFF"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#E62EBE",
+          "accent2": "#FFE45C",
+          "bg": "#0B0414",
+          "dim": "#140A28",
+          "fg": "#22E6FF",
+          "ghostA": "#FF4FD8",
+          "ghostB": "#FFE45C",
+          "ink": "#FF4FD8",
+          "sub": "#8FA8FF"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#E62EBE",
+          "accent2": "#22E6FF",
+          "bg": "#1C0A3A",
+          "dim": "#26104C",
+          "fg": "#FFFFFF",
+          "ghostA": "#FF2E88",
+          "ghostB": "#22E6FF",
+          "grad": [
+            "#FFE45C",
+            "#FF2E88"
+          ],
+          "ink": "#FFE45C",
+          "sub": "#FFB0E8"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#0B0414",
+          "accent2": "#22E6FF",
+          "bg": "#FF2E88",
+          "dim": "#F0287E",
+          "fg": "#0B0414",
+          "ghostA": "#22E6FF",
+          "ghostB": "#FFE45C",
+          "ink": "#0B0414",
+          "sub": "#3A0A30"
+        }
+      ]
+    },
+    {
+      "id": "jizura-kraft",
+      "decorationMode": "kraft",
+      "name": "牛皮纸",
+      "detail": "暖色纸张、红与靛蓝印章、纸胶带",
+      "category": "纸感印刷",
+      "fontKind": "display",
+      "fontWeight": 400,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#B8361B",
+          "accent2": "#F3E9D2",
+          "bg": "#C49A6C",
+          "dim": "#B98F62",
+          "fg": "#1A1410",
+          "ghostA": "#C33A1F",
+          "ghostB": "#2E5E8C",
+          "ink": "#1A1410",
+          "paper": true,
+          "sub": "#46301E"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#C33A1F",
+          "accent2": "#2E5E8C",
+          "bg": "#F1E6CF",
+          "dim": "#E6D8BC",
+          "fg": "#1A1410",
+          "ghostA": "#C33A1F",
+          "ghostB": "#2E5E8C",
+          "ink": "#1A1410",
+          "paper": true,
+          "sub": "#6A5540"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#D9642E",
+          "accent2": "#C49A6C",
+          "bg": "#1E1A17",
+          "dim": "#2A2521",
+          "fg": "#F1E6CF",
+          "ghostA": "#C49A6C",
+          "ghostB": "#C33A1F",
+          "ink": "#C49A6C",
+          "paper": true,
+          "sub": "#B8A68A"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#F1E6CF",
+          "accent2": "#C33A1F",
+          "bg": "#2E5E8C",
+          "dim": "#34669A",
+          "fg": "#F6EEDD",
+          "ghostA": "#C49A6C",
+          "ghostB": "#1A1410",
+          "ink": "#F1E6CF",
+          "paper": true,
+          "sub": "#C9D6E2"
+        }
+      ]
+    },
+    {
+      "id": "jizura-candy",
+      "decorationMode": "candy",
+      "name": "糖果",
+      "detail": "薄荷与水果粉彩，文字弹跳",
+      "category": "柔和彩色",
+      "fontKind": "brush",
+      "fontWeight": 400,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#EE3A88",
+          "accent2": "#FFB020",
+          "bg": "#BDF0E2",
+          "dim": "#AEE8D8",
+          "fg": "#3E2A8C",
+          "ghostA": "#FF5FA2",
+          "ghostB": "#8A6BFF",
+          "ink": "#3E2A8C",
+          "sub": "#5A4A9A"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#EE3A88",
+          "accent2": "#2FC2B8",
+          "bg": "#FFDDEB",
+          "dim": "#FDD0E2",
+          "fg": "#7A2BB8",
+          "ghostA": "#FF5FA2",
+          "ghostB": "#3FB8FF",
+          "ink": "#7A2BB8",
+          "sub": "#A2468E"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#3F8FFF",
+          "accent2": "#FF5FA2",
+          "bg": "#FFF0A0",
+          "dim": "#F8E68C",
+          "fg": "#B01E5E",
+          "ghostA": "#FF5FA2",
+          "ghostB": "#3FB8FF",
+          "ink": "#B01E5E",
+          "sub": "#9A4A2A"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#FF8FC8",
+          "accent2": "#7FF0E0",
+          "bg": "#6A33B0",
+          "dim": "#7439BD",
+          "fg": "#FFF3FA",
+          "ghostA": "#FF8FC8",
+          "ghostB": "#7FF0E0",
+          "ink": "#7FF0E0",
+          "sub": "#E3C8FF"
+        }
+      ]
+    },
+    {
+      "id": "jizura-acid",
+      "decorationMode": "acid",
+      "name": "酸性",
+      "detail": "黑、酸性绿与洋红，做旧文字",
+      "category": "科技霓虹",
+      "fontKind": "display",
+      "fontWeight": 400,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#FF2BD6",
+          "accent2": "#FFFFFF",
+          "bg": "#050505",
+          "dim": "#111A00",
+          "fg": "#C6FF00",
+          "ghostA": "#FF2BD6",
+          "ghostB": "#3D5BFF",
+          "ink": "#C6FF00",
+          "sub": "#86A800"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#050505",
+          "accent2": "#FF2BD6",
+          "bg": "#C6FF00",
+          "dim": "#B8F000",
+          "fg": "#050505",
+          "ghostA": "#FF2BD6",
+          "ghostB": "#2B3DFF",
+          "ink": "#050505",
+          "sub": "#2A3A00"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#C6FF00",
+          "accent2": "#050505",
+          "bg": "#FF2BD6",
+          "dim": "#F024C8",
+          "fg": "#050505",
+          "ghostA": "#C6FF00",
+          "ghostB": "#2B3DFF",
+          "ink": "#050505",
+          "sub": "#3A0030"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#C6FF00",
+          "accent2": "#FF2BD6",
+          "bg": "#0A0A0A",
+          "dim": "#171717",
+          "fg": "#FFFFFF",
+          "ghostA": "#C6FF00",
+          "ghostB": "#FF2BD6",
+          "ink": "#FF2BD6",
+          "sub": "#9A9A9A"
+        }
+      ]
+    },
+    {
+      "id": "jizura-sumi",
+      "decorationMode": "sumi",
+      "name": "墨与朱",
+      "detail": "和纸、毛笔字与朱红印章",
+      "category": "纸感印刷",
+      "fontKind": "brush",
+      "fontWeight": 400,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#B83A22",
+          "accent2": "#16130F",
+          "bg": "#EFE5CF",
+          "dim": "#E3D8BF",
+          "fg": "#16130F",
+          "ghostA": "#9A9284",
+          "ghostB": "#CC4A2E",
+          "ink": "#16130F",
+          "paper": true,
+          "sub": "#5E574C"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#D9402A",
+          "accent2": "#EFE8D8",
+          "bg": "#121110",
+          "dim": "#1E1C1A",
+          "fg": "#EFE8D8",
+          "ghostA": "#5C5750",
+          "ghostB": "#D9402A",
+          "ink": "#EFE8D8",
+          "paper": true,
+          "sub": "#9A9286"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#16130F",
+          "accent2": "#FFF6E8",
+          "bg": "#B3301D",
+          "dim": "#A42B1A",
+          "fg": "#FFF6E8",
+          "ghostA": "#16130F",
+          "ghostB": "#E8A070",
+          "ink": "#FFF6E8",
+          "paper": true,
+          "sub": "#FFD2C0"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#A82A18",
+          "accent2": "#16130F",
+          "bg": "#BAB4A7",
+          "dim": "#AFA99C",
+          "fg": "#16130F",
+          "ghostA": "#6E685E",
+          "ghostB": "#B8321E",
+          "ink": "#16130F",
+          "paper": true,
+          "sub": "#3E3A33"
+        }
+      ]
+    },
+    {
+      "id": "jizura-gold",
+      "decorationMode": "gold",
+      "name": "金色之夜",
+      "detail": "深黑、烫金、象牙色衬线体与闪光",
+      "category": "经典排版",
+      "fontKind": "mincho",
+      "fontWeight": 800,
+      "schemes": [
+        {
+          "name": "配色 1",
+          "accent": "#D4AF37",
+          "accent2": "#F3E7C4",
+          "bg": "#0A0907",
+          "dim": "#17140E",
+          "fg": "#F3E7C4",
+          "ghostA": "#D4AF37",
+          "ghostB": "#7A5230",
+          "grad": [
+            "#FFE9A8",
+            "#B8862B"
+          ],
+          "ink": "#D4AF37",
+          "sub": "#B39A62"
+        },
+        {
+          "name": "配色 2",
+          "accent": "#0A0907",
+          "accent2": "#FFF4D6",
+          "bg": "#C9A24A",
+          "dim": "#BD9740",
+          "fg": "#0A0907",
+          "ghostA": "#8A5A1A",
+          "ghostB": "#3A2C12",
+          "grad": [
+            "#2A1E08",
+            "#0A0907"
+          ],
+          "ink": "#0A0907",
+          "sub": "#3A2C12"
+        },
+        {
+          "name": "配色 3",
+          "accent": "#D4AF37",
+          "accent2": "#F3E7C4",
+          "bg": "#0B1024",
+          "dim": "#141A33",
+          "fg": "#F3E7C4",
+          "ghostA": "#D4AF37",
+          "ghostB": "#3A5AA8",
+          "grad": [
+            "#FFE9A8",
+            "#B8862B"
+          ],
+          "ink": "#D4AF37",
+          "sub": "#A89A78"
+        },
+        {
+          "name": "配色 4",
+          "accent": "#D4AF37",
+          "accent2": "#F6EBD0",
+          "bg": "#2B0A14",
+          "dim": "#38101F",
+          "fg": "#F6EBD0",
+          "ghostA": "#D4AF37",
+          "ghostB": "#9A2A4E",
+          "grad": [
+            "#FFE9A8",
+            "#B8862B"
+          ],
+          "ink": "#D4AF37",
+          "sub": "#C9A987"
+        }
+      ]
+    }
+  ]
+}

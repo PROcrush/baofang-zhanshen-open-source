@@ -1,0 +1,5 @@
+# Optional independent CPU ASR. Install in this project's virtual environment.
+# Source: https://pypi.org/project/openai-whisper/20250625/
+openai-whisper==20250625
+# Official macOS arm64 CPython 3.12 wheel, validated for this local ASR build.
+torch==2.14.1

@@ -1,0 +1,2 @@
+# Build-time HTML manual renderer; Python/Qt/audio runtime stays in requirements*.txt.
+Markdown==3.11.2

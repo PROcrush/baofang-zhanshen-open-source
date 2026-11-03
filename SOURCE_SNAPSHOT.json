@@ -1,0 +1,1241 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "49bf5617ad2d828b0300016bf5655642031fbd3f",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "7f1ef21f7a2b090d506ad8ba63fd0b2c9b1a4e7e1bd48d46dc50ddd66eb73c98"
+    },
+    {
+      "path": ".gitleaks.toml",
+      "sha256": "26a1b6dad45b9562d89c29b4fb64f530fc5696e3fe20131862db0093accb5ee7"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "453e14eaa43bbf63406c5a47b01eca0ba76db1b342e465e4309d586cf0a09406"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "30ceaae60376d109e7011c0f73f8339e402835b1645a9741d2b274bd2a6cdbcb"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "sha256": "2866b759e8310a0c06cbac2ba703ee95df25eafdcc650eb3d81f03245f6a4ec7"
+    },
+    {
+      "path": "DESIGN.md",
+      "sha256": "a5358c1427eb2256fced0221163d0018c70735a4c01361e05d065e8968011079"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "569ccb054fbebf8aee1863b08295784ea32bd48b8648050e6769f12971d20d15"
+    },
+    {
+      "path": "PRODUCT.md",
+      "sha256": "c43e2659ebfe1c47e62891765949bf0a52bf639bbba137fabd80641dd39db45d"
+    },
+    {
+      "path": "README.md",
+      "sha256": "b10bd503b74b9b87dd1fc19718453d1f69231d3e9dcdcae4838b6f6bca56c65c"
+    },
+    {
+      "path": "SECURITY.md",
+      "sha256": "4391e69929a3f45f04123ee3aab0268626c00c637b24ef98b3e4ab6454ddf965"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "sha256": "628662df30a0c1b4090cf241942b4f3dd73ee0affaf010f8375452040d1fad2c"
+    },
+    {
+      "path": "app/__init__.py",
+      "sha256": "9e3bd016ed78d81fd676bad6a7522a27e2299008a82a7d094546584980b935ef"
+    },
+    {
+      "path": "app/ai_settings.py",
+      "sha256": "65ecf2ea6b9d01a8eec1dbc55dbc3d2995cd1c2bf05d63681acdfb1db0105091"
+    },
+    {
+      "path": "app/clock.py",
+      "sha256": "7e4dfeddc1c34b237cc77d1ce165a242881342defaf1aee74db46c3d88b475fc"
+    },
+    {
+      "path": "app/composition.py",
+      "sha256": "49353338563ab2dd00b4f6d0d5219e8e44f778dd64fbc43fad50a33cec6a09ea"
+    },
+    {
+      "path": "app/controller.py",
+      "sha256": "9f3d00909d96903569280b82790ef0096f0d581d85d604976ca1e6ddd76e2075"
+    },
+    {
+      "path": "app/credentials.py",
+      "sha256": "ad31f5eb90df4758a8319269412b6b520c9ed533b254d9157f17e97acb8905f6"
+    },
+    {
+      "path": "app/duet.py",
+      "sha256": "d02afe3806fdf7b2797998527eee29c579912c4a60f4fa44a1f0845c53de9a23"
+    },
+    {
+      "path": "app/duplicates.py",
+      "sha256": "b4d5967b4542b924f6560b68c3c185dd8a81fc1c62d7363c49aac9ab33fc8cfa"
+    },
+    {
+      "path": "app/guest_inbox.py",
+      "sha256": "9263c4d50150a445f41f03559515536cfd639d304a184ddd4ed62501c86ff799"
+    },
+    {
+      "path": "app/karaoke.py",
+      "sha256": "9af957c1937d676f8ddde9f63cbeab43135cdf19539192e5a6935aafc06f5025"
+    },
+    {
+      "path": "app/live_effects.py",
+      "sha256": "1ac5d125e0096592fb3f08bb18db647d3c7cc84b46fc51be01f91d121fdd2432"
+    },
+    {
+      "path": "app/live_karaoke.py",
+      "sha256": "167042a1da2808ae3662c43f5a25a6f2575b24efb26d23b1433db2af4666bf4d"
+    },
+    {
+      "path": "app/live_settings.py",
+      "sha256": "922a20f78872c6559da693af62d25a30dc2e2b8d0e5b79ceef891d517bf8e0a0"
+    },
+    {
+      "path": "app/local_subtitles.py",
+      "sha256": "c6d0c83ac347e04e90d872a66f17850c0c94068558d8cf05029c82cb4ae79984"
+    },
+    {
+      "path": "app/lyric_cache.py",
+      "sha256": "0ac79662580af7efb268490027e829278804fe544708cbf31fcbd7ab1902821c"
+    },
+    {
+      "path": "app/lyric_paint.py",
+      "sha256": "25de5d18d9d95a0328da2d0480b0e0629248de1120b032579c848adec1635785"
+    },
+    {
+      "path": "app/lyrics.py",
+      "sha256": "0603d5302f3f358475646afa1677a0b838bf1c9904941dec058fee61c99b0391"
+    },
+    {
+      "path": "app/main.py",
+      "sha256": "6be9e1ba3c84698117061249ce0910e63e17804d4470eee32b58da61074c6580"
+    },
+    {
+      "path": "app/messages.py",
+      "sha256": "907afad19aad1a31c8bb04976f40ab040ced4e6c8a8ab38e43997df914f5b962"
+    },
+    {
+      "path": "app/midi_control.py",
+      "sha256": "2f0288b4c9f8985816bd40d093b3deb136c203121499b4787154090e71b75204"
+    },
+    {
+      "path": "app/move_pack.py",
+      "sha256": "cf0fdee472285fa83e38387eea9a2e5ad7cfd7cbdc51a7bf6ae6cf948ce5e7c1"
+    },
+    {
+      "path": "app/native.py",
+      "sha256": "7676793403c085cc6183bba2b7b25800ec538b8d60013dec73f24c7682038a6c"
+    },
+    {
+      "path": "app/preparation.py",
+      "sha256": "a6e9ee3bec9b627e479d1e5d9e1fa910151c9fe7702a38efd9e2560326e580b7"
+    },
+    {
+      "path": "app/preshow.py",
+      "sha256": "7a693acdc1811317de47bc33d2928761b07a3e91f7df179e90fb77df756cf926"
+    },
+    {
+      "path": "app/recognition_policy.py",
+      "sha256": "9211843206b22ec6b64b614d8230b1063cf2f88b73393086fa5f0848fcc129a7"
+    },
+    {
+      "path": "app/rekordbox_adapter.py",
+      "sha256": "8ab2b91369fc69731d84e6ce6469e3e1ded3cce08656d69c4ad1f8c16ff2d3c6"
+    },
+    {
+      "path": "app/rekordbox_ax_adapter.py",
+      "sha256": "2c34c48762ddedf9945b7e2e02780b4305ca7eb1e9ee79cade5aa3b30f1cecfe"
+    },
+    {
+      "path": "app/replay_bridge.py",
+      "sha256": "f47efcfd5c4e6769d1776bd98cbf30df8eef786e11608b7b0a51ce02f2ffacc5"
+    },
+    {
+      "path": "app/runtime_paths.py",
+      "sha256": "bd0b4112a0d2baa23dbfce840836b0f8d621a0869793112f729b81d688663c59"
+    },
+    {
+      "path": "app/screen_layers.py",
+      "sha256": "f5719350175a2d786ae525068ac64da47755ec079421d4eb9b7a6a23362240b8"
+    },
+    {
+      "path": "app/screen_library.py",
+      "sha256": "a2ad4977a2615559d0c98b4c434efa7e3552c1aaf221fcd1e14423e7ee9bb886"
+    },
+    {
+      "path": "app/serato_adapter.py",
+      "sha256": "cc184c7c84a6960b611100f499ea113132cc0b120478ad69ceb71a9e9f2afe7b"
+    },
+    {
+      "path": "app/serato_overlay.py",
+      "sha256": "6096e0e883c673fca6608fdd2f7ba2184633935dc07523a5e61ab9c8e3799c43"
+    },
+    {
+      "path": "app/setlist.py",
+      "sha256": "26cff09ee43c0d09394478916c72b575d27087e07c440b95fb97dd12349ddbf9"
+    },
+    {
+      "path": "app/showlog.py",
+      "sha256": "272fa4f42ebf68b4155101f0b6ab3aadf7e4cfedd78b387f8760963fb8061329"
+    },
+    {
+      "path": "app/source_routing.py",
+      "sha256": "f9adec23463d9019fc6a900b63079f1bcd9f1832c77f500eacd2059b172b2146"
+    },
+    {
+      "path": "app/storage.py",
+      "sha256": "36dceb2165eaf62dbdfaa42f6e78d59d5da0a18bf0264bf1b758ca7041e9e72b"
+    },
+    {
+      "path": "app/studio.py",
+      "sha256": "34d13a617d41d48460058bb6b0e90b23befe7365c0008a59912d1d5b64b3ff83"
+    },
+    {
+      "path": "app/studio_authoring.py",
+      "sha256": "ba7aa191d734d105a48f35c64a2f851ca6c23104fc23cc4bd34c6d663469e864"
+    },
+    {
+      "path": "app/studio_examples.py",
+      "sha256": "d1f4b1a0a56465b4b3bc48c2f4785b7e113c4d868c192a17e913a0b0a3baba0a"
+    },
+    {
+      "path": "app/studio_playback.py",
+      "sha256": "213e95208127065c51b190d357e5a3d0f106d8160fedbb7991f9b9dbb82f8059"
+    },
+    {
+      "path": "app/studio_preview.py",
+      "sha256": "b9b95dcecd6e73d78859bbbce7b7e0b5aaed129d41cd27c43e435b624a55a299"
+    },
+    {
+      "path": "app/studio_projects.py",
+      "sha256": "2479e4edf20b0d31733e8169b0a15a37fba7b24d6a49e0888e6e6a98584b7511"
+    },
+    {
+      "path": "app/studio_tools.py",
+      "sha256": "7fab8a241bc34886b1147812d8bd33a4fe40d431f0858dbe29de7dad95417aef"
+    },
+    {
+      "path": "app/style_catalog.py",
+      "sha256": "a53110164d30c975b33a24860b528d3bca9ad0197e9f5d2b14407b372cddd0f0"
+    },
+    {
+      "path": "app/styles.py",
+      "sha256": "9f672d64976e83846bda58c3862ab4dc3eb19d151e2dad5d6ae9f4447f7a8751"
+    },
+    {
+      "path": "app/toolbox.py",
+      "sha256": "d7d8a80e04625c27b30e30dd4a1fcf60111536d8c907210445640d01d6072f84"
+    },
+    {
+      "path": "assets/style_presets.json",
+      "sha256": "5e818416f7e571c3294b3461eba4f4a88f9e5a5b8bc2e782f9584187eda8e0ca"
+    },
+    {
+      "path": "config/302.example.json",
+      "sha256": "099740bf6de00a90178fe408cfed915c808353f96fddbf9ebda6af8ff4997ae1"
+    },
+    {
+      "path": "docs/DJ常用语与配置-20261103.md",
+      "sha256": "c62678886d8effe0bce4a10b32cfda8d45cc0d6e0413c4c09fa441cfe82a81d5"
+    },
+    {
+      "path": "docs/KTV跟唱-20261015.md",
+      "sha256": "a21b1d9e2d193e2019728adcafed00509c3e1003257f628091e9fe7f2116ecd9"
+    },
+    {
+      "path": "docs/macOS使用手册.md",
+      "sha256": "d72cd36856320ad1078a08499d1f5a8e136f44a433159fda1c8a5439e80829a0"
+    },
+    {
+      "path": "docs/macOS构建说明.md",
+      "sha256": "1d63dcf13d757f55c6eda4f5745862eb566091fd732161ba634fe31229d9ed10"
+    },
+    {
+      "path": "docs/open-source/AGENTS.md",
+      "sha256": "453e14eaa43bbf63406c5a47b01eca0ba76db1b342e465e4309d586cf0a09406"
+    },
+    {
+      "path": "docs/open-source/PROBES.md",
+      "sha256": "a911282a088421817924323b6ae420dbc09757239eda2033056e351ef56b436f"
+    },
+    {
+      "path": "docs/open-source/README.md",
+      "sha256": "17cfd277ea99a80d21adc0a83a71696d060a2a38eb90c591cf1bf1696a99f5f8"
+    },
+    {
+      "path": "docs/主程序重开现场状态恢复-20261103.md",
+      "sha256": "53a5c8bf73a25d178a5a60a7d005d48e3494f72d6cb184bb38c26142842ccb18"
+    },
+    {
+      "path": "docs/保存与预览修复-20261021.md",
+      "sha256": "9dfc75e7086604011fb1216ff1855cad5fad29a422bb7610d3764c4e2f36dcc7"
+    },
+    {
+      "path": "docs/制作引擎-0.6-接口.md",
+      "sha256": "1ea5b896bb14e1536ed26086aa54aed95caf60b96bcb1df301e5cdb708087ba6"
+    },
+    {
+      "path": "docs/原版歌词匹配-0.12.md",
+      "sha256": "9c5b11ae439fec2423481b73a78d45152b83299e74194010ad18770a725d34d7"
+    },
+    {
+      "path": "docs/国内模型API-0.10.md",
+      "sha256": "da87cbe63f99700c4ef01897cc7ab6817792736edfb89d0a6958c7cd22724ee1"
+    },
+    {
+      "path": "docs/字幕预设-20261013.md",
+      "sha256": "5307df0ea828be8c86ea46192620dfdebc06a0e47b70599acd5654aba736f7f1"
+    },
+    {
+      "path": "docs/客屏崩溃恢复-20261102.md",
+      "sha256": "8cfae2fb58b60a13f8d25420283447a263be20179c1ea4140227e220ef67f535"
+    },
+    {
+      "path": "docs/客屏文字与DJLogo-20261103.md",
+      "sha256": "30c6440588da1a04b7f3435cb45a8974a20d880a84fd66897fda0e8593729199"
+    },
+    {
+      "path": "docs/本地识别-0.6.md",
+      "sha256": "362135ab62ace03d566b09fcc9f7616c2b11d146af4cfb1b30fb256f6ec7fed4"
+    },
+    {
+      "path": "docs/歌词走带开关-20261021.md",
+      "sha256": "61401fe45b9f8ea1fe34ca69c7f75b056dc28a9cc5ac8f9257133c0c13787acd"
+    },
+    {
+      "path": "docs/现代模板-20261015.md",
+      "sha256": "8fad704300f8eb9e38eeb90317b3510a456804d8861af207b9ba253307d576d6"
+    },
+    {
+      "path": "docs/现场传统KTV-20261021.md",
+      "sha256": "def93f818f47a23ac845a382c73dacfebbe6f862da25f17fe73c06b26a2650b1"
+    },
+    {
+      "path": "docs/现场可靠性修复-20261021.md",
+      "sha256": "ff286ade2edda4f61c47463c83e16cf869b93f669fdcf06ef14a5bb5bcf15a74"
+    },
+    {
+      "path": "docs/现场字幕入退场-20261021.md",
+      "sha256": "b790c268c31dca774710ef244980747f698a850bedb69f0c9f0b39baff8796b9"
+    },
+    {
+      "path": "docs/百炼单首批量与钥匙串-20261023.md",
+      "sha256": "3d5c10dc4f328b3920f5cda5463cfa75e405ebac5a3f2fbfe10e49fe28da1e33"
+    },
+    {
+      "path": "docs/百炼统一入口-0.11.md",
+      "sha256": "084df3b5e064adfe850494f27a2b5bc330f86b3b668871848bcf114e97d21a12"
+    },
+    {
+      "path": "docs/简洁界面-20261015.md",
+      "sha256": "834d8495170a61eceaeeb9d3029ad8c8c0b5418d1917dc62f9c394c00ba50236"
+    },
+    {
+      "path": "fixtures/replay_timelines.json",
+      "sha256": "865427d95f0abf8cff686f6691b6eefb0765aa0f2d4992838725e04cf7d235f9"
+    },
+    {
+      "path": "native/README.md",
+      "sha256": "ab207a8dcfcb6ac705338e5577f807ac133197dfba21c3c49568663fa37bb9f5"
+    },
+    {
+      "path": "native/include/baofang_overlay.h",
+      "sha256": "15888a4720f444225e62c01607f989d097796e7e666d8bb1d3c01a12f9b4f56d"
+    },
+    {
+      "path": "native/include/baofang_sync.h",
+      "sha256": "ed31836ede4dd0b3f7f8b4dc6380df010ba0b98f27ee3fc171825ba5f3f62aa1"
+    },
+    {
+      "path": "native/src/baofang_overlay.mm",
+      "sha256": "6077dcfab749940e12f50d60e2d7512ff7a4be5aac658aa226bbc66bcde7f6b0"
+    },
+    {
+      "path": "native/src/baofang_sync.cpp",
+      "sha256": "15cc34de91cf48f551df509e0aa19e691881873feee16da9030b675d3b79e994"
+    },
+    {
+      "path": "probes/README.md",
+      "sha256": "a911282a088421817924323b6ae420dbc09757239eda2033056e351ef56b436f"
+    },
+    {
+      "path": "probes/__init__.py",
+      "sha256": "642a7dc4e7dd9770f4b50bf69c8f13afa9a6dea60dfb7876f8cdfe1adbc03111"
+    },
+    {
+      "path": "probes/fader_parser.py",
+      "sha256": "0866fb21473ae8a22df560b0720f7c87eabb8f327e2d0fd2519b2955d8f4bce7"
+    },
+    {
+      "path": "probes/macos_ipc.py",
+      "sha256": "a9e5455e5a87cc90241f372ce50b77127aa8ba78bf7a9276ba4df47997376dd3"
+    },
+    {
+      "path": "probes/movie_parser.py",
+      "sha256": "1f1a8ac2f32b27311f9d96960ae43a5a5aa5408b8526198c11974c739cce6b13"
+    },
+    {
+      "path": "probes/native/rekordbox_ax.m",
+      "sha256": "8afea7b57f0820f5ba9c2ba3c8e348b7185971e133084a18a90dec527d31ade1"
+    },
+    {
+      "path": "probes/native/rekordbox_memory.c",
+      "sha256": "3d52ce86a5cf8e629167238c4aac236e96a0ffca776b630af30ec841a4a726a0"
+    },
+    {
+      "path": "probes/rekordbox_ax.py",
+      "sha256": "e1140e18406adb6fbb3d3ad8527f398deb9025dff96e18624b0c32b5e9ee9cee"
+    },
+    {
+      "path": "probes/rekordbox_live.py",
+      "sha256": "105a23ca93ae30875b7ec0ecf70b5e26e9f181e8002d9fc51f7e6babfe1a43ca"
+    },
+    {
+      "path": "probes/rekordbox_mixer.py",
+      "sha256": "15ac61506757fa92a33e62b52242fe189e28d2afafc759b59b5609e5623970a1"
+    },
+    {
+      "path": "probes/rekordbox_native.py",
+      "sha256": "81fdf516d5746e7c63ec801e7b544d5bbf218fac19d42165421afe8e828ef7d8"
+    },
+    {
+      "path": "probes/rekordbox_probe.py",
+      "sha256": "21d5b4ce3f2b349693ef8198c9274f76715c022ec0a03decfe607570d1ef0aa5"
+    },
+    {
+      "path": "probes/rekordbox_reader.py",
+      "sha256": "70a517dacb34bdafe5f543084fc60d7860d1cd30d66b2ed06644303756fd666f"
+    },
+    {
+      "path": "probes/serato_probe.py",
+      "sha256": "33d0c575f591e909a10dbd52929f1c393ece1e638577f4ac7501318d6166da97"
+    },
+    {
+      "path": "probes/serato_reader.py",
+      "sha256": "a8082eb4ad3782283115b73a88c374c73bb6e328c8b5d09f332c6d4232110cb6"
+    },
+    {
+      "path": "protocol/serato-readonly.md",
+      "sha256": "834d19198e49e33c1da45b8626be21262573a2d2fea2177e3d3f01ca5e5f620a"
+    },
+    {
+      "path": "protocol/timeline-format.md",
+      "sha256": "88e4b544f909b8e47966d952b46146dd77a7a16301a7d2ac5ad91f603f81a60f"
+    },
+    {
+      "path": "requirements-build.txt",
+      "sha256": "5ea659ac7aad29fb94bcca606418dec367de9c7c2a589499f8f26cf1a9add254"
+    },
+    {
+      "path": "requirements-local-asr.txt",
+      "sha256": "38e39d108b591fd9544b62d9597381983558306ac36cfca6c7f7e9b637fa6aa5"
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "b9f03944964de0dd9099f0d3b15b38e6315ca3eaacb58a73b88b98be4bd68350"
+    },
+    {
+      "path": "scripts/build_dev_app.py",
+      "sha256": "4d1ac65f80c36a9a560f6a1b6a50446bb36c16f73fe6023f9587f484f67288ee"
+    },
+    {
+      "path": "scripts/build_macos.py",
+      "sha256": "42534056265cf79316113be56b7318af92655856e2fd03bb4a9cb7fb076feeef"
+    },
+    {
+      "path": "scripts/build_native.sh",
+      "sha256": "49f5241067045854683b12d1138c2ffbc4e24ecc1be44483f66afd1923c7eba4"
+    },
+    {
+      "path": "scripts/export_public_source.py",
+      "sha256": "1793271bcf5a237367d95fdccb711ada84d599e8569085fed4882cbaf7c9693f"
+    },
+    {
+      "path": "scripts/macos_launcher.m",
+      "sha256": "d8279618b6d90bb7a9281c98417c2e80cca59622ddf96ede173e23be15e92eea"
+    },
+    {
+      "path": "scripts/packaged_sitecustomize.py",
+      "sha256": "1b9f2e8ea0f7e7abd48b902a3c43b6c595b3ee53b70deb3817b989dc52a4343e"
+    },
+    {
+      "path": "scripts/repair_qt_metadata.py",
+      "sha256": "3ec7bf4664fdb65d1e4e0028c9db3cae4a2ff1b643928088d61bd99ca936df15"
+    },
+    {
+      "path": "tests/native/test_overlay.mm",
+      "sha256": "205ed3eb880a290428b799f630c02b346fce3026565d0a82412c375599795ce8"
+    },
+    {
+      "path": "tests/native/test_overlay_c.c",
+      "sha256": "d7ccd7847aaba3bb6ec6519cf14724e62a2478c79b47fcd56ee653d015627395"
+    },
+    {
+      "path": "tests/native/test_sync.cpp",
+      "sha256": "9a33598957db21c9563b41f571cb28d70da805fb5a20749a79b8d2079a2591a3"
+    },
+    {
+      "path": "tests/test_ai_providers.py",
+      "sha256": "30f09c2c4c0fe63062a8f0f84bb856329b3f049248680567780873d3bfbd84ed"
+    },
+    {
+      "path": "tests/test_ai_settings.py",
+      "sha256": "8885ea92fd4a7ca8a9380900d6c60b8144c5a77b7bd9103f55a0ffabca367e10"
+    },
+    {
+      "path": "tests/test_bailian.py",
+      "sha256": "d94e4d744a708e084ed951e5f7e2db34c8ca275c5502ce690a17109643822691"
+    },
+    {
+      "path": "tests/test_bailian_live_audit.py",
+      "sha256": "544ed7e23db207e4d3727ff8c14454b6727d2d46a86564a3d0baf5a34fb73a73"
+    },
+    {
+      "path": "tests/test_bailian_shared.py",
+      "sha256": "79ffcd9a2f012416a03a356455feb3f76a9e625660f764a0ca9dd7b150a76f21"
+    },
+    {
+      "path": "tests/test_batch_preparation.py",
+      "sha256": "5c3bf1ca5956b12e6bb1c05729d2a0d327df4ba4e4d13b697e8637f32c0cdda3"
+    },
+    {
+      "path": "tests/test_cloud_pipeline.py",
+      "sha256": "7739cdb239f31e9635ab22a205f226389b32a53e37290c5a85cc33b17510f919"
+    },
+    {
+      "path": "tests/test_composition.py",
+      "sha256": "5c4285598018338a629dcde96b3334a288ceacdfb4c7542d8e9e11e95a60d191"
+    },
+    {
+      "path": "tests/test_concert.py",
+      "sha256": "78c7cef0e2d4f03296a7a82f1e3e0e498faf038f4efbc022205f76190026911b"
+    },
+    {
+      "path": "tests/test_controller_modes.py",
+      "sha256": "01418117c40c3826b563f7414e72a35cb137320c328c2baf104ac4c23ed782aa"
+    },
+    {
+      "path": "tests/test_correction.py",
+      "sha256": "65aa23c2e70ba4899764226dfee41220df8c7920949c01055951a5262e0c08be"
+    },
+    {
+      "path": "tests/test_doubao.py",
+      "sha256": "dca12959667a049720bb1bc1c4db35db1df1623b43b9db22ec3057bdb525ff57"
+    },
+    {
+      "path": "tests/test_fader_parser.py",
+      "sha256": "24cadd82ab98e6dab273a947a2d640bb7959098498dfb0b4f3e87eaf27770221"
+    },
+    {
+      "path": "tests/test_live_controls.py",
+      "sha256": "7214237d24208f692af56121d6c05cf14c509cf7fb0de3532029cb8bb4a68430"
+    },
+    {
+      "path": "tests/test_live_effects.py",
+      "sha256": "bd8e4431b493e25ccce25d0c779042de80db29704c6084360e97845e439c0a53"
+    },
+    {
+      "path": "tests/test_live_extras.py",
+      "sha256": "4bd06c61cc89eb24ad7a203f6a4103c110d28eec1c50b628bbe376b44dc73d23"
+    },
+    {
+      "path": "tests/test_live_karaoke.py",
+      "sha256": "39cd4cf02fe6f310d48979c8d8718825218b3b9274860040e3c298f85f6ee3dd"
+    },
+    {
+      "path": "tests/test_live_projection.py",
+      "sha256": "fb0fb371e8032e965e3ff360ff0e2a32bad7e6bc94c9f78271a6dbf2602a8930"
+    },
+    {
+      "path": "tests/test_live_restart.py",
+      "sha256": "fd0073fe7f57fd2a11283c7f721aa44f510e22ac8b8409949fb789eea2c739a8"
+    },
+    {
+      "path": "tests/test_local_subtitles.py",
+      "sha256": "dc95633934f7599546814b274892d89290fbf9bd0e57f56675b0b227c80b88d0"
+    },
+    {
+      "path": "tests/test_lyric_sweep.py",
+      "sha256": "451869d6b49da1565b07c2a14173953038fcb84876b39c96d27be7e97b22a918"
+    },
+    {
+      "path": "tests/test_lyrics.py",
+      "sha256": "69dc4f5dc70e9ba264b86004ed662374fefccf662f8dab3bab8b5b596b70ebb7"
+    },
+    {
+      "path": "tests/test_messages.py",
+      "sha256": "dc886c5ae3c8f2e30396856ae28741102df559fa059894b9d39199f158d8340e"
+    },
+    {
+      "path": "tests/test_movie_parser.py",
+      "sha256": "3049a0b03f2377d2fc462ccabad1029a7c1dd314005d8e58b4cd44eeb9399cab"
+    },
+    {
+      "path": "tests/test_offline_cache.py",
+      "sha256": "ac93a240a568a9d66a6e0e3e82801f18852f9d8a8fdbff9b9b34ee9c578c36cc"
+    },
+    {
+      "path": "tests/test_output_recovery.py",
+      "sha256": "ba7e9acdaac6d67ad926f4b0f278c5d68f256d907886eaab1fda0450b19c69cc"
+    },
+    {
+      "path": "tests/test_packaged_runtime.py",
+      "sha256": "566bbb2c57059b841c39401614134f019fb7134ad17e16e70e8c521123895f9f"
+    },
+    {
+      "path": "tests/test_preparation.py",
+      "sha256": "b32c20e9e431236cb14dedb0e63b07b6fbbd6ee9757fc0c7fa8e9aa16ddf5482"
+    },
+    {
+      "path": "tests/test_preshow.py",
+      "sha256": "73efa98edbf050660404c84574db5a88a42a2de7b02c24f97cbb375164a4006a"
+    },
+    {
+      "path": "tests/test_probe.py",
+      "sha256": "0dff8eaa1de15752f5a60cd9fae9a2cf102ad746b6d19b5a475fe57730344f96"
+    },
+    {
+      "path": "tests/test_public_export.py",
+      "sha256": "7eba0d3b9d4816f290715a7083b3abc8f56e25868cc0b7afc578f6ab30487b56"
+    },
+    {
+      "path": "tests/test_recognition_policy.py",
+      "sha256": "541dd7af959b0c08f1e809a501dc0b7d43e1e8b5b516c46fd8ae20892993b66d"
+    },
+    {
+      "path": "tests/test_reference_lyrics.py",
+      "sha256": "b178b0ed2e6fd0b68c483d6a948ebaed47647a05cd244f9dcbcdcd8253b23c8f"
+    },
+    {
+      "path": "tests/test_rekordbox_ax.py",
+      "sha256": "c6f946d85a97a58b2b01b1fcfeae64c5a080a345145a4401cb4417137ff32b42"
+    },
+    {
+      "path": "tests/test_rekordbox_ax_adapter.py",
+      "sha256": "046309f12901b1da82f11954daf64827635c68b8e4c987c954c6abd1dae21546"
+    },
+    {
+      "path": "tests/test_rekordbox_ax_controller.py",
+      "sha256": "9702889dbc03476bb6fd25f6bd4b90dd86897f09376d7acd2ea3be19c54b2330"
+    },
+    {
+      "path": "tests/test_rekordbox_ax_stability.py",
+      "sha256": "46952e2b928451fe0d03a07c9c32e69d9fe5d2a43551194b73e9c9367a78706c"
+    },
+    {
+      "path": "tests/test_rekordbox_ax_transport.py",
+      "sha256": "a660de04428e10e44489cb17c4ca197d4b2adbdad99621521feda692b730eda2"
+    },
+    {
+      "path": "tests/test_rekordbox_live.py",
+      "sha256": "f67c66ce3795602295fd7787d6f55fbb5047f936fd056b384147bf306b7d11b4"
+    },
+    {
+      "path": "tests/test_rekordbox_mixer.py",
+      "sha256": "39930579057a3c767d901f120acba70720f731e325227da08a701147ddf3a359"
+    },
+    {
+      "path": "tests/test_rekordbox_native.py",
+      "sha256": "ce3a7004c0603a5ec868812dfec7ab0074eacbf43ed5f2adccbd1b5b9dc46a07"
+    },
+    {
+      "path": "tests/test_rekordbox_probe.py",
+      "sha256": "4769161824043675b114e848e9d8664c4862ea672fdb28d1627544b955c84b17"
+    },
+    {
+      "path": "tests/test_rekordbox_reader.py",
+      "sha256": "c5db896a3196fe1860f58232713e6c49d2e45aaf668b5b6fd40dfdc7b23dd68a"
+    },
+    {
+      "path": "tests/test_replay_bridge.py",
+      "sha256": "b94aa3e352906a6c468f92339edbee16e57756e4763d734323dddf730f50995f"
+    },
+    {
+      "path": "tests/test_scan_audio.py",
+      "sha256": "e2f119b9d47f31081252c635b1a520c3dee5735bf099c634a0381848cb5c59bd"
+    },
+    {
+      "path": "tests/test_screen_layers.py",
+      "sha256": "8945f51b8afb9d2b259f56dd5c1fa02717483abb2e595333fc0452c746c2713a"
+    },
+    {
+      "path": "tests/test_screen_library.py",
+      "sha256": "781d07cca770374cc27ec9b405f9c0e41309aef4ed1bdbaa5b3a62eadff4f9e6"
+    },
+    {
+      "path": "tests/test_serato_adapter.py",
+      "sha256": "2b4f96500a662b22b6d180634ebcdf96fd168937048c50d8198a35b303bb63c9"
+    },
+    {
+      "path": "tests/test_serato_overlay.py",
+      "sha256": "f8169a3331c159a7d327814254488eb22eac01a31c83c1d55e4eec193b9d207d"
+    },
+    {
+      "path": "tests/test_serato_reader.py",
+      "sha256": "f1259da1a8109eb4e860a32a737b079ba414b96ac396c24300c483e7f58f3ae0"
+    },
+    {
+      "path": "tests/test_setlist_tap.py",
+      "sha256": "62dd30a3903e4826bf2f67eeb3ad3f0250d125fd8f1e097208e90b8538d779b8"
+    },
+    {
+      "path": "tests/test_source_routing.py",
+      "sha256": "e5591d9bc8d53ff3a07e0a107716a118c7d237bedae254a367e28d3b775114c6"
+    },
+    {
+      "path": "tests/test_storage.py",
+      "sha256": "7f73c14647b29457270d26d035a8355ee8c8476910623b86477fe0b62a54647b"
+    },
+    {
+      "path": "tests/test_studio.py",
+      "sha256": "9b6043ed669a12411e9998cf78319a8a7e5bc2655989f12e1f9c5679a807c243"
+    },
+    {
+      "path": "tests/test_studio_authoring.py",
+      "sha256": "c0248b1429c7dee1419f399fa7413cc87101418a7c3fb9b61658f9e93401b7a1"
+    },
+    {
+      "path": "tests/test_studio_karaoke.py",
+      "sha256": "71663c1976db488ae07b66dfbcc2bb58d7bff7ebe6baff84ef691d37e3905a5e"
+    },
+    {
+      "path": "tests/test_studio_karaoke_render.py",
+      "sha256": "a939aaefb4270c9ca09f50485d2c92c15a313005614054f6ecaf065bccea57f6"
+    },
+    {
+      "path": "tests/test_studio_render_advanced.py",
+      "sha256": "c8ec72a7a1bb1ef30b96232b0aebc485178b04777a342022dcfe60ed076441d3"
+    },
+    {
+      "path": "tests/test_studio_templates.py",
+      "sha256": "550f25ff85fd8343981c3b4c27da7c8aebcea3b74308c14d5c056b7ff130d236"
+    },
+    {
+      "path": "tests/test_studio_tools.py",
+      "sha256": "5d93a87d555d1934d74d77f801ab5dc6578a1e9b63ba15671338ecde18189ddf"
+    },
+    {
+      "path": "tests/test_studio_transcribe.py",
+      "sha256": "fd3b928bc5fa8014359f15f504bd69047c54cd699690be1a3551f80b227f116c"
+    },
+    {
+      "path": "tests/test_studio_usability.py",
+      "sha256": "6163ca49184ed521b1ccd3e5270c043a15af0dd043317d51307f25ff65bd14e5"
+    },
+    {
+      "path": "tests/test_style_catalog.py",
+      "sha256": "00569467c2b3e9d4f6c85fd6bdfb95bc4c04ff63cd1d1a64a44913385aae4f27"
+    },
+    {
+      "path": "tests/test_subtitle_export.py",
+      "sha256": "f3e61ad2fc944720f34345a0059d15ca3789f3f87bb40da70af7f255c12eac7c"
+    },
+    {
+      "path": "tests/test_subtitle_styles.py",
+      "sha256": "f822c75da7dcf0242180e890cbc0bd144758a7e011f71c121313f4f1dd1ded04"
+    },
+    {
+      "path": "tools/capture_ui_pages.py",
+      "sha256": "dc854be5698aa7724775d66a5a1691d495cda115e5d71b986391ae836bb944e3"
+    },
+    {
+      "path": "tools/check_api_ui.py",
+      "sha256": "0424a27076de27c4d8fdaa2aa3deefc3ae1559981b41584ceb17d337c985f415"
+    },
+    {
+      "path": "tools/check_bailian_batch_ui.py",
+      "sha256": "09a25676cf671843aa24455f23928360ea62088689b94233b57a30f6a4d72a0c"
+    },
+    {
+      "path": "tools/check_bailian_live.py",
+      "sha256": "db80abc3f04ed9a907a26572537a12ef4a6677e81d1a57d5088f86527374c12f"
+    },
+    {
+      "path": "tools/check_console_layout.py",
+      "sha256": "8423a59c1d9e0e1f99fd27d9e91699f64ea54fffc77f1f4f88c769f94050d91a"
+    },
+    {
+      "path": "tools/check_keychain.py",
+      "sha256": "0c5c624dbe3f6caa3490cb370bc82b165a7b3abc6f8cbb1ead1662307e6ebd3d"
+    },
+    {
+      "path": "tools/check_live_console.py",
+      "sha256": "97bffdc3c2cb08ee9b74bbdef17da4fc17cf1d9e349b67baf5d336bc584312d9"
+    },
+    {
+      "path": "tools/check_live_extras.py",
+      "sha256": "0bbac7f74aefc9f1f4d9902de01472b8e54d5f5af2994193e6a6ab1938b8730e"
+    },
+    {
+      "path": "tools/check_live_karaoke.py",
+      "sha256": "ac953b951439ef50ebd2714646e9aeb07de66de2668113191763b89ebad4f415"
+    },
+    {
+      "path": "tools/check_live_restart.py",
+      "sha256": "e21ebe96f54d5902f295f0fb81a5c990148b5af9ed2b8d7b33955e8b7f6df16c"
+    },
+    {
+      "path": "tools/check_live_tools.py",
+      "sha256": "da4ce8af8b5790e387d43d6a1ee6f81a2d40d3d6f0ab8383344e7ce3b3e7ff2f"
+    },
+    {
+      "path": "tools/check_live_workflow.py",
+      "sha256": "7b39961a3f08a5898a5bac755afbcd8109002853cfab28459a4b0a294de90edb"
+    },
+    {
+      "path": "tools/check_macos_package.py",
+      "sha256": "f128234f7f1c2e01de7ea3275f551450f3f6b098d15da3c08306cc61caac5424"
+    },
+    {
+      "path": "tools/check_output_recovery.py",
+      "sha256": "a4b00ea4b4e99fdb3f4d164d43170f95ce3901cc76c79a52595347a55e06413f"
+    },
+    {
+      "path": "tools/check_preshow.py",
+      "sha256": "60a9db1b9e1aab0e69a9b89adee2746176c81932bc9dbdbf05c4beadd1dfb224"
+    },
+    {
+      "path": "tools/check_rekordbox_ax_ui.py",
+      "sha256": "ddca0a8d05520ec0802207ed852daf7027f6b978caacb9945115eae10dadb5b0"
+    },
+    {
+      "path": "tools/check_rekordbox_ui.py",
+      "sha256": "3e88478505d5e3bac5ea2e857aeb9f3ff756b8c5cb60dfe239f8ea5ff461695c"
+    },
+    {
+      "path": "tools/check_screen_content.py",
+      "sha256": "188eb2131fd72fe7d5d83a057b0a4bbc1fcac1e9ae9d7a6ac518c9e2f134b88f"
+    },
+    {
+      "path": "tools/check_screen_layers.py",
+      "sha256": "a3545b4c547af93b5b8dd6fcff4cd6b97cbc009b087c89e9cdb68159f33328d2"
+    },
+    {
+      "path": "tools/check_screen_layers_edges.py",
+      "sha256": "17a4991858d0cf276ac2161087d5b47b449dca8277f34511048968fe2056681d"
+    },
+    {
+      "path": "tools/check_screen_personal.py",
+      "sha256": "e6cd1a206ab34738436246f787727000bcee1b762cb0e382df71e8cc6627a4ee"
+    },
+    {
+      "path": "tools/check_studio_advanced_ui.py",
+      "sha256": "e1442f538f2b44c2a4b258f280a4fcd43995cdae0cfb6c41c8b1c9c8506621fa"
+    },
+    {
+      "path": "tools/check_studio_karaoke.py",
+      "sha256": "b82e7c05a7ca8bb141a38758baa1497f1bfd37a41a14394f70aa1e4b7013c631"
+    },
+    {
+      "path": "tools/check_studio_onboarding.py",
+      "sha256": "4ae57368cd0a2ad6ddb2e66e2932a8bc7ab4a27ec0b46ff56ffab1caaff2386f"
+    },
+    {
+      "path": "tools/check_studio_playback.py",
+      "sha256": "e84a6269631839acc4bb293e2fa98b0b420e1fa53d9c26271f9b86fb6dd0be18"
+    },
+    {
+      "path": "tools/check_studio_simple_ui.py",
+      "sha256": "bfb10abc0213730fc47ced5deb03eda918c98889cc62ab0d1f4311076861ff9f"
+    },
+    {
+      "path": "tools/check_studio_templates.py",
+      "sha256": "75e7455902920167bd7ad149b77a286aecd25d1e07cfb24be480ce715b5b6d91"
+    },
+    {
+      "path": "tools/check_studio_tools_ui.py",
+      "sha256": "9ccd182195631798a031c7d149914b94e76eabb3ce50b489953c910ae5daa433"
+    },
+    {
+      "path": "tools/check_studio_ui.py",
+      "sha256": "27693f3cf2ebf6c6d743cf1d3b88961721c374d25f96cd91dcd92906a8bf74fb"
+    },
+    {
+      "path": "tools/check_studio_usability.py",
+      "sha256": "8852387056d7c845fe37f1ad36a162b7922ede6f2372d9e7a0866db38e62a14a"
+    },
+    {
+      "path": "tools/check_style_presets_render.py",
+      "sha256": "12c67fb21200e12420ae19cf7ec1e0104762a50b08ff970cdc58280f923b272e"
+    },
+    {
+      "path": "tools/check_style_presets_ui.py",
+      "sha256": "5c5ba9db70d1d7631fb84c9b058c4058cf366f34fda96d4c5822492a72afbf76"
+    },
+    {
+      "path": "tools/check_subtitle_styles_ui.py",
+      "sha256": "e0dd5f436a378a8e63dd634d2bc6e01651d0416349b262ec42cdb9d160b2b36b"
+    },
+    {
+      "path": "tools/doubao_preflight.py",
+      "sha256": "7431c40ee085c758cf89fcf5444a5637d13bbb9b981a3e6b492dac96854584ba"
+    },
+    {
+      "path": "tools/mark_serato_phase.py",
+      "sha256": "db615ee03db2ba3793e5a5253fcbd7c95611f542e959c444fd13310ff1ba7a6d"
+    },
+    {
+      "path": "tools/record_serato_test.py",
+      "sha256": "c17a5bc0da7d2e9421d276849ba636ec5074ea596b56e13a3e607f713387259d"
+    },
+    {
+      "path": "tools/run_rekordbox_ab_test.command",
+      "sha256": "260daed85ac9f78f6317367b48442c57e652377c05008161b71747dea3f69a7d"
+    },
+    {
+      "path": "tools/smoke_gui.py",
+      "sha256": "1f403ea2e67b1b7bb971be213a2d23b098796dac70a071a07e9b10e0098b5bce"
+    },
+    {
+      "path": "tools/test_offline_playback.py",
+      "sha256": "69499cf65222232fadcc224f685646d60af8cf3f86f352a121917381b1702d57"
+    },
+    {
+      "path": "tools/test_ui_offline_library.py",
+      "sha256": "dd92b4c1ae7693e82723d77c40b9589e004b4dbfcecf6a0cf739f9ba1b9f6b0a"
+    },
+    {
+      "path": "tools/test_ui_preparation_flow.py",
+      "sha256": "ab1ba9ad3520dd5ecee681a2b47686ac91f8d868936a50fae2e28f3d5e149eba"
+    },
+    {
+      "path": "tools/test_ui_recognition.py",
+      "sha256": "9ee6ecfc7e6717a61afc70f5cbf4ab2778ee15eed5c38057288963f262fcbe84"
+    },
+    {
+      "path": "tools/test_ui_renderer.py",
+      "sha256": "3ce411abbace8eb351aaa7ec3734ad89c06cd971592ec1f4fc12aa5f300dcb73"
+    },
+    {
+      "path": "tools/ui_state_smoke.py",
+      "sha256": "be67c7ad8a3e26d6d89477ae54d34feb7683762a83f6c9f4b114bd0a2977c2a6"
+    },
+    {
+      "path": "ui/APISettingsPanel.qml",
+      "sha256": "35ea404d3cb1cc652d1155976c6831efac24556442d1697a62eb609c74e1e268"
+    },
+    {
+      "path": "ui/AccentBar.qml",
+      "sha256": "e00e88fcef06cb0a1260c5a5ecc3167c722fa9812349e5527a87f6ea82a0812a"
+    },
+    {
+      "path": "ui/ActionButton.qml",
+      "sha256": "2a14ab28093265239b7c17747ac4690e2ca4bd0e9aa98c36c203d0abf6a5fc13"
+    },
+    {
+      "path": "ui/AppIcon.qml",
+      "sha256": "2c8f81e8db8f635cfad493a62da7db43d106746d30a2779233170c67e2095674"
+    },
+    {
+      "path": "ui/ControlSlider.qml",
+      "sha256": "5a771e89ff841e16681f11feff98c52b256fed97714f84eabbf62ada0a467020"
+    },
+    {
+      "path": "ui/DarkCheckBox.qml",
+      "sha256": "7af9535cbc2116107c7aeab964a63b412aeec38fc1d534be09ebe25412a98cef"
+    },
+    {
+      "path": "ui/DarkComboBox.qml",
+      "sha256": "7c0bdd852720d1e1a59586463ef7cac3511bbfbd8ea239ad3c04a71bcbd9e21a"
+    },
+    {
+      "path": "ui/DeckCard.qml",
+      "sha256": "66105d321a166ed97412f4f0dd69a6285773ba308b62d8204bc3f6f7970a2cf9"
+    },
+    {
+      "path": "ui/DiagnosticsPanel.qml",
+      "sha256": "7a92f35860d50e5a9115eb6c7ca76f2d05cba1a40a4a2e218013309cbde398c2"
+    },
+    {
+      "path": "ui/FilterRow.qml",
+      "sha256": "7cc6e8d4402c7e95dccded93255c1ee89fb7764746e77237702f20ffa7428fd0"
+    },
+    {
+      "path": "ui/GuestWishControls.qml",
+      "sha256": "56a2902ddd440a0e939ed0260656046e8657c4c4da818f5458554ffc8c5dbd23"
+    },
+    {
+      "path": "ui/ImportCard.qml",
+      "sha256": "6ac4660202431c11bdadb1100c389c1dde40a2d56b1093475d07527177a7a535"
+    },
+    {
+      "path": "ui/LivePanel.qml",
+      "sha256": "5476cef4e644b3f7301cd51d59da92edbfd3d6a87f3fc0c978e1b03994e61f11"
+    },
+    {
+      "path": "ui/LyricText.qml",
+      "sha256": "65e84909d270fe157d4c5c112a5caf12fd36b8e672bd990b3aa5ff84824a83b4"
+    },
+    {
+      "path": "ui/Main.qml",
+      "sha256": "0d6cb26f883be8bafbf382ebe86e3703cf892f842a54931f2dcabd8f7c776085"
+    },
+    {
+      "path": "ui/OfflineLibraryPanel.qml",
+      "sha256": "704cf5d622f2fb469fce087f96b5fce6b91bc4f868cc2b0bdc301c80237082ee"
+    },
+    {
+      "path": "ui/OutputStylePanel.qml",
+      "sha256": "c69fa7accbc48ba9556f2845d7b7d39a960cd9d17d5df3bfb6b34e19305c8aa6"
+    },
+    {
+      "path": "ui/PanelCard.qml",
+      "sha256": "cae4dae7602e222dacac71a59461e6246d1b6873e64424a03daea9ba7c821c2f"
+    },
+    {
+      "path": "ui/PillFrame.qml",
+      "sha256": "700530e43d76279a8e2d8515c92613348831f4f647d7a185989120a0681a2fbd"
+    },
+    {
+      "path": "ui/PresetDecoration.qml",
+      "sha256": "25c4f47118852b91cef427ad72f07bdd9525acf4179896b83054d348aee13c46"
+    },
+    {
+      "path": "ui/Program.qml",
+      "sha256": "06811f618f59ede8353416bde590bf71a4359050f3036cc02c722181e4bafd03"
+    },
+    {
+      "path": "ui/ProgramView.qml",
+      "sha256": "7d5c7d78e89493e635f19123dfed6fb0279e3d68b5beebf93a0e9d4b67dc8d77"
+    },
+    {
+      "path": "ui/RecognitionPanel.qml",
+      "sha256": "c03ab6cbfe80f152c3658a6928ed0d8845d0c83004e390cdb59c4904540ee41f"
+    },
+    {
+      "path": "ui/RekordboxAxBinding.qml",
+      "sha256": "7c2dee6525d20df47ea9f45ec433f19ef1feaeefb9b083dc0844c5d101e639b5"
+    },
+    {
+      "path": "ui/ScreenContentPanel.qml",
+      "sha256": "416e6c7ab50c1e8ba7f4922b024c9d8f5c961d5399c73696283095d1a4dfc586"
+    },
+    {
+      "path": "ui/ScreenLayers.qml",
+      "sha256": "f3993501854425d361027d63f0e01655c70e92c26be1d2f3bda169045094a7b4"
+    },
+    {
+      "path": "ui/ScreenPersonalPanel.qml",
+      "sha256": "9880a7d34cbb4e060aa20224e676b87901e3bb0416fb7f56272dcce44d16f60f"
+    },
+    {
+      "path": "ui/SeratoOverlay.qml",
+      "sha256": "82834232ac77ab08dcc32e2c160acdd6390e890f170afed5f8b0928c84fb28f5"
+    },
+    {
+      "path": "ui/SourceTile.qml",
+      "sha256": "a6ebebb8c91b52003002d07e392ee74fbd1dd715385aa84243b9f4bc99af5d85"
+    },
+    {
+      "path": "ui/StatusPill.qml",
+      "sha256": "2d95d8c13a3dfe42e0e399175730414e028ad995303b7b514add013efc36992b"
+    },
+    {
+      "path": "ui/StepHeader.qml",
+      "sha256": "fcf55c94a2b130a0467866199499c3014ae31c76910fdd99c28dab0365614d9e"
+    },
+    {
+      "path": "ui/StudioButton.qml",
+      "sha256": "43a218f847284fe356c1e3a219bb338b188d28d2e137b15c8258d5e99740c7fd"
+    },
+    {
+      "path": "ui/StudioCatalogPicker.qml",
+      "sha256": "aaa294549000404360ee0718a894dd83dbd41b4ffcdc5ff815fdf39f570f04e1"
+    },
+    {
+      "path": "ui/StudioCompositionInspector.qml",
+      "sha256": "5463efbfc9bb5dea4363e19d1999c2c55d486f86adfe90ad1797a28f24a96c83"
+    },
+    {
+      "path": "ui/StudioConcertInspector.qml",
+      "sha256": "731f6aa823c68cd8c80e9c3c537b09569cef26fce896c6eaf376d13634d203d1"
+    },
+    {
+      "path": "ui/StudioEffectChoices.qml",
+      "sha256": "4e48c3fea08ec6dfc149bd1963854caaee19247bde614ad3942f6e4feb2512be"
+    },
+    {
+      "path": "ui/StudioExportInspector.qml",
+      "sha256": "0b73ae8fdea35e73b63cda5ff239f3cc695552a967c0386ead77b278dfe1679c"
+    },
+    {
+      "path": "ui/StudioIcon.qml",
+      "sha256": "b58e5ffaafbd7369c4279d58353802f047fccda781bc6995c10c34f94cd01307"
+    },
+    {
+      "path": "ui/StudioLibraryPane.qml",
+      "sha256": "0eda3a70b9dfbcae84997cfc554947381f7c80ce2cd07e6e7abd48bd3ebd5b87"
+    },
+    {
+      "path": "ui/StudioLyricTimingInspector.qml",
+      "sha256": "f1fe34aa0e49bede7d65380bcb225b916349892ace669b5700b8fa19f5a0142f"
+    },
+    {
+      "path": "ui/StudioPanel.qml",
+      "sha256": "b7475f89157a849bf7fbd0b6a58da068c7e1e5e3b20a101697a6a3844f354a98"
+    },
+    {
+      "path": "ui/StudioSimplePanel.qml",
+      "sha256": "e08a314c87c10d1e31b12c81632aea3733aa99d53f865b0db8580bca486654d0"
+    },
+    {
+      "path": "ui/StudioStyleInspector.qml",
+      "sha256": "bbf19f32a419f6ad6531dcbf6c7bbdfb1fb925ffd2235bbe2a4753acd1afaee7"
+    },
+    {
+      "path": "ui/StudioTemplateGallery.qml",
+      "sha256": "14c370f074a72c81314de4e8d418d61f560128376d10b855c4c6db469e1fbe40"
+    },
+    {
+      "path": "ui/StudioTimeline.qml",
+      "sha256": "e2e73eff866c88b3ea13f8899daf247ca6ce6fbc143e4b7311686e27e7ddae86"
+    },
+    {
+      "path": "ui/StudioToolsPanel.qml",
+      "sha256": "a6a8c4c3da5f5132217f5cb598e78de2a136cb787275af0f7cb2607749bad332"
+    },
+    {
+      "path": "ui/StudioValueField.qml",
+      "sha256": "c0a9e7c523b00d3170c9a03bae5af2df132f417d1d86568c36a164bfb446fd79"
+    },
+    {
+      "path": "ui/StudioWelcome.qml",
+      "sha256": "8eb9450152f6d1a4f85bdd30a5685c0901441b773c14cdbe2ae1e5c14784dea2"
+    },
+    {
+      "path": "ui/StudioWorkflow.qml",
+      "sha256": "3efe5f67fd183812024a0392d3a072248cf9f3edb8627a0fda28d418b0256bb1"
+    },
+    {
+      "path": "ui/StyleColorControl.qml",
+      "sha256": "2e4945a9ac66952986adc7469f9e77735f3620a13a00212bfa93348ed48457f6"
+    },
+    {
+      "path": "ui/StylePresetLibrary.qml",
+      "sha256": "2c56e7f396ea5cb8559db2c63a0b90dd2e1e0658724007e4c530c17bf8f958ad"
+    },
+    {
+      "path": "ui/TextTab.qml",
+      "sha256": "4b260c69e88452a679f4827ffbbe548d21da881ae4f5e73cb65e1d6617528f18"
+    },
+    {
+      "path": "ui/Theme.qml",
+      "sha256": "4babd25afda39ff305cb44c090336b79aeed9846aaac6dd951c80c04f0b0d068"
+    },
+    {
+      "path": "ui/VideoFader.qml",
+      "sha256": "edd59d5b721681c157c4372a12f691cd9601672a6fd209831bddc1b82c24a59a"
+    },
+    {
+      "path": "ui/qmldir",
+      "sha256": "8a9e1301a00c98c76b795513d7ea8f550f6c16b5c3ab662b40e158412009f546"
+    },
+    {
+      "path": "worker/__init__.py",
+      "sha256": "c32db61c2d6a9e336d674891160afedd89defd2fd14ff650bf0f589c757f045f"
+    },
+    {
+      "path": "worker/ai_providers.py",
+      "sha256": "e7b03f9a7ae5e014a046e950357f3e9e6e37696fc13d59fe73d792fdec430695"
+    },
+    {
+      "path": "worker/ai_tasks.py",
+      "sha256": "ec2696a7bfa8292e501d69875fab2ec621bade15099b93c2683e3c639a7ed28b"
+    },
+    {
+      "path": "worker/bailian.py",
+      "sha256": "9d243adf3b13df8285a2a2edb57ae1482186aa3d92a23f26f8e640244759aeba"
+    },
+    {
+      "path": "worker/bailian_preparation.py",
+      "sha256": "60ae6225ed7ee3dc825c12e6b9bb014a54435174b69ce1e35d184a8e7369ad43"
+    },
+    {
+      "path": "worker/cloud_pipeline.py",
+      "sha256": "ddd4637eedf1781d1cbb46ee3cd56bf6982aef1a1e6db2eab7b179f790d44817"
+    },
+    {
+      "path": "worker/composition_render.py",
+      "sha256": "9cbcf04e1a187ade8224410b558097b550a6b98239ee1e58245792ae52a2e4b4"
+    },
+    {
+      "path": "worker/concert.py",
+      "sha256": "6ccf1b461aeb98ad3d48e11eb95ccf695ff3cdc2288991f57b928f860e487609"
+    },
+    {
+      "path": "worker/correction.py",
+      "sha256": "9ee2d96f68e32e623cbe26b9b5478376e793ff319f82ba546f4c14250db5952c"
+    },
+    {
+      "path": "worker/doubao.py",
+      "sha256": "53ad9cd9965060d4f605a620c1551bc6ccb37060056997720ef60a2bac11fd7e"
+    },
+    {
+      "path": "worker/index_audio.py",
+      "sha256": "4a3599dd5e65c995f48fdd963d121f534f7c7c8718a632e0c091efdcdc6ca070"
+    },
+    {
+      "path": "worker/lyric_reference.py",
+      "sha256": "e22d6a426e836574a22b64db75674388d287dded14a9d30873ffd1dcccfc41fc"
+    },
+    {
+      "path": "worker/reference_match.py",
+      "sha256": "7d0aa251a2ad8df22606a984367092595df10ebcea817b3b1fbd4a12c20f7ece"
+    },
+    {
+      "path": "worker/scan_audio.py",
+      "sha256": "c6722b5b283672d9d131e47941162db8bf9093b7bd222cb02ebf7c5cc3ac95de"
+    },
+    {
+      "path": "worker/studio_audio.py",
+      "sha256": "0b54dffb4f48ef1f27fa6facf14971b75fb8fdaf2d1f6bf0471e93295c9a4852"
+    },
+    {
+      "path": "worker/studio_render.py",
+      "sha256": "374eb0fc5d7571785d8b6ad3169caef033e01c845f924b0dceef83bd2648a9c8"
+    },
+    {
+      "path": "worker/studio_transcribe.py",
+      "sha256": "ff0bbbceb852fbd865b9fa2aaf7624780f127d478e5e674a1dd2e546c31e3c99"
+    },
+    {
+      "path": "worker/studio_video.py",
+      "sha256": "347a07ce0e52562126ad6392d88d6b5302a3b2cb195e5d932fb9a96537797698"
+    },
+    {
+      "path": "worker/style_catalog.py",
+      "sha256": "869287c9eca2b37c29d5e14e6d6b712c2b630055112c6f6647741c9f558a8b4a"
+    },
+    {
+      "path": "worker/subtitle_export.py",
+      "sha256": "29f99d9cc3b8bf92b192bc83314b7ae00206eed6fad5069e5bd751fc7d37ff49"
+    },
+    {
+      "path": "包房战神Serato只读.command",
+      "sha256": "58e4fbfae7993ea414062ca26923b96406b48cee971442f1df852ffbe9f41de9"
+    },
+    {
+      "path": "包房战神开发版.command",
+      "sha256": "3210e71d3df8e92551762ddab8c10ff2cb7287023a97806b3460c7037e0877c1"
+    }
+  ],
+  "excludes": [
+    "private history",
+    "real diagnostics",
+    "research reports",
+    "runtime data",
+    "credentials",
+    "music",
+    "downloaded assets",
+    "models",
+    "build products"
+  ]
+}

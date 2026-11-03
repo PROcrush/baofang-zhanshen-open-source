@@ -1,0 +1,9 @@
+title = "BaoFang Zhanshen secret scanning"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Literal environment-variable identifier; never a credential value"
+regexTarget = "secret"
+regexes = ['''^BAOFANG_302_API_KEY$''']

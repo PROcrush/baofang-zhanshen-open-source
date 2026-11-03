@@ -1,0 +1,25 @@
+.venv/
+.cache/
+build/
+dist/
+runtime/
+__pycache__/
+*.pyc
+.DS_Store
+*.app/
+assets/models/*.pt
+
+# Local runtime, reverse-engineering artifacts, model weights and downloaded media.
+analysis/
+local-test/
+assets/models/
+assets/vj/Beeple/
+assets/vj/ready/
+assets/vj/preview/
+
+# Local credentials; only intentionally prepared examples belong in Git.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
