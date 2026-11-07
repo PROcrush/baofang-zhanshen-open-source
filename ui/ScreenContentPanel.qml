@@ -81,7 +81,7 @@ ColumnLayout {
     }
     function chooseStyle(preset) {
         if (tab === 0) {
-            draftText = Object.assign({}, draftText, {style: preset.key, position: preset.position,
+            draftText = Object.assign({}, draftText, {style: preset.key, position: preset.position, font: "auto",
                                                       fontSize: preset.fontSize, color: preset.color});
         } else {
             draftLogo = Object.assign({}, draftLogo, {style: preset.key, position: preset.position, size: preset.size});
@@ -244,6 +244,17 @@ ColumnLayout {
                 ColumnLayout {
                     visible: panel.adjusting; Layout.fillWidth: true; spacing: 6
                     DarkComboBox { objectName: "screenLayerPosition"; Layout.fillWidth: true; model: ["左上", "上方居中", "右上", "左侧居中", "正中", "右侧居中", "左下", "下方居中", "右下"]; currentIndex: Math.max(0, panel.positionKeys.indexOf(panel.activeDraft.position)); onActivated: panel.update("position", panel.positionKeys[currentIndex]) }
+                    RowLayout {
+                        Layout.fillWidth: true; visible: panel.tab === 0
+                        Text { text: "字体"; color: Theme.secondary; font.pixelSize: 11 }
+                        DarkComboBox {
+                            objectName: "screenTextFont"; Layout.fillWidth: true
+                            model: Styles.fonts.map(function(option) { return option.label; })
+                            currentIndex: Math.max(0, Styles.fonts.findIndex(function(option) { return option.key === panel.draftText.font; }))
+                            Accessible.name: "客屏文字字体"
+                            onActivated: panel.update("font", Styles.fonts[currentIndex].key)
+                        }
+                    }
                     Text { text: (panel.tab === 0 ? "字号 " : "大小 ") + Math.round(panel.tab === 0 ? panel.draftText.fontSize || 40 : panel.draftLogo.size || 18) + (panel.tab === 1 ? "%" : ""); color: Theme.secondary; font.pixelSize: 11 }
                     ControlSlider { objectName: "screenLayerSize"; Layout.fillWidth: true; from: panel.tab === 0 ? 24 : 5; to: panel.tab === 0 ? 120 : 40; stepSize: 1; value: (panel.tab === 0 ? panel.draftText.fontSize : panel.draftLogo.size) || from; onMoved: panel.update(panel.tab === 0 ? "fontSize" : "size", value) }
                     Text { text: "不透明度 " + Math.round((panel.activeDraft.opacity === undefined ? 1 : panel.activeDraft.opacity) * 100) + "%"; color: Theme.secondary; font.pixelSize: 11 }

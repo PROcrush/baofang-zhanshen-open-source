@@ -175,7 +175,7 @@ def main():
                         assert plate.x() >= 0 and plate.x() + plate.width() <= width + 1, geometry
                         assert plate.y() >= 0 and plate.y() + plate.height() <= height + 1, geometry
                     assert text_item.property('paintedHeight') * text_item.scale() <= text_item.height() + 1
-                    config['text']['position'] = 'top-left'
+                    config['text']['position'] = {'champagne': 'top-left', 'midnight': 'top-right', 'record': 'top-center'}[style]
                     stage.setProperty('stateData', {'screenLayers': config, 'logoImageUrl': owned})
                     QTest.qWait(40)
                     assert text_plate.y() + text_plate.height() <= height * .54 + 1

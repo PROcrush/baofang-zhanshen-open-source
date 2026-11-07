@@ -15,11 +15,12 @@ MAX_TEXT = 300
 ASSET = re.compile(r'^[0-9a-f]{64}\.png$')
 STYLES = {'text': ('classic', 'midnight', 'champagne', 'record'),
           'logo': ('plain', 'matte', 'foil')}
+TEXT_FONTS = ('auto', 'pingfang', 'hiragino', 'songti', 'heiti')
 
 
 def default_layers():
     return {'text': {'text': '', 'visible': False, 'position': 'center', 'fontSize': 48,
-                     'opacity': 1.0, 'color': '#FFFFFF', 'style': 'classic'},
+                     'opacity': 1.0, 'color': '#FFFFFF', 'style': 'classic', 'font': 'auto'},
             'logo': {'image': '', 'fileName': '', 'visible': False, 'position': 'top-left',
                      'size': 18, 'opacity': 1.0, 'style': 'plain'}}
 
@@ -40,7 +41,8 @@ def validate_layers(value):
     result = copy.deepcopy(value)
     defaults = default_layers()
     for name, row in result.items():
-        if not isinstance(row, dict) or set(row) | {'style'} != set(defaults[name]):
+        optional = {'style', 'font'} if name == 'text' else {'style'}
+        if not isinstance(row, dict) or (set(row) | optional) != set(defaults[name]):
             raise ValueError('客屏图层字段无效')
         row.setdefault('style', defaults[name]['style'])
         if row['style'] not in STYLES[name]:
@@ -53,6 +55,9 @@ def validate_layers(value):
             if type(number) not in (int, float) or not low <= number <= high or not math.isfinite(number):
                 raise ValueError('客屏图层大小或透明度超出范围')
         if name == 'text':
+            row.setdefault('font', 'auto')
+            if row['font'] not in TEXT_FONTS:
+                raise ValueError('客屏文字字体无效')
             row['text'] = clean_layer_text(row['text'])
             if row['visible'] and not row['text']:
                 raise ValueError('先输入文字，再上屏')

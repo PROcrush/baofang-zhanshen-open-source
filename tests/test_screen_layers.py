@@ -51,6 +51,7 @@ class ScreenLayerTests(unittest.TestCase):
         for layer, key, value in (('logo', 'image', '../bad.png'), ('text', 'opacity', float('nan')),
                                   ('logo', 'size', True), ('text', 'fontSize', 121),
                                   ('text', 'color', 'red'), ('logo', 'position', 'anywhere'), ('logo', 'style', 'record'),
+                                  ('text', 'font', 'missing-font'),
                                   ('logo', 'visible', True), ('text', 'visible', True)):
             candidate = default_layers()
             candidate[layer][key] = value
@@ -61,8 +62,10 @@ class ScreenLayerTests(unittest.TestCase):
         old = default_layers()
         for row in old.values():
             del row['style']
+        del old['text']['font']
         self.assertEqual(validate_layers(old), default_layers())
         old['text']['style'] = 'champagne'
+        old['text']['font'] = 'songti'
         old['logo']['style'] = 'foil'
         save_layers(self.runtime, old)
         self.assertEqual(load_layers(self.runtime), old)

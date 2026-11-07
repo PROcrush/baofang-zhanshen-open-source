@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "6aa677105a7ad31cb7d41de9f3978e2d5cc9267f",
+  "sourceRevision": "ca9c47d78f55b2e15bc83dfc8fd1f76b522f991e",
   "files": [
     {
       "path": ".gitignore",
@@ -24,7 +24,7 @@
     },
     {
       "path": "DESIGN.md",
-      "sha256": "b96625fc2ec51369339f47aa3ae5a0df25c8ac52fb418defb5eb7217cf67c395"
+      "sha256": "236cdc35d2a66d04a84fe729c1c9c53dd59a6e9df1b87b4fc544dbf1955d51de"
     },
     {
       "path": "LICENSE",
@@ -164,7 +164,7 @@
     },
     {
       "path": "app/screen_layers.py",
-      "sha256": "d5f690a2554886a7779402cbb035203460d1ecd3ab0f70018cb97a577f39a0cd"
+      "sha256": "8194fc208e91c64b446f53b48fbe3c6e2a69d273fb7b4b61add2a14a2d8f0600"
     },
     {
       "path": "app/screen_library.py",
@@ -312,7 +312,7 @@
     },
     {
       "path": "docs/客屏文字与DJLogo-20261103.md",
-      "sha256": "0072b24b3b261099ab1eb426ec2732d274eabc504dc37ee1838f0231fe3d9c35"
+      "sha256": "50b23d534f86d47ae73a0b6d631bde59b72308b0e5e64ba183bb7f8c1cfffc87"
     },
     {
       "path": "docs/本地识别-0.6.md",
@@ -676,7 +676,7 @@
     },
     {
       "path": "tests/test_screen_layers.py",
-      "sha256": "8cf947cb98073f2b6d58555cfe43bb94dd6710e34bb6a7e83f56243a79832827"
+      "sha256": "ef3976bd98ceba1177b05bb5674236ba0a3f60aaab95e8a3226e2a3d789e7724"
     },
     {
       "path": "tests/test_screen_library.py",
@@ -828,7 +828,7 @@
     },
     {
       "path": "tools/check_screen_content.py",
-      "sha256": "a848439c076759ad1b75f6dcbb5e2f12fbeb202f982ccc92bc8a0285d724005f"
+      "sha256": "c28c1a320eed69d81eb58efd86edc27b6d36f77f73f021cf016f0e3fb0a32ac0"
     },
     {
       "path": "tools/check_screen_layers.py",
@@ -836,7 +836,7 @@
     },
     {
       "path": "tools/check_screen_layers_edges.py",
-      "sha256": "239414db9bc30a22c19a20e1090c3ad1ed5cf56c71ba53a85297c518927d4d73"
+      "sha256": "c05db7ce933ac928036396ea3046d74b40c84b4b1c2e25ed5e2d44b82d8549c2"
     },
     {
       "path": "tools/check_screen_personal.py",
@@ -1036,7 +1036,7 @@
     },
     {
       "path": "ui/ScreenContentPanel.qml",
-      "sha256": "a43d832f91d2514930590a693577b517dbf5c0ba80a408ea4e651a048df3b24a"
+      "sha256": "b5fb875036f235ad085f43fba752c7dc9fbf2872c9fa45e48c19a9690b9cb4c3"
     },
     {
       "path": "ui/ScreenLayerSample.svg",
@@ -1048,11 +1048,11 @@
     },
     {
       "path": "ui/ScreenLayerStyles.js",
-      "sha256": "5f7b4f569a2687067374e60a569202a844b6b0b76ef14e852a7040aec43c584a"
+      "sha256": "42ee5188974bdf37bca94b52b712d2c3a2bb18b929beb8c6b00f0903c1c7e289"
     },
     {
       "path": "ui/ScreenLayers.qml",
-      "sha256": "db0d20274e10bab24e4fbc65a993dd76166fac9b5fb1aca611039a561dc20e67"
+      "sha256": "dbf526f9855d4cbd2c1b1e30bb9052ab4933a3d12905d8f2346e28bd267c792b"
     },
     {
       "path": "ui/ScreenPersonalPanel.qml",

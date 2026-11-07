@@ -16,7 +16,7 @@ os.environ.setdefault('QT_QUICK_BACKEND', 'software')
 from scripts.repair_qt_metadata import repair_qt_metadata
 repair_qt_metadata()
 from PySide6.QtCore import QCoreApplication, QMetaObject, QMimeData, Qt, QUrl
-from PySide6.QtGui import QColor, QDragEnterEvent, QDropEvent, QFont, QImage, QInputMethodEvent
+from PySide6.QtGui import QColor, QDragEnterEvent, QDropEvent, QFont, QFontInfo, QImage, QInputMethodEvent
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuickControls2 import QQuickStyle
 from PySide6.QtTest import QTest
@@ -298,15 +298,33 @@ def main():
             press('screenLayersTextTab')
             reveal('screenStyleToggle')
             press('screenStyleToggle')
-            for key, caption in (('midnight', '今晚，不散场'), ('champagne', '今晚，尽兴唱')):
-                field.setProperty('text', caption)
+            for key, position, family, face in (('midnight', 'top-right', 'Songti SC', 'Black'),
+                                                 ('champagne', 'top-left', 'Hiragino Sans GB', 'W3')):
+                field.setProperty('text', '今夜不散场')
                 reveal('screenStyle-' + key)
                 press('screenStyle-' + key)
                 press('screenTextApply')
                 assert wait_for(lambda: renderer.state['screenLayers']['text']['style'] == key)
                 assert wait_for(lambda: find(output, 'screenTextScenery') is not None)
+                assert renderer.state['screenLayers']['text']['position'] == position
+                font = QFontInfo(find(output, 'screenTextLayer').property('font'))
+                assert (font.family(), font.styleName()) == (family, face), (font.family(), font.styleName())
                 output.grabWindow().save(str(evidence / ('stage-' + key + '.png')))
-            results.append('赤月与银弧：独立客屏加载原创光景，和现场歌词及 Logo 同帧显示')
+            results.append('赤月与银弧：同一句话使用宋体 Black 右置和冬青黑体 W3 左置，独立客屏显示各自的实际字形和光景')
+
+            reveal('screenAdjustToggle')
+            press('screenAdjustToggle')
+            reveal('screenTextFont')
+            press('screenTextFont')
+            QTest.keyClick(window, Qt.Key.Key_End)
+            QTest.keyClick(window, Qt.Key.Key_Return)
+            QTest.qWait(80)
+            assert preview()['screenLayers']['text']['font'] == 'heiti'
+            assert renderer.state['screenLayers']['text']['font'] == 'auto'
+            press('screenTextApply')
+            assert wait_for(lambda: renderer.state['screenLayers']['text']['font'] == 'heiti')
+            assert QFontInfo(find(output, 'screenTextLayer').property('font')).family() == 'Heiti SC'
+            results.append('字体细调仅改变待上屏预览，发布后独立客屏使用所选字体')
 
             # Both controllers enforce expiry, even with a frozen old snapshot.
             controller._state['guestQr'] = {'running': False, 'onScreen': False, 'url': '', 'image': ''}
@@ -322,6 +340,7 @@ def main():
                 assert restored.state['screenLayers']['text']['text'] == '一秒后撤下'
                 assert restored.state['screenLayers']['logo']['image']
                 assert restored.state['screenLayers']['text']['style'] == 'champagne'
+                assert restored.state['screenLayers']['text']['font'] == 'heiti'
                 assert restored.state['screenLayers']['logo']['style'] == 'foil'
                 assert not restored.state['guestMessage']['visible']
             finally:
