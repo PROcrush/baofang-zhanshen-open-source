@@ -905,6 +905,11 @@ class Controller(QObject):
             path, _ = QFileDialog.getOpenFileName(None, '选择 DJ Logo（先预览，再上屏）', '', '图片 (*.png *.jpg *.jpeg *.webp)')
         if not path:
             return {}
+        if path.startswith('file:'):
+            from PySide6.QtCore import QUrl
+            path = QUrl(path).toLocalFile()
+            if not path:
+                return {}
         try:
             image, name = import_logo(self.runtime, path)
             candidate = default_layers()

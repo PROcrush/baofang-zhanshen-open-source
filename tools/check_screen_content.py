@@ -15,8 +15,8 @@ os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 os.environ.setdefault('QT_QUICK_BACKEND', 'software')
 from scripts.repair_qt_metadata import repair_qt_metadata
 repair_qt_metadata()
-from PySide6.QtCore import QCoreApplication, QMetaObject, Qt, QUrl
-from PySide6.QtGui import QColor, QFont, QImage, QInputMethodEvent
+from PySide6.QtCore import QCoreApplication, QMetaObject, QMimeData, Qt, QUrl
+from PySide6.QtGui import QColor, QDragEnterEvent, QDropEvent, QFont, QImage, QInputMethodEvent
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuickControls2 import QQuickStyle
 from PySide6.QtTest import QTest
@@ -249,6 +249,49 @@ def main():
             assert controller.state['selectedSource'] == selected
             results.append('祝福手动审核、一次一条；与喊话相互替换；全部撤下覆盖文字/Logo/祝福/二维码，保留待审内容、素材及歌词来源')
 
+            controller._state['guestQr'] = {'running': False, 'onScreen': False, 'url': '', 'image': ''}
+            controller.tick()
+            field.setProperty('text', '')
+            reveal('screenStyleToggle')
+            press('screenStyleToggle')
+            reveal('screenStyle-champagne')
+            press('screenStyle-champagne')
+            assert '模板示例' in find(window, 'screenPreviewLabel').property('text')
+            assert not find(window, 'screenTextApply').isEnabled()
+            assert not renderer.state['screenLayers']['text']['visible']
+            field.setProperty('text', '今晚，尽兴唱')
+            panel.setProperty('draftText', dict(variant(panel.property('draftText')), opacity=1.0))
+            QTest.qWait(100)
+            assert preview()['screenLayers']['text']['style'] == 'champagne'
+            assert preview()['screenLayers']['text']['text'] == '今晚，尽兴唱'
+            window.grabWindow().save(str(evidence / '05-text-style-picker.png'))
+            press('screenTextApply')
+            assert wait_for(lambda: renderer.state['screenLayers']['text']['style'] == 'champagne')
+            assert find(output, 'screenTextPlate')
+            press('screenLayersLogoTab')
+            sample_logo = Path(temp) / '示例 DJ.png'
+            assert QImage(str(root / 'ui/ScreenLayerSample.svg')).save(str(sample_logo))
+            drop_target = find(window, 'screenLogoDrop')
+            drop_point = drop_target.mapToScene(drop_target.boundingRect().center())
+            mime = QMimeData()
+            mime.setUrls([QUrl.fromLocalFile(str(sample_logo))])
+            drag_args = (Qt.DropAction.CopyAction, mime, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+            QCoreApplication.sendEvent(window, QDragEnterEvent(drop_point.toPoint(), *drag_args))
+            QCoreApplication.sendEvent(window, QDropEvent(drop_point, *drag_args))
+            assert preview()['screenLayers']['logo']['fileName'] == sample_logo.name
+            reveal('screenStyleToggle')
+            press('screenStyleToggle')
+            reveal('screenStyle-foil')
+            press('screenStyle-foil')
+            assert preview()['screenLayers']['logo']['style'] == 'foil'
+            assert not renderer.state['screenLayers']['logo']['visible']
+            assert wait_for(lambda: find(window, 'screenLogoPlate') is not None)
+            window.grabWindow().save(str(evidence / '06-logo-style-picker.png'))
+            press('screenLogoApply')
+            assert wait_for(lambda: renderer.state['screenLayers']['logo']['style'] == 'foil')
+            assert wait_for(lambda: find(output, 'screenLogoPlate') is not None)
+            results.append('艺术模板：示例不可发布，拖入 Logo 和选择模板只影响预览，明确发布后独立客屏显示相同底板')
+
             # Both controllers enforce expiry, even with a frozen old snapshot.
             controller._state['guestQr'] = {'running': False, 'onScreen': False, 'url': '', 'image': ''}
             row = dict(controller.state['screenLayers']['text'], text='一秒后撤下')
@@ -262,6 +305,8 @@ def main():
                 assert not restored.state['screenLayers']['text']['visible']
                 assert restored.state['screenLayers']['text']['text'] == '一秒后撤下'
                 assert restored.state['screenLayers']['logo']['image']
+                assert restored.state['screenLayers']['text']['style'] == 'champagne'
+                assert restored.state['screenLayers']['logo']['style'] == 'foil'
                 assert not restored.state['guestMessage']['visible']
             finally:
                 restored.shutdown()

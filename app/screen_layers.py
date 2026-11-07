@@ -13,13 +13,15 @@ POSITIONS = ('top-left', 'top-center', 'top-right', 'center-left', 'center', 'ce
              'bottom-left', 'bottom-center', 'bottom-right')
 MAX_TEXT = 300
 ASSET = re.compile(r'^[0-9a-f]{64}\.png$')
+STYLES = {'text': ('classic', 'midnight', 'champagne', 'record'),
+          'logo': ('plain', 'matte', 'foil')}
 
 
 def default_layers():
     return {'text': {'text': '', 'visible': False, 'position': 'center', 'fontSize': 48,
-                     'opacity': 1.0, 'color': '#FFFFFF'},
+                     'opacity': 1.0, 'color': '#FFFFFF', 'style': 'classic'},
             'logo': {'image': '', 'fileName': '', 'visible': False, 'position': 'top-left',
-                     'size': 18, 'opacity': 1.0}}
+                     'size': 18, 'opacity': 1.0, 'style': 'plain'}}
 
 
 def clean_layer_text(value):
@@ -38,8 +40,11 @@ def validate_layers(value):
     result = copy.deepcopy(value)
     defaults = default_layers()
     for name, row in result.items():
-        if not isinstance(row, dict) or set(row) != set(defaults[name]):
+        if not isinstance(row, dict) or set(row) | {'style'} != set(defaults[name]):
             raise ValueError('客屏图层字段无效')
+        row.setdefault('style', defaults[name]['style'])
+        if row['style'] not in STYLES[name]:
+            raise ValueError('客屏图层模板无效')
         if type(row['visible']) is not bool or row['position'] not in POSITIONS:
             raise ValueError('客屏图层位置或显示状态无效')
         ranges = (('opacity', .1, 1), ('fontSize', 24, 120)) if name == 'text' else (('opacity', .1, 1), ('size', 5, 40))

@@ -22,7 +22,7 @@ from PySide6.QtQuickControls2 import QQuickStyle
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 from app.controller import Controller
-from app.screen_layers import POSITIONS, default_layers
+from app.screen_layers import POSITIONS, STYLES, default_layers
 from tools.check_screen_layers import find, wait_for
 from tools.ui_state_smoke import click
 
@@ -156,6 +156,26 @@ def main():
                     if label == '中文300':
                         view.grabWindow().save(str(evidence / f'text-{width}x{height}.png'))
             results.append('文字边界：640×420 / 1080p / 4K，九个位置；300 中文、300 英文长串、150 行及大量空行均完整适配')
+
+            text_plate = next(item for item in stage.childItems() if item.objectName() == 'screenTextPlate')
+            logo_plate = next(item for item in stage.childItems() if item.objectName() == 'screenLogoPlate')
+            for width, height in ((1920, 1080), (3840, 2160)):
+                view.resize(width, height)
+                assert wait_for(lambda: stage.width() == width and stage.height() == height)
+                for style in STYLES['text'][1:]:
+                    config = default_layers()
+                    config['text'].update(visible=True, text='首' + '\n' * 298 + '尾',
+                                          style=style, fontSize=120, position='bottom-right')
+                    config['logo'].update(visible=True, style='foil', position='top-left')
+                    stage.setProperty('stateData', {'screenLayers': config, 'logoImageUrl': owned})
+                    assert wait_for(lambda: text_plate.isVisible() and logo_plate.isVisible())
+                    QTest.qWait(40)
+                    for plate in (text_plate, logo_plate):
+                        geometry = (style, width, plate.objectName(), plate.x(), plate.y(), plate.width(), plate.height())
+                        assert plate.x() >= 0 and plate.x() + plate.width() <= width + 1, geometry
+                        assert plate.y() >= 0 and plate.y() + plate.height() <= height + 1, geometry
+                    assert text_item.property('paintedHeight') * text_item.scale() <= text_item.height() + 1
+            results.append('艺术底板：1080p 和 4K 下，长文字及 Logo 印记都保留在画面内')
 
             press('screenLayersLogoTab')
             for suffix, format_name in (('jpg', 'JPEG'), ('webp', 'WEBP')):

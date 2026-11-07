@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "ScreenLayerStyles.js" as Styles
 
 ColumnLayout {
     id: panel
@@ -13,6 +14,7 @@ ColumnLayout {
     property bool syncing: false
     property bool previewActive: false
     property bool adjusting: false
+    property bool choosingStyle: false
     property int seconds: 15
     property string activeTemplate: ""
     property bool fillingTemplate: false
@@ -25,6 +27,8 @@ ColumnLayout {
     readonly property var config: stateData.screenLayers || ({text: {}, logo: {}})
     readonly property var activeDraft: tab === 0 ? draftText : draftLogo
     readonly property string layerName: tab === 0 ? "text" : "logo"
+    readonly property var styles: tab === 0 ? Styles.text : Styles.logo
+    readonly property bool previewExample: choosingStyle && (tab === 0 ? !draftText.text : tab === 1 && !draftLogo.image)
     readonly property int draftLength: textInput.text.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, "x").length
     readonly property bool canPublishText: textInput.text.trim().length > 0 && draftLength <= 300 && textInput.text.indexOf("___") < 0 && textInput.text.indexOf("{姓名}") < 0
     readonly property bool textOn: !!config.text.visible || !!(stateData.guestMessage || {}).visible
@@ -32,7 +36,7 @@ ColumnLayout {
     readonly property var previewState: makePreview()
     spacing: 7
     onStateDataChanged: cacheLibrary()
-    onTabChanged: { previewActive = false; adjusting = false; if (contentScroll.contentItem) contentScroll.contentItem.contentY = 0; }
+    onTabChanged: { previewActive = false; adjusting = false; choosingStyle = false; if (contentScroll.contentItem) contentScroll.contentItem.contentY = 0; }
 
     function clone(value) { return JSON.parse(JSON.stringify(value)); }
     function cacheLibrary() {
@@ -47,7 +51,9 @@ ColumnLayout {
     }
     function usePhrase(row) {
         tab = 0; activeTemplate = ""; personName.text = ""; activeTemplate = row.text;
-        fillName(); textInput.forceActiveFocus();
+        fillName();
+        if (activeTemplate.indexOf("{姓名}") >= 0) personName.forceActiveFocus();
+        else textInput.forceActiveFocus();
     }
     function useHistory(entry) {
         tab = 0; activeTemplate = ""; syncing = true;
@@ -59,7 +65,9 @@ ColumnLayout {
         syncing = true;
         if (!layer || layer === "text") {
             draftText = clone(config.text);
-            if (!draftText.text) { draftText.position = "top-center"; draftText.fontSize = 40; }
+            if (!draftText.text && draftText.style === "classic" && draftText.position === "center" && draftText.fontSize === 48) {
+                draftText.position = "top-center"; draftText.fontSize = 40;
+            }
             textInput.text = draftText.text || "";
         }
         if (!layer || layer === "logo") { draftLogo = clone(config.logo); draftLogoUrl = stateData.logoImageUrl || ""; }
@@ -70,6 +78,15 @@ ColumnLayout {
         var next = clone(activeDraft); next[key] = value;
         if (tab === 0) draftText = next; else draftLogo = next;
         if (!syncing) previewActive = true;
+    }
+    function chooseStyle(preset) {
+        if (tab === 0) {
+            draftText = Object.assign({}, draftText, {style: preset.key, position: preset.position,
+                                                      fontSize: preset.fontSize, color: preset.color});
+        } else {
+            draftLogo = Object.assign({}, draftLogo, {style: preset.key, position: preset.position, size: preset.size});
+        }
+        previewActive = true;
     }
     function makePreview() {
         if (!previewActive || !previewAvailable) return stateData;
@@ -83,20 +100,21 @@ ColumnLayout {
         }
         next.screenLayers = clone(config);
         next.screenLayers[layerName] = clone(activeDraft);
-        next.screenLayers[layerName].visible = tab === 0 ? !!draftText.text : !!draftLogo.image;
+        next.screenLayers[layerName].visible = previewExample || (tab === 0 ? !!draftText.text : !!draftLogo.image);
         if (tab === 0) {
+            if (previewExample) next.screenLayers.text.text = "今晚，尽兴唱";
             if (!/^#[0-9a-fA-F]{6}$/.test(next.screenLayers.text.color || "")) next.screenLayers.text.color = config.text.color;
             next.guestMessage = {visible: false, text: ""};
             next.screenTextValidUntilNs = 0;
-        } else next.logoImageUrl = draftLogoUrl;
+        } else next.logoImageUrl = previewExample ? Qt.resolvedUrl("ScreenLayerSample.svg").toString() : draftLogoUrl;
         return next;
     }
     function publish() {
         if (tab === 0 && canPublishText && controller.applyScreenContent("text", draftText, seconds)) sync("text");
         else if (tab === 1 && draftLogo.image && controller.applyScreenContent("logo", draftLogo, 0)) sync("logo");
     }
-    function chooseLogo() {
-        var asset = controller.prepareScreenLogo();
+    function chooseLogo(url) {
+        var asset = url ? controller.prepareScreenLogo(url) : controller.prepareScreenLogo();
         if (!asset.image) return;
         draftLogo = Object.assign({}, draftLogo, {image: asset.image, fileName: asset.fileName, visible: true});
         draftLogoUrl = asset.url; previewActive = true;
@@ -163,32 +181,62 @@ ColumnLayout {
                         background: Rectangle { color: Theme.sunken; radius: 6; border.color: textInput.activeFocus ? Theme.focus : Theme.strokeStrong }
                     }
                 }
-                Text { objectName: "screenTextCount"; Layout.fillWidth: true; text: textInput.text.indexOf("___") >= 0 ? "先填写姓名，再上屏" : panel.draftLength + " / 300 字 · 回车换行"; color: panel.canPublishText || !textInput.text ? Theme.muted : Theme.amber; font.pixelSize: 10 }
-                StudioButton { objectName: "screenSaveCurrentPhrase"; text: "存为常用语…"; implicitHeight: 24; font.pixelSize: 10; onClicked: { personal.editCurrent(panel.activeTemplate || textInput.text); panel.tab = 3; } }
-                DarkComboBox {
-                    objectName: "screenTextDuration"; Layout.fillWidth: true; implicitHeight: 28
-                    model: ["显示 15 秒", "显示 30 秒", "显示 60 秒", "固定显示 · 重启后保留"]
-                    currentIndex: [15,30,60,0].indexOf(panel.seconds)
-                    onActivated: panel.seconds = [15,30,60,0][currentIndex]
+                RowLayout {
+                    Layout.fillWidth: true; spacing: 4
+                    Text { objectName: "screenTextCount"; Layout.fillWidth: true; text: textInput.text.indexOf("___") >= 0 ? "先填写姓名，再上屏" : panel.draftLength + " / 300 字"; color: panel.canPublishText || !textInput.text ? Theme.secondary : Theme.amber; font.pixelSize: 11; elide: Text.ElideRight }
+                    StudioButton { objectName: "screenSaveCurrentPhrase"; text: "存为常用语…"; enabled: !!textInput.text.trim(); implicitHeight: 24; font.pixelSize: 11; padding: 5; onClicked: { personal.editCurrent(panel.activeTemplate || textInput.text); panel.tab = 3; } }
                 }
             }
             ColumnLayout {
                 visible: panel.tab === 1; Layout.fillWidth: true; spacing: 8
-                Image { Layout.alignment: Qt.AlignHCenter; Layout.preferredWidth: 100; Layout.preferredHeight: 54; source: panel.draftLogoUrl; fillMode: Image.PreserveAspectFit; visible: !!panel.draftLogoUrl; asynchronous: true }
-                Text { Layout.fillWidth: true; text: panel.draftLogo.fileName || "开演前选好 Logo，现场一按开关"; textFormat: Text.PlainText; color: Theme.secondary; font.pixelSize: 11; wrapMode: Text.Wrap }
-                StudioButton { objectName: "screenLogoChoose"; Layout.fillWidth: true; text: panel.draftLogo.image ? "更换图片，先预览…" : "导入 Logo，先预览…"; implicitHeight: 30; onClicked: panel.chooseLogo() }
-                Text { Layout.fillWidth: true; text: "透明 PNG / JPG / WebP\n图片和布局会保存在本机"; color: Theme.muted; font.pixelSize: 10; wrapMode: Text.Wrap }
+                Rectangle {
+                    Layout.fillWidth: true; Layout.preferredHeight: 90
+                    color: logoDrop.containsDrag ? Theme.accentSoft : Theme.sunken
+                    border.color: logoDrop.containsDrag ? Theme.accentLine : Theme.hairline; radius: 6
+                    RowLayout {
+                        anchors.fill: parent; anchors.margins: 8; spacing: 8
+                        Image { Layout.preferredWidth: 60; Layout.preferredHeight: 52; source: panel.draftLogoUrl; fillMode: Image.PreserveAspectFit; visible: !!panel.draftLogoUrl; asynchronous: true }
+                        ColumnLayout {
+                            Layout.fillWidth: true; spacing: 4
+                            Text { Layout.fillWidth: true; text: panel.draftLogo.fileName || "拖入 Logo 图片"; textFormat: Text.PlainText; color: Theme.secondary; font.pixelSize: 12; elide: Text.ElideMiddle }
+                            StudioButton { objectName: "screenLogoChoose"; Layout.fillWidth: true; text: panel.draftLogo.image ? "更换图片…" : "选择图片…"; iconName: "import"; implicitHeight: 28; padding: 5; font.pixelSize: 11; onClicked: panel.chooseLogo() }
+                        }
+                    }
+                    DropArea {
+                        id: logoDrop
+                        objectName: "screenLogoDrop"
+                        anchors.fill: parent
+                        onEntered: function(drag) { drag.accepted = drag.hasUrls && drag.urls.length === 1 && drag.urls[0].toString().indexOf("file:") === 0; }
+                        onDropped: function(drop) { panel.chooseLogo(drop.urls[0].toString()); drop.acceptProposedAction(); }
+                    }
+                }
+                Text { Layout.fillWidth: true; text: "PNG / JPG / WebP · 推荐透明 PNG"; color: Theme.secondary; font.pixelSize: 11; wrapMode: Text.Wrap }
             }
             ColumnLayout {
                 visible: panel.tab < 2; Layout.fillWidth: true; spacing: 6
-                DarkComboBox {
-                    objectName: "screenLayoutPreset"; Layout.fillWidth: true; implicitHeight: 28
-                    model: panel.tab === 0 ? ["上方喊话", "居中欢迎", "自定义布局"] : ["左上角标", "右上角标", "自定义布局"]
-                    currentIndex: panel.tab === 0 ? (panel.draftText.position === "top-center" ? 0 : panel.draftText.position === "center" ? 1 : 2) : (panel.draftLogo.position === "top-left" ? 0 : panel.draftLogo.position === "top-right" ? 1 : 2)
-                    onActivated: {
-                        if (currentIndex === 2) { panel.adjusting = true; return; }
-                        panel.update("position", panel.tab === 0 ? (currentIndex === 0 ? "top-center" : "center") : (currentIndex === 0 ? "top-left" : "top-right"));
-                        panel.update(panel.tab === 0 ? "fontSize" : "size", panel.tab === 0 ? (currentIndex === 0 ? 40 : 64) : 14);
+                RowLayout {
+                    Layout.fillWidth: true; spacing: 5
+                    StudioButton {
+                        objectName: "screenStyleToggle"; Layout.fillWidth: true; Layout.minimumWidth: 0; implicitHeight: 28
+                        text: panel.choosingStyle ? "收起模板" : "模板  /  " + Styles.find(panel.styles, panel.activeDraft.style).label
+                        textAlignment: Text.AlignLeft; font.pixelSize: 12; padding: 6
+                        selected: panel.choosingStyle
+                        onClicked: panel.choosingStyle = !panel.choosingStyle
+                    }
+                    DarkComboBox {
+                        objectName: "screenTextDuration"; visible: panel.tab === 0; Layout.preferredWidth: 93; Layout.minimumWidth: 0; implicitHeight: 28
+                        model: ["15 秒", "30 秒", "60 秒", "固定显示"]
+                        Accessible.name: "文字显示时长"
+                        currentIndex: [15,30,60,0].indexOf(panel.seconds)
+                        onActivated: panel.seconds = [15,30,60,0][currentIndex]
+                    }
+                }
+                Loader {
+                    Layout.fillWidth: true; active: panel.choosingStyle && panel.tab < 2
+                    visible: active
+                    sourceComponent: ScreenLayerStylePicker {
+                        styles: panel.styles; logo: panel.tab === 1; selectedStyle: Styles.find(panel.styles, panel.activeDraft.style).key
+                        onChosen: function(style) { panel.chooseStyle(style); }
                     }
                 }
                 StudioButton { objectName: "screenAdjustToggle"; text: panel.adjusting ? "收起位置 / 外观" : "调整位置 / 外观"; implicitHeight: 26; font.pixelSize: 11; onClicked: panel.adjusting = !panel.adjusting }

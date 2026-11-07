@@ -50,12 +50,29 @@ class ScreenLayerTests(unittest.TestCase):
     def test_invalid_configuration_is_rejected(self):
         for layer, key, value in (('logo', 'image', '../bad.png'), ('text', 'opacity', float('nan')),
                                   ('logo', 'size', True), ('text', 'fontSize', 121),
-                                  ('text', 'color', 'red'), ('logo', 'position', 'anywhere'),
+                                  ('text', 'color', 'red'), ('logo', 'position', 'anywhere'), ('logo', 'style', 'record'),
                                   ('logo', 'visible', True), ('text', 'visible', True)):
             candidate = default_layers()
             candidate[layer][key] = value
             with self.subTest(layer=layer, key=key, value=value), self.assertRaises(ValueError):
                 validate_layers(candidate)
+
+    def test_existing_settings_without_style_keep_original_appearance(self):
+        old = default_layers()
+        for row in old.values():
+            del row['style']
+        self.assertEqual(validate_layers(old), default_layers())
+        old['text']['style'] = 'champagne'
+        old['logo']['style'] = 'foil'
+        save_layers(self.runtime, old)
+        self.assertEqual(load_layers(self.runtime), old)
+
+    def test_logo_file_url_prepares_a_draft_without_publishing(self):
+        logo = self.logo()
+        draft = self.controller.prepareScreenLogo(logo.as_uri())
+        self.assertEqual(draft['fileName'], logo.name)
+        self.assertTrue(draft['url'].startswith('file:///'))
+        self.assertEqual(self.controller._state['screenLayers'], default_layers())
 
     def test_import_owns_alpha_copy_and_survives_original_removal(self):
         source = self.logo()

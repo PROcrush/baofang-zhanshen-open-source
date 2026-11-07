@@ -306,7 +306,7 @@ Item {
                                 Layout.fillWidth:true; Layout.preferredHeight:28; Layout.leftMargin:10; Layout.rightMargin:10
                                 TextTab { objectName:"screenPreviewLive"; text:"现场画面"; selected:!contentPanel.previewActive; onClicked:contentPanel.previewActive=false }
                                 TextTab { objectName:"screenPreviewDraft"; text:"待上屏"; selected:contentPanel.previewActive; onClicked:contentPanel.previewActive=true }
-                                Text { objectName:"screenPreviewLabel"; Layout.fillWidth:true; text:contentPanel.previewActive ? "仅本机可见 · 点击上屏才发布" : live.outputWanted ? "输出预览" : "客屏未开"; color:contentPanel.previewActive ? Theme.amber : Theme.muted; font.pixelSize:10; elide:Text.ElideRight }
+                                Text { objectName:"screenPreviewLabel"; Layout.fillWidth:true; text:contentPanel.previewActive ? (contentPanel.previewExample ? "模板示例 · 请先填写或导入素材" : "仅本机可见 · 点击上屏才发布") : live.outputWanted ? "输出预览" : "客屏未开"; color:contentPanel.previewActive ? Theme.amber : Theme.muted; font.pixelSize:10; elide:Text.ElideRight }
                             }
                             Item {
                                 Layout.fillWidth:true; Layout.fillHeight:true
