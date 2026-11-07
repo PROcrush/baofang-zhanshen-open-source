@@ -51,6 +51,7 @@ bash scripts/build_native.sh
 
 - 使用手册
 - 客屏文字与 Logo
+- 公网扫码祝福与中继部署
 - 常用语、历史和 DJ 配置
 - 第三方许可 · 贡献指南 · 安全反馈
 

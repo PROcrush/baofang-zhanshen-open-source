@@ -209,9 +209,9 @@ class GuestInbox:
             self.last_seen.clear()
 
 
-def write_qr(url, destination):
+def write_qr(url, destination, *, border=2):
     import segno
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    segno.make(url, error='m').save(str(destination), scale=10, border=2, dark='#000000', light='#ffffff')
+    segno.make(url, error='m').save(str(destination), scale=10, border=border, dark='#000000', light='#ffffff')
     return destination

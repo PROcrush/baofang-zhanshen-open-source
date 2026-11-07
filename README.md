@@ -51,6 +51,7 @@ bash scripts/build_native.sh
 
 - [使用手册](docs/macOS使用手册.md)
 - [客屏文字与 Logo](docs/客屏文字与DJLogo-20261103.md)
+- [公网扫码祝福与中继部署](docs/公网扫码祝福.md)
 - [常用语、历史和 DJ 配置](docs/DJ常用语与配置-20261103.md)
 - [第三方许可](THIRD_PARTY_NOTICES.md) · [贡献指南](CONTRIBUTING.md) · [安全反馈](SECURITY.md)
 

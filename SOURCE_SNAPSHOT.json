@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "49bf5617ad2d828b0300016bf5655642031fbd3f",
+  "sourceRevision": "6bb7e5ca7d93165f01e8a7df0e49877b8bd5d1dd",
   "files": [
     {
       "path": ".gitignore",
@@ -24,7 +24,7 @@
     },
     {
       "path": "DESIGN.md",
-      "sha256": "a5358c1427eb2256fced0221163d0018c70735a4c01361e05d065e8968011079"
+      "sha256": "848db2c3d9c6f896caf3976f03dc74f93907443fbc01094c5e50822b02e01e36"
     },
     {
       "path": "LICENSE",
@@ -32,11 +32,11 @@
     },
     {
       "path": "PRODUCT.md",
-      "sha256": "c43e2659ebfe1c47e62891765949bf0a52bf639bbba137fabd80641dd39db45d"
+      "sha256": "b26f5be90cf3827b5a6e5ff8e9f58e6de07c9badd5bddc2ef75ae7c3b64e09b2"
     },
     {
       "path": "README.md",
-      "sha256": "b10bd503b74b9b87dd1fc19718453d1f69231d3e9dcdcae4838b6f6bca56c65c"
+      "sha256": "20d8ca63b9bce6116476b02b344b1fe3326e2785c7703d4fce02bc000bf0a109"
     },
     {
       "path": "SECURITY.md",
@@ -64,7 +64,7 @@
     },
     {
       "path": "app/controller.py",
-      "sha256": "9f3d00909d96903569280b82790ef0096f0d581d85d604976ca1e6ddd76e2075"
+      "sha256": "d3b8aec37ddafb179a95490b89c8808b1f6e198697c13da09aba61b86b58b328"
     },
     {
       "path": "app/credentials.py",
@@ -80,7 +80,7 @@
     },
     {
       "path": "app/guest_inbox.py",
-      "sha256": "9263c4d50150a445f41f03559515536cfd639d304a184ddd4ed62501c86ff799"
+      "sha256": "f20396a26b82d77b5a622debc59993d3a4f66776673d921c91c4fbdc6e3714f7"
     },
     {
       "path": "app/karaoke.py",
@@ -140,7 +140,7 @@
     },
     {
       "path": "app/preshow.py",
-      "sha256": "7a693acdc1811317de47bc33d2928761b07a3e91f7df179e90fb77df756cf926"
+      "sha256": "6ad3d3bb604b4659eda4885d5c0bd7f274015158f3a2c3994b8208c457a04c11"
     },
     {
       "path": "app/recognition_policy.py",
@@ -235,6 +235,14 @@
       "sha256": "d7d8a80e04625c27b30e30dd4a1fcf60111536d8c907210445640d01d6072f84"
     },
     {
+      "path": "app/wish_relay.py",
+      "sha256": "e6ccf5d0aba07ac97771691b495c77661aca4c3624d23d2d6f7bf0bc6e677d34"
+    },
+    {
+      "path": "app/wish_relay_client.py",
+      "sha256": "b5d5a51287f6ec11b84c7de630288d62ecd08383c16a0e7b08eb93853b36b219"
+    },
+    {
       "path": "assets/style_presets.json",
       "sha256": "5e818416f7e571c3294b3461eba4f4a88f9e5a5b8bc2e782f9584187eda8e0ca"
     },
@@ -252,7 +260,7 @@
     },
     {
       "path": "docs/macOS使用手册.md",
-      "sha256": "d72cd36856320ad1078a08499d1f5a8e136f44a433159fda1c8a5439e80829a0"
+      "sha256": "cc76e0cebf600c080fcfdee0fa2d8dd93856b112f513a02fed918e9e5f5214df"
     },
     {
       "path": "docs/macOS构建说明.md",
@@ -268,7 +276,7 @@
     },
     {
       "path": "docs/open-source/README.md",
-      "sha256": "17cfd277ea99a80d21adc0a83a71696d060a2a38eb90c591cf1bf1696a99f5f8"
+      "sha256": "aeaa1d998dca967b3660a2914f92ec67bc638c2667658a5f2634b826dfd1100e"
     },
     {
       "path": "docs/主程序重开现场状态恢复-20261103.md",
@@ -277,6 +285,10 @@
     {
       "path": "docs/保存与预览修复-20261021.md",
       "sha256": "9dfc75e7086604011fb1216ff1855cad5fad29a422bb7610d3764c4e2f36dcc7"
+    },
+    {
+      "path": "docs/公网扫码祝福.md",
+      "sha256": "f185afe43249b7f4de8508e8ed0bf68a0460ea9bd2d3eb2db5f7c6524ad66be0"
     },
     {
       "path": "docs/制作引擎-0.6-接口.md",
@@ -456,7 +468,7 @@
     },
     {
       "path": "scripts/export_public_source.py",
-      "sha256": "1793271bcf5a237367d95fdccb711ada84d599e8569085fed4882cbaf7c9693f"
+      "sha256": "b9fd9c18850703240a4f63e2b7f1ae17222ce6c59efde77aa3567fdfa91dbc8b"
     },
     {
       "path": "scripts/macos_launcher.m",
@@ -743,6 +755,10 @@
       "sha256": "f822c75da7dcf0242180e890cbc0bd144758a7e011f71c121313f4f1dd1ded04"
     },
     {
+      "path": "tests/test_wish_relay.py",
+      "sha256": "46f5ad33b6cf0ff16749a8967fbc71c4d8b75b451a49ef977804c792a99e97de"
+    },
+    {
       "path": "tools/capture_ui_pages.py",
       "sha256": "dc854be5698aa7724775d66a5a1691d495cda115e5d71b986391ae836bb944e3"
     },
@@ -875,6 +891,10 @@
       "sha256": "e0dd5f436a378a8e63dd634d2bc6e01651d0416349b262ec42cdb9d160b2b36b"
     },
     {
+      "path": "tools/check_wish_public.py",
+      "sha256": "e8f3dfd5fb011b2af847b5ee755e0c4cd8e88149c48a075a15aac47bc99af628"
+    },
+    {
       "path": "tools/doubao_preflight.py",
       "sha256": "7431c40ee085c758cf89fcf5444a5637d13bbb9b981a3e6b492dac96854584ba"
     },
@@ -960,7 +980,7 @@
     },
     {
       "path": "ui/GuestWishControls.qml",
-      "sha256": "56a2902ddd440a0e939ed0260656046e8657c4c4da818f5458554ffc8c5dbd23"
+      "sha256": "e0cb2f287651449fce7ae8b5b024023a7e6dc5d65db26484beb55b7278a2d33e"
     },
     {
       "path": "ui/ImportCard.qml",

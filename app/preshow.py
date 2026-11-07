@@ -140,6 +140,13 @@ def midi_row(state):
 
 def wish_row(state, lan_ip):
     qr = state.get('guestQr') or {}
+    relay_status = state.get('guestRelayStatus') or ''
+    if qr.get('mode') == 'public':
+        return _row('wish', '扫码祝福', GREEN if qr.get('running') else AMBER,
+                    relay_status, 'wish', '检查扫码祝福')
+    if relay_status and not qr.get('running'):
+        return _row('wish', '扫码祝福', MUTED if (state.get('offlineLibrary') or {}).get('offlineOnly') else AMBER,
+                    relay_status, 'wish', '检查扫码祝福')
     lan_ip = str(lan_ip or '')
     if qr.get('running'):
         # A running server may still advertise the loopback URL generated

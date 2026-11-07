@@ -7,10 +7,20 @@ ColumnLayout {
     property var stateData: ({})
     readonly property var qr: stateData.guestQr || ({})
     readonly property var inbox: stateData.guestInbox || []
+    readonly property bool publicActive: qr.mode === "public" && !!qr.active
+    readonly property bool lanActive: qr.mode !== "public" && !!qr.running
+    readonly property bool offline: !!(stateData.offlineLibrary || {}).offlineOnly
     property bool showQr: false
     spacing: 8
-    DarkCheckBox { objectName: "wishServerToggle"; text: "开启扫码送祝福"; checked: !!wishes.qr.running; onClicked: controller.setGuestServer(checked) }
-    Text { Layout.fillWidth: true; text: "同一 Wi-Fi 扫码发送。由你审核上屏，一次显示一条，15 秒后撤下。"; color: Theme.secondary; font.pixelSize: 11; wrapMode: Text.Wrap }
+    DarkCheckBox { objectName: "wishServerToggle"; text: "局域网扫码"; checked: wishes.lanActive; enabled: !wishes.publicActive; onClicked: controller.setGuestServer(!wishes.lanActive) }
+    DarkCheckBox { objectName: "wishPublicToggle"; text: "公网扫码（支持手机流量）"; checked: wishes.publicActive; enabled: !!wishes.stateData.guestRelayConfigured && !wishes.lanActive && (!wishes.offline || wishes.publicActive); onClicked: controller.setPublicGuestServer(!wishes.publicActive) }
+    Text {
+        Layout.fillWidth: true
+        text: wishes.lanActive ? "客人用同一局域网扫码。" : wishes.offline ? "离线演出期间可用局域网扫码。" :
+              wishes.stateData.guestRelayStatus || (!wishes.stateData.guestRelayConfigured ? "配置公网祝福服务后可开启手机流量扫码。" : "选择一种方式开启扫码。")
+        color: Theme.secondary; font.pixelSize: 11; wrapMode: Text.Wrap
+    }
+    Text { Layout.fillWidth: true; text: "你审核后才上屏，每条显示 15 秒。"; color: Theme.secondary; font.pixelSize: 11; wrapMode: Text.Wrap }
     StudioButton { objectName: "wishQrSettings"; visible: !!wishes.qr.running; text: wishes.showQr ? "收起二维码 / 设置" : "查看二维码 / 设置"; implicitHeight: 26; font.pixelSize: 11; onClicked: wishes.showQr = !wishes.showQr }
     Image { objectName: "wishQrImage"; visible: !!wishes.qr.running && wishes.showQr; Layout.preferredWidth: 100; Layout.preferredHeight: 100; Layout.alignment: Qt.AlignHCenter; source: wishes.qr.image || ""; fillMode: Image.PreserveAspectFit; smooth: false }
     Text { visible: !!wishes.qr.running && wishes.showQr; Layout.fillWidth: true; text: wishes.qr.url || ""; color: Theme.muted; font.pixelSize: 10; wrapMode: Text.WrapAnywhere }

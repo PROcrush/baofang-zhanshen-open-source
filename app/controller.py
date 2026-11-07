@@ -25,7 +25,8 @@ from app.live_settings import INPUT_MODES, input_mode_state, load_live_session, 
 from app.setlist import Setlist
 from app.duet import duet_view, singer_at
 from app.showlog import ShowLog
-from app.guest_inbox import GuestInbox, clean_text, lan_address, write_qr
+from app.guest_inbox import MAX_QUEUE, GuestInbox, clean_text, lan_address, write_qr
+from app.wish_relay_client import WishRelayClient
 from app.midi_control import MidiControl, input_names
 from app.preshow import report as preshow_report
 from app.duplicates import mark_duplicates
@@ -73,6 +74,7 @@ def initial_state():
             'lyricTap': {'canUndo': False},
             'guestMessage': {'text': '', 'visible': False}, 'guestInbox': [],
             'guestQr': {'running': False, 'url': '', 'image': '', 'onScreen': False},
+            'guestRelayConfigured': False, 'guestRelayStatus': '',
             'duetColors': False, 'midi': {'rows': [], 'ports': [], 'port': '', 'connected': False},
             'screenLayers': default_layers(), 'logoImageUrl': '', 'screenLayerNotice': '',
             'screenTextValidUntilNs': 0, 'screenTextRemaining': 0, 'guestMessageRemaining': 0, 'guestMessageValidUntilNs': 0,
@@ -220,6 +222,10 @@ class Controller(QObject):
         self.showlog = ShowLog(self.runtime / 'show-log')
         self._logged_song = None
         self.inbox = GuestInbox()
+        self.wish_relay = WishRelayClient(self, lambda: MAX_QUEUE - len(self._state['guestInbox']))
+        self.wish_relay.changed.connect(self._guest_relay_changed)
+        self.wish_relay.received.connect(self._receive_wishes)
+        self._state['guestRelayConfigured'] = bool(self.wish_relay.origin)
         self.midi = MidiControl(self.runtime / 'midi.json')
         self._midi_ports = []
         self._message_timer = None
@@ -801,8 +807,10 @@ class Controller(QObject):
             self.notice('MIDI 按键已记住')
         wishes = self.inbox.drain() if self.inbox.running else []
         if wishes:
-            inbox = (list(self._state.get('guestInbox', [])) + wishes)[-50:]
-            self._state['guestInbox'] = inbox
+            self._receive_wishes(wishes)
+
+    def _receive_wishes(self, wishes):
+        self._state['guestInbox'] = (self._state['guestInbox'] + wishes)[-MAX_QUEUE:]
 
     # ---- 客屏插字 ----
     def _save_screen_layers(self, candidate, text_seconds=None):
@@ -1102,6 +1110,8 @@ class Controller(QObject):
     # ---- 扫码送祝福 ----
     @Slot(bool)
     def setGuestServer(self, enabled):
+        if self.wish_relay.active:
+            return
         if not enabled:
             self.inbox.stop()
             self._state['guestQr'] = {'running': False, 'url': '', 'image': '', 'onScreen': False}
@@ -1118,6 +1128,36 @@ class Controller(QObject):
         except (OSError, ImportError, ValueError) as exc:
             self.inbox.stop()
             self.notice('扫码送祝福没打开：' + str(exc)[:160])
+        self.tick()
+
+    @Slot(bool)
+    def setPublicGuestServer(self, enabled):
+        if self.inbox.running:
+            return
+        if not enabled:
+            self.wish_relay.stop()
+            self._state['guestInbox'] = []
+            self.tick()
+        elif not self._state['offlineLibrary'].get('offlineOnly'):
+            self.wish_relay.start()
+
+    def _guest_relay_changed(self):
+        relay = self.wish_relay
+        qr = self._state['guestQr']
+        if relay.phase == 'ready':
+            if qr.get('url') != relay.url:
+                try:
+                    image = write_qr(relay.url, self.runtime / 'guest-qr.png', border=4)
+                except (OSError, ImportError, ValueError):
+                    relay.stop('error', '无法生成公网二维码，请重新开启')
+                    return
+                qr = {'url': relay.url, 'image': image.as_uri() + '?' + relay.room, 'onScreen': False}
+            qr = dict(qr, mode='public', running=True, active=True)
+        elif relay.active:
+            qr = dict(qr, mode='public', running=False, active=True)
+        else:
+            qr = {'running': False, 'url': '', 'image': '', 'onScreen': False}
+        self._state.update(guestQr=qr, guestRelayStatus=relay.detail)
         self.tick()
 
     @Slot(bool)
@@ -1452,6 +1492,8 @@ class Controller(QObject):
     def setOfflineOnly(self, enabled):
         self.preparation_action('set_offline_only', enabled)
         self.refresh_offline_library()
+        if enabled and self.wish_relay.active:
+            self.wish_relay.stop('idle', '离线演出已开启，公网扫码已关闭')
         self.notice('离线演出已开启：云请求已停止，歌词只从本机缓存读取' if enabled else
                     '已退出离线演出；新的云识别仍需审阅计划并手动启动')
 
@@ -2368,6 +2410,7 @@ class Controller(QObject):
         self.shutting_down = True
         self.timer.stop()
         self.inbox.stop()
+        self.wish_relay.stop(notify=False)
         self.midi.close()
         self._save_import_queue()
         self.preparation.shutdown()

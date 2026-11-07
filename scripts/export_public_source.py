@@ -15,7 +15,7 @@ ROOT_FILES = {'.gitignore', '.gitleaks.toml', 'CMakeLists.txt', 'PRODUCT.md', 'D
               'LICENSE', 'THIRD_PARTY_NOTICES.md', 'CONTRIBUTING.md', 'SECURITY.md'}
 DOCS = {
     'macOS使用手册.md', 'macOS构建说明.md', '制作引擎-0.6-接口.md', 'KTV跟唱-20261015.md',
-    'DJ常用语与配置-20261103.md', '客屏文字与DJLogo-20261103.md',
+    'DJ常用语与配置-20261103.md', '客屏文字与DJLogo-20261103.md', '公网扫码祝福.md',
     '百炼统一入口-0.11.md', '百炼单首批量与钥匙串-20261023.md', '国内模型API-0.10.md',
     '原版歌词匹配-0.12.md', '本地识别-0.6.md', '字幕预设-20261013.md',
     '简洁界面-20261015.md', '现代模板-20261015.md', '保存与预览修复-20261021.md',
