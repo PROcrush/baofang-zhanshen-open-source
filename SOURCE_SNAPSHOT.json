@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "e98cf1e137ef2f2431053d6eed07d343947f3785",
+  "sourceRevision": "6aa677105a7ad31cb7d41de9f3978e2d5cc9267f",
   "files": [
     {
       "path": ".gitignore",
@@ -24,7 +24,7 @@
     },
     {
       "path": "DESIGN.md",
-      "sha256": "ad3b2e3bdc4731d8d23e3636b92bd4659deccc6bb36dd28477df5387f29ca298"
+      "sha256": "b96625fc2ec51369339f47aa3ae5a0df25c8ac52fb418defb5eb7217cf67c395"
     },
     {
       "path": "LICENSE",
@@ -312,7 +312,7 @@
     },
     {
       "path": "docs/客屏文字与DJLogo-20261103.md",
-      "sha256": "528003a19bd681e91123a3ae4c86c9bca4dc395f1bbc32952980aae9fdb079d7"
+      "sha256": "0072b24b3b261099ab1eb426ec2732d274eabc504dc37ee1838f0231fe3d9c35"
     },
     {
       "path": "docs/本地识别-0.6.md",
@@ -828,7 +828,7 @@
     },
     {
       "path": "tools/check_screen_content.py",
-      "sha256": "cbd2a9bb85dacde3e4806781817f73c1a6737d7d782a14c950dbd68402cceea7"
+      "sha256": "a848439c076759ad1b75f6dcbb5e2f12fbeb202f982ccc92bc8a0285d724005f"
     },
     {
       "path": "tools/check_screen_layers.py",
@@ -836,7 +836,7 @@
     },
     {
       "path": "tools/check_screen_layers_edges.py",
-      "sha256": "7b73ab0f46c732104183d0696179a506c9402a1efe8b0e2c5386ec2c3aa10f14"
+      "sha256": "239414db9bc30a22c19a20e1090c3ad1ed5cf56c71ba53a85297c518927d4d73"
     },
     {
       "path": "tools/check_screen_personal.py",
@@ -1036,7 +1036,7 @@
     },
     {
       "path": "ui/ScreenContentPanel.qml",
-      "sha256": "342ef07acdbdf84bdd725b7e8158a57bdf0fe829c4e40d87cfea14098f9a3765"
+      "sha256": "a43d832f91d2514930590a693577b517dbf5c0ba80a408ea4e651a048df3b24a"
     },
     {
       "path": "ui/ScreenLayerSample.svg",
@@ -1044,19 +1044,27 @@
     },
     {
       "path": "ui/ScreenLayerStylePicker.qml",
-      "sha256": "e5d1046f406bf35bb51aa9e9eeba5e5efbec1979c1ecccb61cb64dcd26a4f3e7"
+      "sha256": "3d0806cf283cc2c238203bbea13bbde1e8f2b9d2f449f497becb1785f6451a4c"
     },
     {
       "path": "ui/ScreenLayerStyles.js",
-      "sha256": "3bcde92f0c153db58a9918077570345a7ece2dc5b1abcf7cc68746eb2da36940"
+      "sha256": "5f7b4f569a2687067374e60a569202a844b6b0b76ef14e852a7040aec43c584a"
     },
     {
       "path": "ui/ScreenLayers.qml",
-      "sha256": "4a0f25e9b98554ccd7c67abd814944678483dd610bffd222b5853133dcffc744"
+      "sha256": "db0d20274e10bab24e4fbc65a993dd76166fac9b5fb1aca611039a561dc20e67"
     },
     {
       "path": "ui/ScreenPersonalPanel.qml",
       "sha256": "9880a7d34cbb4e060aa20224e676b87901e3bb0416fb7f56272dcce44d16f60f"
+    },
+    {
+      "path": "ui/ScreenRedEclipse.svg",
+      "sha256": "162bbf8c9a5a139fb1106e74dd82b90c83c7b06f0fad87d67777aa82fabe108a"
+    },
+    {
+      "path": "ui/ScreenSilverArc.svg",
+      "sha256": "01f715a3fb68f24bd56613f3a0820f9e233538efe5913cd38c980bf8de63d3ea"
     },
     {
       "path": "ui/SeratoOverlay.qml",

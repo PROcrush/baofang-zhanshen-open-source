@@ -292,6 +292,22 @@ def main():
             assert wait_for(lambda: find(output, 'screenLogoPlate') is not None)
             results.append('艺术模板：示例不可发布，拖入 Logo 和选择模板只影响预览，明确发布后独立客屏显示相同底板')
 
+            # Capture the two compositions through the normal output renderer,
+            # with live lyrics and the DJ mark present in the same frame.
+            output.resize(1280, 720)
+            press('screenLayersTextTab')
+            reveal('screenStyleToggle')
+            press('screenStyleToggle')
+            for key, caption in (('midnight', '今晚，不散场'), ('champagne', '今晚，尽兴唱')):
+                field.setProperty('text', caption)
+                reveal('screenStyle-' + key)
+                press('screenStyle-' + key)
+                press('screenTextApply')
+                assert wait_for(lambda: renderer.state['screenLayers']['text']['style'] == key)
+                assert wait_for(lambda: find(output, 'screenTextScenery') is not None)
+                output.grabWindow().save(str(evidence / ('stage-' + key + '.png')))
+            results.append('赤月与银弧：独立客屏加载原创光景，和现场歌词及 Logo 同帧显示')
+
             # Both controllers enforce expiry, even with a frozen old snapshot.
             controller._state['guestQr'] = {'running': False, 'onScreen': False, 'url': '', 'image': ''}
             row = dict(controller.state['screenLayers']['text'], text='一秒后撤下')

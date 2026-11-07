@@ -175,7 +175,11 @@ def main():
                         assert plate.x() >= 0 and plate.x() + plate.width() <= width + 1, geometry
                         assert plate.y() >= 0 and plate.y() + plate.height() <= height + 1, geometry
                     assert text_item.property('paintedHeight') * text_item.scale() <= text_item.height() + 1
-            results.append('艺术底板：1080p 和 4K 下，长文字及 Logo 印记都保留在画面内')
+                    config['text']['position'] = 'top-left'
+                    stage.setProperty('stateData', {'screenLayers': config, 'logoImageUrl': owned})
+                    QTest.qWait(40)
+                    assert text_plate.y() + text_plate.height() <= height * .54 + 1
+            results.append('艺术文字：1080p 和 4K 下，上方样式给歌词留位，长文字及 Logo 都保留在画面内')
 
             press('screenLayersLogoTab')
             for suffix, format_name in (('jpg', 'JPEG'), ('webp', 'WEBP')):

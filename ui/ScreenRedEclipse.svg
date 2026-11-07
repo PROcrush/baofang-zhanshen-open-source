@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 350">
+  <defs>
+    <radialGradient id="field">
+      <stop stop-color="#ba1917" stop-opacity=".39"/>
+      <stop offset=".64" stop-color="#80100f" stop-opacity=".21"/>
+      <stop offset="1" stop-color="#4a090b" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="rim">
+      <stop offset=".64" stop-color="#160608" stop-opacity="0"/>
+      <stop offset=".72" stop-color="#5d0e15" stop-opacity=".12"/>
+      <stop offset=".78" stop-color="#ff674a" stop-opacity=".52"/>
+      <stop offset=".81" stop-color="#f34528" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#f93525" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="edge" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop stop-color="#d32b28" stop-opacity=".03"/>
+      <stop offset=".47" stop-color="#d4362e" stop-opacity=".20"/>
+      <stop offset=".86" stop-color="#ff8963"/>
+      <stop offset="1" stop-color="#ffe2b4"/>
+    </linearGradient>
+    <linearGradient id="beam">
+      <stop stop-color="#9b1d1c" stop-opacity="0"/>
+      <stop offset=".62" stop-color="#c73328" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#d64835" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="753" cy="176" rx="282" ry="171" fill="url(#field)"/>
+  <circle cx="753" cy="176" r="166" fill="url(#rim)"/>
+  <circle cx="753" cy="176" r="130" fill="#080508" fill-opacity=".91" stroke="url(#edge)" stroke-width="2.5"/>
+  <path d="M150 303H985M388 319H996" fill="none" stroke="url(#beam)" stroke-width="1.2"/>
+</svg>

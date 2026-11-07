@@ -236,6 +236,7 @@ ColumnLayout {
                     visible: active
                     sourceComponent: ScreenLayerStylePicker {
                         styles: panel.styles; logo: panel.tab === 1; selectedStyle: Styles.find(panel.styles, panel.activeDraft.style).key
+                        logoImage: panel.draftLogoUrl
                         onChosen: function(style) { panel.chooseStyle(style); }
                     }
                 }
