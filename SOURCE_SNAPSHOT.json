@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "ca9c47d78f55b2e15bc83dfc8fd1f76b522f991e",
+  "sourceRevision": "ce0dce1565d4ec79b9ea29c01f26b84c23c3593a",
   "files": [
     {
       "path": ".gitignore",
@@ -32,11 +32,11 @@
     },
     {
       "path": "PRODUCT.md",
-      "sha256": "b26f5be90cf3827b5a6e5ff8e9f58e6de07c9badd5bddc2ef75ae7c3b64e09b2"
+      "sha256": "1797298c1c0add1459112c2870ab2f7e7ef1ffb758e0f808836b58b1663670a7"
     },
     {
       "path": "README.md",
-      "sha256": "20d8ca63b9bce6116476b02b344b1fe3326e2785c7703d4fce02bc000bf0a109"
+      "sha256": "15e5cd441f657bebd7db3dd5887efa30852bef1fa43193c9fc43a31a30f8aab7"
     },
     {
       "path": "SECURITY.md",
@@ -64,7 +64,7 @@
     },
     {
       "path": "app/controller.py",
-      "sha256": "bb3d479c30428f9cfdd83c642425b4a1c7122c9bbf64a3358a543cc645f2cf30"
+      "sha256": "5edc2836a96f8cd9c96f4402d25c8f7befe5f3fa873881b84208fb2b15b904ba"
     },
     {
       "path": "app/credentials.py",
@@ -120,7 +120,7 @@
     },
     {
       "path": "app/messages.py",
-      "sha256": "907afad19aad1a31c8bb04976f40ab040ced4e6c8a8ab38e43997df914f5b962"
+      "sha256": "bc934b1fb3e50e6ca1a089768831883f99d5a10e074d9308959c8a2479ba1b59"
     },
     {
       "path": "app/midi_control.py",
@@ -172,7 +172,7 @@
     },
     {
       "path": "app/serato_adapter.py",
-      "sha256": "cc184c7c84a6960b611100f499ea113132cc0b120478ad69ceb71a9e9f2afe7b"
+      "sha256": "5d12f8b4518ce8b308f3e9be8768682b4a3585ab4e9f47fa6f05300c05d19bd2"
     },
     {
       "path": "app/serato_overlay.py",
@@ -260,7 +260,7 @@
     },
     {
       "path": "docs/macOS使用手册.md",
-      "sha256": "cc76e0cebf600c080fcfdee0fa2d8dd93856b112f513a02fed918e9e5f5214df"
+      "sha256": "1f65b9de15c5b899be01a3768cd79c5b7d51ad79143d09fea99fa707095b8848"
     },
     {
       "path": "docs/macOS构建说明.md",
@@ -276,7 +276,7 @@
     },
     {
       "path": "docs/open-source/README.md",
-      "sha256": "aeaa1d998dca967b3660a2914f92ec67bc638c2667658a5f2634b826dfd1100e"
+      "sha256": "55f88f2c4e2e728874413a9704c707d5ae42148a0d4bcae6b8a4e6e7b1389a2c"
     },
     {
       "path": "docs/主程序重开现场状态恢复-20261103.md",
@@ -532,7 +532,7 @@
     },
     {
       "path": "tests/test_controller_modes.py",
-      "sha256": "01418117c40c3826b563f7414e72a35cb137320c328c2baf104ac4c23ed782aa"
+      "sha256": "d3e66484e22bcbeee9e9d35d19ffd49cb6ccde71cba4b81b53887be76a6fa46b"
     },
     {
       "path": "tests/test_correction.py",
@@ -1028,7 +1028,7 @@
     },
     {
       "path": "ui/RecognitionPanel.qml",
-      "sha256": "c03ab6cbfe80f152c3658a6928ed0d8845d0c83004e390cdb59c4904540ee41f"
+      "sha256": "bf6adb95082ed3e3cc533e7307f60814e3b399acb7d0032b3e9832632287fb38"
     },
     {
       "path": "ui/RekordboxAxBinding.qml",

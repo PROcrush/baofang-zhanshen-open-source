@@ -63,6 +63,8 @@ def _deck(value, name, live=False):
     _integer(deck.get('generation'), f'{name}.generation')
     if live:
         _boolean(deck.get('identityReady'), f'{name}.identityReady')
+        if deck.get('lyricVersionId') is not None:
+            _string(deck['lyricVersionId'], f'{name}.lyricVersionId', 256, allow_empty=True)
     return deck
 
 

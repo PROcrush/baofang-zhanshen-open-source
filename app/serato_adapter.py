@@ -1,8 +1,28 @@
 """Map verified reader frames to our source-time clock without guessing raw units."""
 import hashlib
 from pathlib import Path
+from unicodedata import normalize
 
 from app.messages import validate_serato_frame
+
+
+def song_filename(path):
+    return normalize('NFC', Path(path).name)
+
+
+def filename_lyric_versions(tracks, timelines):
+    """Index exact filenames; newer cached revisions of one path take priority."""
+    paths = {}
+    versions = {}
+    for track in tracks:
+        path = track['path']
+        name = song_filename(path)
+        paths.setdefault(name, set()).add(path)
+        version = track['versionId']
+        if version in timelines:
+            versions.setdefault(name, version)
+    return {name: versions.get(name, '') if len(sources) == 1 else None
+            for name, sources in paths.items()}
 
 
 def file_signature(path):

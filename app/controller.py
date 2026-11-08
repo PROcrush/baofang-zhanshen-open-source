@@ -14,7 +14,7 @@ from app.lyrics import project_lyrics
 from app.clock import monotonic_ns
 from app.messages import accept_snapshot, accept_serato_frame, validate_program_payload
 from app.native import NativeClock
-from app.serato_adapter import adapt_serato_frame, proof_is_current, file_signature
+from app.serato_adapter import adapt_serato_frame, filename_lyric_versions, proof_is_current, file_signature, song_filename
 from app.rekordbox_adapter import accept_rekordbox_frame, adapt_rekordbox_frame
 from app.rekordbox_ax_adapter import accept_ax_frame, adapt_ax_frame, make_ax_binding
 from app.source_routing import check_source_snapshot, select_lyric_source
@@ -107,8 +107,16 @@ def project_state(state, raw, timelines, clock, now):
     for key, deck in raw.items():
         position, status = clock.estimate(deck, now)
         valid[key] = status == 0
-        identity_ready = deck.get('identityReady', False) and proof_is_current(deck.get('identityProof'), deck['path']) if live else True
-        timeline = timelines.get(deck['versionId'])
+        if result.get('mode') == 'serato' and 'lyricVersionId' in deck:
+            lyric_version = deck['lyricVersionId']
+            identity_ready = bool(deck['path'])
+            timeline = timelines.get(lyric_version)
+            if lyric_version:
+                duration = timeline['durationMs'] if timeline else 0
+                deck = dict(deck, versionId=lyric_version, durationMs=duration if position <= duration else 0)
+        else:
+            identity_ready = deck.get('identityReady', False) and proof_is_current(deck.get('identityProof'), deck['path']) if live else True
+            timeline = timelines.get(deck['versionId'])
         sources[key] = check_source_snapshot(deck, timeline, now, clock_status=status, identity_ready=identity_ready)
         cloud_timeline = bool(timeline and timeline.get('provider'))
         label = '合成时码' if deck['versionId'].startswith('demo:') else (('云端字幕缓存' if cloud_timeline else '已导入歌词') if timeline else '暂无歌词')
@@ -125,6 +133,13 @@ def project_state(state, raw, timelines, clock, now):
                                                 'error': '文件核验失败', 'suspended': '播放状态过期 · 已隐藏歌词'}[cache_state])
         if result.get('mode') == 'rekordbox_ax' and not identity_ready and fresh_observation:
             result['deck' + key]['cacheLabel'] = deck.get('bindingMessage', '请确认此盘实际歌曲文件')
+        if result.get('mode') == 'serato' and fresh_observation and deck.get('path') and 'lyricVersionId' in deck:
+            if deck['lyricVersionId'] is None and cache_state == 'missing':
+                result['deck' + key]['cacheLabel'] = '曲库有同名文件 · 请区分文件名后再匹配'
+                if sources[key]['reasonCode'] == 'lyrics_missing':
+                    sources[key].update(reasonCode='lyrics_ambiguous', reason='选中盘在曲库有多个同名文件，已隐藏歌词')
+            elif cache_state == 'ready' and not needs_review:
+                result['deck' + key]['cacheLabel'] = '已按文件名匹配歌词'
     selected = result['selectedSource']
     if live:
         selection = select_lyric_source(selected, result.get('videoFader', -1), result.get('autoSide'), sources,
@@ -199,6 +214,7 @@ class Controller(QObject):
         self._state['screenContentLibrary'] = load_library(self.runtime)
         self._state['logoImageUrl'] = logo_url(self.runtime, self._state['screenLayers'])
         self.file_proofs = {}
+        self._serato_lyric_versions = {}
         self.file_errors = {}
         self.failed_file_signatures = {}
         self.ax_frame = None
@@ -646,6 +662,9 @@ class Controller(QObject):
                     candidate_raw = (adapt_rekordbox_frame if rekordbox else adapt_serato_frame)(message, self.file_proofs)
                     for deck in candidate_raw.values():
                         path = deck['path']
+                        if not rekordbox:
+                            deck['lyricVersionId'] = self._serato_lyric_versions.get(song_filename(path), '') if path else ''
+                            continue
                         deck['errorText'] = self.file_errors.get(path, '')
                         if path and not deck['identityReady']:
                             try:
@@ -699,7 +718,7 @@ class Controller(QObject):
             self.refresh_overlay_status()
         self.stateChanged.emit()
         render_state = {key: value for key, value in self._state.items() if key not in (*STATE_COLLECTIONS, 'notice')}
-        active_versions = {deck['versionId'] for deck in self.raw.values()}
+        active_versions = {deck.get('lyricVersionId', deck['versionId']) for deck in self.raw.values()}
         payload = {'state': render_state, 'raw': self.raw,
                    'timelines': {key: value for key, value in self.timelines.items() if key in active_versions}}
         temporary = self.runtime / 'program.tmp'
@@ -711,6 +730,7 @@ class Controller(QObject):
                  'durationText': '02:00', 'durationMs': 120000, 'quality': '合成字时码',
                  'status': '用于验证同步；无音频', 'isDemo': True} for key in ('A', 'B')]
         tracks = self.library.offline_tracks()
+        self._serato_lyric_versions = filename_lyric_versions(self.library.tracks(), self.timelines)
         for track in tracks:
             track['durationText'] = stamp(track['durationMs'])[:5] if track.get('durationMs') else '待解析'
         self._offline_rows = tracks
@@ -1375,7 +1395,8 @@ class Controller(QObject):
 
     # ---- 今晚歌单 ----
     def loaded_versions(self):
-        return frozenset(deck['versionId'] for deck in self.raw.values() if deck.get('versionId'))
+        return frozenset(deck.get('lyricVersionId') or deck['versionId']
+                         for deck in self.raw.values() if deck.get('versionId'))
 
     def refresh_setlist(self):
         setlist = getattr(self, 'setlist', None)
@@ -1762,6 +1783,16 @@ class Controller(QObject):
         if require_verified and not verified:
             raise ValueError('当前盘实际音频尚未核验，或文件已变化；先完成版本核验再继续准备')
         return deck
+
+    @Slot(str)
+    def verifySeratoPreparation(self, key):
+        if self._state['mode'] != 'serato' or key not in ('A', 'B'):
+            return
+        deck = self.raw.get(key, {})
+        if deck.get('path') and deck['capturedNs'] <= monotonic_ns() <= deck['validUntilNs']:
+            self.index_audio(deck['path'])
+        else:
+            self.notice('当前盘播放状态已过期，请确认连接后再核验')
 
     def preparation_action(self, operation, *arguments):
         try:
@@ -2225,7 +2256,7 @@ class Controller(QObject):
                 self.failed_file_signatures.pop(path, None)
                 self.library.record_job(job, 'ready', response)
                 self.refresh_library()
-                self.notice('文件已核验并索引；自动歌词识别尚未启用')
+                self.notice('文件已核验并索引；可在歌曲准备导入字幕或审阅识别计划')
                 for callback in entry['callbacks']:
                     callback(response['track'])
             except Exception as exc:

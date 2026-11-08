@@ -11,10 +11,10 @@ from unittest.mock import patch
 
 from PySide6.QtCore import QProcess
 
-from app.controller import Controller, FileController, initial_state
+from app.controller import Controller, FileController, initial_state, project_state
 from app.messages import validate_program_payload
 from app.native import NativeClock
-from app.serato_adapter import adapt_serato_frame, proof_is_current
+from app.serato_adapter import adapt_serato_frame, filename_lyric_versions, proof_is_current
 from app.storage import inspect_audio
 
 
@@ -114,7 +114,7 @@ class ControllerLifecycleTests(unittest.TestCase):
         self.harness = SimpleNamespace(
             _state=initial_state(), raw={}, timelines={'demo:A': timeline()},
             bridge=FakeBridge(), stateChanged=FakeSignal(), runtime=self.runtime,
-            clock=NativeClock(self.root), output=None, file_proofs={}, file_errors={},
+            clock=NativeClock(self.root), output=None, file_proofs={}, file_errors={}, _serato_lyric_versions={},
             index_pending={}, failed_file_signatures={}, notices=[], indexed=[])
         self.harness.notice = lambda value: self.harness.notices.append(value)
         self.harness.index_audio = lambda path: self.harness.indexed.append(path)
@@ -138,6 +138,52 @@ class ControllerLifecycleTests(unittest.TestCase):
         self.harness._state['bridgeRunning'] = False
         self.harness.send({'type': 'seek', 'seconds': 10})
         self.assertEqual(self.harness.bridge.writes, [])
+
+    def test_serato_reuses_old_lyrics_by_filename_without_indexing_or_choosing_a_duplicate(self):
+        harness = self.harness
+        harness._state.update(mode='serato', inputMode='serato', selectedSource='A')
+        source = self.runtime / 'set' / '原创 Remix.mp3'
+        source.parent.mkdir()
+        source.write_bytes(b'audio with updated play count')
+        current = inspect_audio(source)
+        old_version = 'sha256:' + 'a' * 64
+        old = dict(current, versionId=old_version)
+        harness.timelines[old_version] = dict(timeline(), versionId=old_version)
+        frame = live_frame()
+        frame['decks'][0]['audio_path'] = str(source)
+
+        def observe(tracks):
+            harness._serato_lyric_versions = filename_lyric_versions(tracks, harness.timelines)
+            frame['sequence'] += 1
+            harness.bridge.queue(frame)
+            harness.read_bridge()
+            with patch('app.controller.monotonic_ns', return_value=NOW):
+                harness.tick()
+            payload = validate_program_payload(json.loads((self.runtime / 'program.json').read_text()))
+            return project_state(payload['state'], payload['raw'], payload['timelines'], harness.clock, NOW)
+
+        projected = observe([current, old])
+        self.assertEqual(projected['effectiveSource'], 'A')
+        self.assertEqual(projected['deckA']['versionId'], old_version)
+        self.assertTrue(projected['lyric']['visible'])
+        self.assertFalse(harness.raw['A']['identityReady'])
+        self.assertEqual(harness.indexed, [])
+
+        frame['decks'][0]['audio_path'] = str(self.runtime / 'moved' / source.name)
+        self.assertEqual(observe([current, old])['deckA']['versionId'], old_version)
+
+        duplicate = dict(old, path=str(self.runtime / 'other' / source.name), versionId='sha256:' + 'b' * 64)
+        projected = observe([current, old, duplicate])
+        self.assertEqual(projected['effectiveSource'], 'none')
+        self.assertEqual(projected['selection']['reasonCode'], 'lyrics_ambiguous')
+
+        frame['decks'][0]['audio_path'] = str(source.with_suffix('.wav'))
+        projected = observe([old])
+        self.assertEqual(projected['selection']['reasonCode'], 'lyrics_missing')
+        self.assertEqual(harness.indexed, [])
+        with patch('app.controller.monotonic_ns', return_value=NOW):
+            Controller.verifySeratoPreparation(harness, 'A')
+        self.assertEqual(harness.indexed, [str(source.with_suffix('.wav'))])
 
     def test_stop_drops_buffered_frames_before_wait_and_keeps_lyrics_hidden(self):
         self.harness.bridge.queue(replay())
