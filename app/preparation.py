@@ -11,6 +11,8 @@ from decimal import Decimal
 
 from PySide6.QtCore import QObject, QProcess, QProcessEnvironment, QTimer
 
+from app.lyric_cache import portable_timeline
+from app.speech_cache import pending_speech, read_speech_cache, standalone_candidate
 from app.storage import validate_timeline
 
 
@@ -21,6 +23,7 @@ LABELS = {'idle': '等待歌曲', 'missing': '等待识别', 'preflight': '核�
           'polling': '云端识别中', 'queued': '云端排队中', 'ready': '歌词缓存可用',
           'unknown': '提交状态待核对', 'failed': '识别失败', 'corrected': '参考纠错完成',
           'needs_review': '部分歌词需要复核',
+          'candidate_ready': '云端结果待审阅',
           'reference_ready': '参考歌词已准备',
           'blocked': '需要配置或复核', 'publishing': '核验并发布歌词'}
 
@@ -342,6 +345,27 @@ class PreparationManager(QObject):
         except (OSError, ValueError, AttributeError):
             return {'state': 'unknown'}
 
+    def _cached_lyrics(self, version, track=None, *, stage=False):
+        if not version.startswith('sha256:'):
+            return None
+        has_pending = getattr(self.library, 'has_pending_lyric_revision', None)
+        pending = has_pending(version) if has_pending else False
+        if not pending:
+            track = track or {}
+            legacy = read_speech_cache(self.runtime, version, track.get('durationMs') or None) or {}
+            timeline = standalone_candidate(self.library, version, legacy)
+            if timeline and timeline != self.timelines.get(version):
+                pending = True
+                if stage:
+                    self.library.add_timeline(timeline, track, activate=False)
+                    pending = bool(pending_speech(self.library, version))
+        if pending:
+            detail = ('保留当前输出歌词；' if version in self.timelines else '') + '云端候选已缓存，可到曲库的歌词版本审阅'
+            return 'candidate_ready', detail
+        if version in self.timelines:
+            return 'ready', '本地歌词缓存已就绪，直接复用'
+        return None
+
     def _submit_block(self, version, plan):
         if self.closed:
             return '歌曲准备已关闭'
@@ -349,8 +373,9 @@ class PreparationManager(QObject):
             return '离线演出已开启，不发送云端请求'
         if self._batch_network_conflict(version):
             return '批次正在处理其他歌曲，等待当前歌曲完成'
-        if version in self.timelines:
-            return '本文件已有可用歌词缓存，直接复用'
+        cached = self._cached_lyrics(version, self.tracks.get(version))
+        if cached:
+            return cached[1]
         if self._job(version) is not None:
             return '已有任务回执；继续查询或核对，不重复提交'
         if version in self.reservations:
@@ -391,16 +416,22 @@ class PreparationManager(QObject):
             version = track.get('versionId', '')
             report = dict(self.reports.get(version, {}))
             cached = version in self.timelines and version.startswith('sha256:')
-            phase = report.get('phase', 'ready' if cached else 'missing' if version.startswith('sha256:') else 'idle')
+            reuse = self._cached_lyrics(version, track)
+            default_phase = reuse[0] if reuse else 'missing' if version.startswith('sha256:') else 'idle'
+            phase = report.get('phase', default_phase)
+            if (default_phase == 'candidate_ready' and version not in self.processes) or phase == 'candidate_ready':
+                phase = default_phase
+                report['detail'] = reuse[1] if reuse else ''
             job = self._job(version) if version.startswith('sha256:') else None
             plan = dict(self.plans.get(version, {}))
             if plan:
-                plan.update(canSubmit=not self._submit_block(version, plan),
-                            blockedReason=self._submit_block(version, plan),
+                blocked = self._submit_block(version, plan)
+                plan.update(canSubmit=not blocked, blockedReason=blocked,
                             budgetLabel=f'剩余 {max(0, self.budget - self._spent()):.4f} {self.cost_unit}')
             result['decks'][key] = {'versionId': version, 'phase': phase,
                 'label': LABELS.get(phase, '任务需要核对'), 'detail': report.get('detail', ''),
-                'canQuery': bool(not self.offline_only and self._key and job and job.get('taskId') and version not in self.processes),
+                'canQuery': bool(not self.offline_only and self._key and job and job.get('taskId')
+                                 and version not in self.processes and default_phase != 'candidate_ready'),
                 'canCorrect': bool(version.startswith('sha256:') and version not in self.processes and
                                    (cached or track.get('identityReady') or track.get('identityVerified'))),
                 'canExport': cached, 'referencePath': self.references.get(version, {}).get('path', report.get('referencePath', '')),
@@ -414,6 +445,12 @@ class PreparationManager(QObject):
         if version in self.processes:
             raise ValueError('该歌曲已有正在运行的本机处理')
         self.tracks[version] = dict(track)
+        cached = self._cached_lyrics(version, track, stage=True)
+        if cached:
+            self.plans.pop(version, None)
+            self.reports[version] = {'phase': cached[0], 'detail': cached[1]}
+            self._changed()
+            return
         label, host = ROUTES[self.route]
         request = {'track': dict(track), 'host': host, 'maxCostPTC': self.budget,
                    'route': self.route, 'routeLabel': label, 'planId': str(uuid.uuid4())}
@@ -590,8 +627,16 @@ class PreparationManager(QObject):
             timeline = correct_with_reference(timeline, current, reference_label=Path(reference['path']).name)
         if not _proof_current(track):
             raise ValueError('识别期间源文件已变化，保留结果但不绑定当前歌曲')
-        track['durationMs'] = timeline['durationMs']
-        self.library.add_track(track)
+        active = self.library.timeline(version) or self.timelines.get(version)
+        if active is not None:
+            if portable_timeline(active) != portable_timeline(timeline):
+                self.library.add_timeline(timeline, track, activate=False)
+                self.reports[version] = {'phase': 'candidate_ready',
+                    'detail': '云端结果已保存，当前歌词继续使用。到曲库 → 更多 → 歌词版本审阅。'}
+                return
+        else:
+            track['durationMs'] = timeline['durationMs']
+            self.library.add_track(track)
         self.library.add_timeline(timeline, track)
         self.timelines[version] = timeline
         self.on_timeline(version, timeline)
@@ -613,7 +658,7 @@ class PreparationManager(QObject):
         for version, track in list(self.tracks.items()):
             if version in batch_versions and version != self._batch_current_version:
                 continue
-            if version not in self.processes and version not in self.timelines:
+            if version not in self.processes and not self._cached_lyrics(version, track):
                 job = self._job(version)
                 if job and job.get('taskId') and job.get('state') in ('polling', 'queued', 'running', 'submitted'):
                     try:
@@ -673,10 +718,10 @@ class PreparationManager(QObject):
         rows = []
         for version, track in unique.items():
             self.tracks[version] = track
-            cached = version in self.timelines
+            cached = self._cached_lyrics(version, track, stage=True)
             job = self._job(version)
             if cached:
-                phase, detail = 'ready', '本地歌词缓存已就绪，直接复用'
+                phase, detail = cached
             elif job is not None or version in self.reservations:
                 phase = 'query_ready' if job and job.get('taskId') else 'unknown'
                 detail = '已有任务回执，仅续查，不新增上传或识别' if phase == 'query_ready' else '已有提交记录，状态待核对，不重复付费'
@@ -706,9 +751,10 @@ class PreparationManager(QObject):
             return
         for row in self.batch['rows']:
             version = row['versionId']
-            if version in self.timelines:
+            cached = self._cached_lyrics(version, row['track'])
+            if cached:
                 if _proof_current(row['track']):
-                    row.update(phase='ready', detail='本地歌词缓存已就绪，直接复用')
+                    row.update(phase=cached[0], detail=cached[1])
                 else:
                     row.update(phase='blocked', detail='源音频已变化或不存在；重新索引后才能确认离线就绪')
                 continue
@@ -757,7 +803,7 @@ class PreparationManager(QObject):
             version, track = row['versionId'], row['track']
             if not _proof_current(track):
                 return '批次音频已变化，请重新索引并规划'
-            if version in self.timelines:
+            if self._cached_lyrics(version, track):
                 continue
             job = self._job(version)
             if job is not None or version in self.reservations:
@@ -791,7 +837,7 @@ class PreparationManager(QObject):
     def batch_view(self):
         if not self.batch:
             return {'id': '', 'status': 'idle', 'title': '提前准备演出曲库', 'total': 0,
-                    'ready': 0, 'planned': 0, 'pending': 0, 'failed': 0,
+                    'ready': 0, 'review': 0, 'planned': 0, 'pending': 0, 'failed': 0,
                     self.cost_field: 0.0, 'estimatedCost': 0.0, 'costUnit':self.cost_unit, 'canStart': False,
                     'blockedReason': '请先选择曲库并生成批次', 'rows': []}
         self._sync_batch_rows()
@@ -799,6 +845,7 @@ class PreparationManager(QObject):
                  ('versionId', 'title', 'path', 'phase', 'detail', self.cost_field, 'planId')}
                 for row in self.batch['rows']]
         ready = sum(row['phase'] == 'ready' for row in rows)
+        review = sum(row['phase'] == 'candidate_ready' for row in rows)
         planned = sum(row['phase'] == 'planned' for row in rows)
         failed = sum(row['phase'] in ('unknown', 'failed', 'blocked', 'stale') for row in rows)
         cost = sum(row[self.cost_field] for row in rows
@@ -808,8 +855,8 @@ class PreparationManager(QObject):
         reason = self._batch_block()
         return {'id': self.batch['id'], 'status': self.batch['status'],
                 'title': self.batch['title'], 'detail': self.batch.get('detail', ''),
-                'total': len(rows), 'ready': ready, 'planned': planned,
-                'pending': len(rows) - ready - planned - failed, 'failed': failed,
+                'total': len(rows), 'ready': ready, 'review': review, 'planned': planned,
+                'pending': len(rows) - ready - review - planned - failed, 'failed': failed,
                 self.cost_field: round(cost, 6), 'estimatedCost': round(cost, 6), 'costUnit': self.cost_unit, 'canStart': not reason,
                 'blockedReason': reason, 'rows': [dict(row, estimatedCost=row[self.cost_field], costUnit=self.cost_unit) for row in rows]}
 
@@ -832,7 +879,7 @@ class PreparationManager(QObject):
                     row.update(phase='failed', detail=self._detail(exc))
                     self.reports[version] = {'phase': 'blocked', 'detail': row['detail']}
         self._batch_planning_version = None
-        self.batch['status'] = 'completed' if all(row['phase'] == 'ready' for row in self.batch['rows']) else 'planned'
+        self.batch['status'] = 'completed' if all(row['phase'] in ('ready', 'candidate_ready') for row in self.batch['rows']) else 'planned'
         self.batch['detail'] = '本地预检已完成；审阅批次总费用后启动，仅对缺少缓存的歌曲新增识别'
         self._save_batch()
         self._changed()
@@ -875,7 +922,7 @@ class PreparationManager(QObject):
             version = self._batch_current_version
             report = self.reports.get(version, {})
             job = self._job(version)
-            if version not in self.timelines and report.get('phase') in ('polling', 'queued') and job and job.get('taskId'):
+            if not self._cached_lyrics(version, self.tracks[version]) and report.get('phase') in ('polling', 'queued') and job and job.get('taskId'):
                 if allow_query:
                     try:
                         self.query('', self.tracks[version])
@@ -896,7 +943,7 @@ class PreparationManager(QObject):
             version = row['versionId']
             job = self._job(version)
             known_unknown = row['phase'] == 'unknown' and job and job.get('taskId') and not row.get('attempted')
-            if version in self.timelines or (row['phase'] in ('failed', 'blocked', 'unknown') and not known_unknown):
+            if row['phase'] in ('ready', 'candidate_ready') or (row['phase'] in ('failed', 'blocked', 'unknown') and not known_unknown):
                 continue
             try:
                 self._batch_current_version = version

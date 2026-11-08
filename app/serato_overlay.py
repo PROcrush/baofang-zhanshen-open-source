@@ -241,7 +241,14 @@ class SeratoOverlay(QObject):
                       state.get('mode') == 'serato' and state.get('selectedSource') != 'none' and
                       not state.get('outputBlocked') and
                       state.get('deck' + state['effectiveSource'], {}).get('cacheState') == 'ready')
-            if not usable:
+            layers = state.get('screenLayers', {})
+            qr = state.get('guestQr', {})
+            extras = state.get('mode') == 'serato' and (
+                layers.get('text', {}).get('visible') or
+                (layers.get('logo', {}).get('visible') and state.get('logoImageUrl')) or
+                state.get('guestMessage', {}).get('visible') or
+                (qr.get('running') and qr.get('onScreen') and qr.get('image')))
+            if not (usable or extras):
                 self.window.hide()
                 self.status('suspended', '歌词来源未就绪或已隐藏，叠加暂停', host)
                 return
@@ -258,7 +265,8 @@ class SeratoOverlay(QObject):
             self.window.setMask(mask)
             self.window.show()
             self.bridge.raise_window(self.window, host)
-            self.status('attached', '字幕已叠加到 Serato 视频窗口，样式修改实时生效', host, regions)
+            detail = '字幕已叠加到 Serato 视频窗口，样式修改实时生效' if usable else '客屏附加内容已叠加到 Serato 视频窗口'
+            self.status('attached', detail, host, regions)
         except (OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
             self.window.hide()
             self.status('error', str(exc)[:300])

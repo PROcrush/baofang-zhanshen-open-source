@@ -6,11 +6,20 @@ ColumnLayout {
     id: wishes
     property var stateData: ({})
     readonly property var qr: stateData.guestQr || ({})
-    readonly property var inbox: stateData.guestInbox || []
+    property var inbox: []
     readonly property bool publicActive: qr.mode === "public" && !!qr.active
     readonly property bool lanActive: qr.mode !== "public" && !!qr.running
     readonly property bool offline: !!(stateData.offlineLibrary || {}).offlineOnly
     property bool showQr: false
+    onStateDataChanged: syncInbox()
+    Component.onCompleted: syncInbox()
+
+    function syncInbox() {
+        var rows = stateData.guestInbox || [];
+        if (rows.length !== inbox.length || rows.some(function(row, index) { return row.id !== inbox[index].id; }))
+            inbox = rows;
+    }
+
     spacing: 8
     DarkCheckBox { objectName: "wishServerToggle"; text: "局域网扫码"; checked: wishes.lanActive; enabled: !wishes.publicActive; onClicked: controller.setGuestServer(!wishes.lanActive) }
     DarkCheckBox { objectName: "wishPublicToggle"; text: "公网扫码（支持手机流量）"; checked: wishes.publicActive; enabled: !!wishes.stateData.guestRelayConfigured && !wishes.lanActive && (!wishes.offline || wishes.publicActive); onClicked: controller.setPublicGuestServer(!wishes.publicActive) }
@@ -18,6 +27,13 @@ ColumnLayout {
         Layout.fillWidth: true
         text: wishes.lanActive ? "客人用同一局域网扫码。" : wishes.offline ? "离线演出期间可用局域网扫码。" :
               wishes.stateData.guestRelayStatus || (!wishes.stateData.guestRelayConfigured ? "配置公网祝福服务后可开启手机流量扫码。" : "选择一种方式开启扫码。")
+        color: Theme.secondary; font.pixelSize: 11; wrapMode: Text.Wrap
+    }
+    Text {
+        objectName: "wishPublicCloseStatus"
+        Layout.fillWidth: true
+        visible: !!text
+        text: wishes.stateData.guestRelayCloseStatus || ""
         color: Theme.secondary; font.pixelSize: 11; wrapMode: Text.Wrap
     }
     Text { Layout.fillWidth: true; text: "你审核后才上屏，每条显示 15 秒。"; color: Theme.secondary; font.pixelSize: 11; wrapMode: Text.Wrap }

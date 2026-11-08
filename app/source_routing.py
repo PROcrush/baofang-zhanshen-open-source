@@ -31,13 +31,14 @@ def _stamp(value):
     return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= MAX_INT64
 
 
-def check_source_snapshot(deck, timeline, now_ns, *, clock_status=None, identity_ready=False):
+def check_source_snapshot(deck, timeline, now_ns, *, clock_status=None, identity_ready=False, timeline_check=None):
     """Return a diagnostic readiness dict without I/O or clock extrapolation.
 
     identity_ready is an explicit caller attestation for the current version;
     it defaults to False. clock_status must come from the native estimator.
     Both must be renewed for a new track; a timeline with an old version never
     satisfies the new track. Snapshot timestamps use one monotonic clock.
+    A projector can reuse one structural check per immutable timeline object.
     """
     version = deck.get('versionId') if isinstance(deck, dict) else None
 
@@ -77,12 +78,20 @@ def check_source_snapshot(deck, timeline, now_ns, *, clock_status=None, identity
         return result(False, 'lyrics_missing', '选中盘尚未准备歌词，保持纯视觉')
     if timeline.get('versionId') != version:
         return result(False, 'lyrics_version_mismatch', '选中盘歌词属于另一文件版本，已隐藏')
-    try:
-        # Serato's raw length field has an unconfirmed unit. A zero duration
-        # means unknown, never a guessed conversion; the verified file version
-        # still binds a timeline whose own positive duration is validated.
-        validate_timeline(timeline, version, duration if duration > 0 else None)
-    except (ValueError, TypeError, KeyError, OverflowError):
+    if timeline_check is not None and timeline_check.get('timeline') is timeline:
+        valid = timeline_check['valid']
+    else:
+        try:
+            validate_timeline(timeline, version)
+            valid = True
+        except (ValueError, TypeError, KeyError, OverflowError):
+            valid = False
+        if timeline_check is not None:
+            timeline_check.update(timeline=timeline, valid=valid)
+    # A zero deck duration is unknown. When known, it must still match on
+    # each observation, even when the timeline's structure is already valid.
+    timeline_duration = _finite(timeline.get('durationMs'))
+    if not valid or timeline_duration is None or (duration > 0 and abs(timeline_duration - duration) > 20):
         return result(False, 'lyrics_invalid', '选中盘歌词时间轴尚未通过校验')
     return result(True, 'ready', '选中盘的身份、时钟和歌词均已就绪')
 

@@ -127,7 +127,8 @@ class AIContractsTests(unittest.TestCase):
             request={'action':'recognize','config':config,'plan':planned,'receipt':str(Path(directory)/'receipt.json')}
             result=run(request,KEY,transport=transport)
             self.assertEqual(result['proposal']['timeline']['versionId'],track['versionId'])
-            with self.assertRaises(ValueError):run(request,KEY,transport=transport)
+            restored=run(request,KEY,transport=transport)
+            self.assertEqual(restored['proposal'],result['proposal'])
             self.assertEqual(len(transport.calls),1)
             self.assertNotIn(KEY,Path(request['receipt']).read_text())
 

@@ -3,15 +3,25 @@ import json
 import os
 import re
 import time
+from dataclasses import dataclass
+from functools import partial
 
 from PySide6.QtCore import QObject, QTimer, QUrl, Signal
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
 from app.guest_inbox import MAX_NAME, MAX_QUEUE, MAX_TEXT, clean_text
-from app.wish_relay import relay_origin, valid_key
+from app.wish_relay import ROOM_IDLE_SECONDS, relay_origin, valid_key
 
 ROOM_ID = re.compile(r'[A-Za-z0-9_-]{24}')
 MAX_REPLY = 16384
+REQUEST_TIMEOUT_MS = 6000
+
+
+@dataclass
+class ClosingRoom:
+    key: str
+    deadline: float
+    reply: QNetworkReply | None = None
 
 
 class WishRelayClient(QObject):
@@ -30,6 +40,11 @@ class WishRelayClient(QObject):
         self.network = QNetworkAccessManager(self)
         self.timer = QTimer(self, interval=2000)
         self.timer.timeout.connect(self.poll)
+        self._close_timer = QTimer(self, interval=2000)
+        self._close_timer.timeout.connect(self._retry_closures)
+        self._closing = {}
+        self._close_result = ''
+        self._shutting_down = False
         self.reply = None
         self.room, self.room_key = '', ''
         self.phase, self.detail = 'idle', ''
@@ -42,6 +57,12 @@ class WishRelayClient(QObject):
     @property
     def url(self):
         return self.origin + '/m/' + self.room if self.room else ''
+
+    @property
+    def close_status(self):
+        if self._closing:
+            return '旧公网二维码关闭待确认，正在重试。旧码可能暂时可用。'
+        return self._close_result
 
     def _status(self, phase, detail=''):
         if (self.phase, self.detail) != (phase, detail):
@@ -62,14 +83,14 @@ class WishRelayClient(QObject):
         reply.setReadBufferSize(MAX_REPLY + 1)
         reply.readyRead.connect(lambda: reply.abort() if reply.bytesAvailable() > MAX_REPLY else None)
         # Bound the total time too, including a server that trickles bytes.
-        timeout = QTimer(reply, singleShot=True, interval=6000)
+        timeout = QTimer(reply, singleShot=True, interval=REQUEST_TIMEOUT_MS)
         timeout.timeout.connect(reply.abort)
         timeout.start()
 
         def finished():
             timeout.stop()
             status = reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute)
-            if reply.error() != QNetworkReply.NetworkError.NoError and status in (200, 201):
+            if reply.error() != QNetworkReply.NetworkError.NoError and status in (200, 201, 204):
                 status = None
             try:
                 data = json.loads(bytes(reply.readAll())) if reply.bytesAvailable() <= MAX_REPLY else None
@@ -89,16 +110,20 @@ class WishRelayClient(QObject):
         self.reply = self._request('/api/rooms', self.key, self._opened, {})
 
     def _opened(self, reply, status, data):
-        if reply is not self.reply:
-            return
-        self.reply = None
+        current = reply is self.reply
+        if current:
+            self.reply = None
         room, key = data.get('room'), data.get('key')
         if (status == 201 and isinstance(room, str) and ROOM_ID.fullmatch(room)
                 and isinstance(key, str) and valid_key(key)):
+            if not current:
+                if not self._shutting_down:
+                    self._queue_close(room, key)
+                return
             self.room, self.room_key = room, key
             self.timer.start()
             self._status('ready', '公网扫码已开启，客人可用手机流量发送')
-        else:
+        elif current:
             detail = {401: '公网扫码授权失败，请检查中继配置',
                       429: '公网扫码服务繁忙，请稍后重试'}.get(status, '公网扫码未开启，请检查电脑网络或服务配置')
             self._status('error', detail)
@@ -114,7 +139,7 @@ class WishRelayClient(QObject):
             return
         self.reply = None
         if status == 404:
-            self.stop('error', '这次公网扫码已结束，请重新开启并更换二维码')
+            self.stop('error', '这次公网扫码已结束，请重新开启并更换二维码', close_room=False)
             return
         wishes = data.get('wishes')
         if status != 200 or not isinstance(wishes, list) or len(wishes) > MAX_QUEUE:
@@ -136,15 +161,64 @@ class WishRelayClient(QObject):
         self.cursor = cursor
         self._status('ready', '公网扫码已开启，客人可用手机流量发送')
 
+    def _queue_close(self, room, key, grace=0):
+        self._closing[room] = ClosingRoom(key, time.monotonic() + ROOM_IDLE_SECONDS + grace)
+        self._close_result = ''
+        self._retry_closures()
+        if not self._close_timer.isActive():
+            self._close_timer.start()
+        self.changed.emit()
+
+    def _retry_closures(self):
+        now = time.monotonic()
+        expired = False
+        for room, closing in tuple(self._closing.items()):
+            if now >= closing.deadline:
+                del self._closing[room]
+                if closing.reply:
+                    closing.reply.abort()
+                expired = True
+            elif closing.reply is None:
+                closing.reply = self._request('/api/rooms/' + room, closing.key, partial(self._closed, room))
+        if not self._closing:
+            self._close_timer.stop()
+        if expired:
+            self._close_result = '已到旧公网二维码的过期时间，关闭未获远端确认。'
+            self.changed.emit()
+
+    def _closed(self, room, reply, status, _data):
+        closing = self._closing.get(room)
+        if closing is None or reply is not closing.reply:
+            return
+        closing.reply = None
+        if status in (200, 204, 404):
+            del self._closing[room]
+            if not self._closing:
+                self._close_timer.stop()
+                if not self._close_result:
+                    self._close_result = '旧公网二维码已关闭。'
+                self.changed.emit()
+
     def stop(self, phase='idle', detail='', *, notify=True, close_room=True):
         self.timer.stop()
+        opening = self.phase == 'starting'
         reply, self.reply = self.reply, None
-        if reply:
+        if reply and (not opening or not notify):
             reply.abort()
-        if self.room and close_room:
-            self._request('/api/rooms/' + self.room, self.room_key, lambda *_: None)
+        room, key = self.room, self.room_key
         self.room, self.room_key = '', ''
         if notify:
             self._status(phase, detail)
+            if room and close_room:
+                # A poll that reached the relay before cancellation can renew the lease.
+                self._queue_close(room, key, REQUEST_TIMEOUT_MS / 1000 if reply else 0)
         else:
+            self._shutting_down = True
             self.phase, self.detail = phase, detail
+            self._close_timer.stop()
+            closing, self._closing = self._closing, {}
+            for pending in closing.values():
+                if pending.reply:
+                    pending.reply.abort()
+            if room and close_room:
+                self._request('/api/rooms/' + room, key, lambda *_: None)

@@ -1,8 +1,11 @@
 import io
 import json
 import unittest
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 from app.wish_relay import ROOM_IDLE_SECONDS, WishRelay, relay_origin
+from app.wish_relay_client import ClosingRoom, WishRelayClient
 
 
 class WishRelayTest(unittest.TestCase):
@@ -56,3 +59,25 @@ class WishRelayTest(unittest.TestCase):
                       'https://wish.example?key=123', 'https://wish.example:abc'):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 relay_origin(value)
+
+
+class WishRelayClientTest(unittest.TestCase):
+    def test_expired_close_discards_key_and_aborts_request(self):
+        reply = Mock()
+        client = SimpleNamespace(_closing={'old': ClosingRoom('private', 100, reply)},
+                                 _request=Mock(), _close_timer=Mock(), changed=Mock())
+        with patch('app.wish_relay_client.time.monotonic', return_value=100):
+            WishRelayClient._retry_closures(client)
+        self.assertFalse(client._closing)
+        client._request.assert_not_called()
+        reply.abort.assert_called_once()
+        client._close_timer.stop.assert_called_once()
+        self.assertIn('未获远端确认', client._close_result)
+
+    def test_abandoned_open_reply_only_closes_its_own_room(self):
+        new_reply = object()
+        client = SimpleNamespace(reply=new_reply, _shutting_down=False, _queue_close=Mock())
+        data = {'room': 'r' * 24, 'key': 'k' * 32}
+        WishRelayClient._opened(client, object(), 201, data)
+        self.assertIs(client.reply, new_reply)
+        client._queue_close.assert_called_once_with(data['room'], data['key'])

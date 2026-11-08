@@ -13,10 +13,12 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from app.lyric_cache import atomic_bytes, encode_json, read_bytes
-from app.screen_layers import clean_layer_text, default_layers, import_logo, load_layers, logo_url, validate_layers
+from app.screen_layers import (MAX_OWNED_LOGO_BYTES, clean_layer_text, default_layers, import_logo,
+                               load_layers, logo_url, validate_layers)
 
 KIND = 'baofang-dj-screen-profile'
 MAX_PHRASES, MAX_HISTORY = 20, 10
+MAX_PROFILE_BYTES = MAX_OWNED_LOGO_BYTES + 1_000_000
 ID = re.compile(r'^[A-Za-z0-9_-]{1,64}$')
 
 
@@ -117,26 +119,26 @@ def export_profile(runtime, layers, phrases, destination):
     if layers['logo']['image']:
         if not logo_url(runtime, layers):
             raise ValueError('Logo 不可用，请重新选择')
-        logo = read_bytes(Path(runtime) / 'screen-assets' / layers['logo']['image'], limit=20_000_000)
+        logo = read_bytes(Path(runtime) / 'screen-assets' / layers['logo']['image'], limit=MAX_OWNED_LOGO_BYTES)
         if hashlib.sha256(logo).hexdigest() + '.png' != layers['logo']['image']:
             raise ValueError('Logo 副本已变化，请重新导入')
     output = io.BytesIO()
     with zipfile.ZipFile(output, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
         archive.writestr('profile.json', encode_json(manifest))
         if logo is not None:
-            archive.writestr('logo.png', logo)
+            archive.writestr('logo.png', logo, compress_type=zipfile.ZIP_STORED)
     atomic_bytes(Path(destination), output.getvalue())
 
 
 def prepare_profile(runtime, source):
-    data = read_bytes(Path(source), limit=24_000_000)
+    data = read_bytes(Path(source), limit=MAX_PROFILE_BYTES)
     try:
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
             names = archive.namelist()
             if len(names) != len(set(names)) or set(names) not in ({'profile.json'}, {'profile.json', 'logo.png'}):
                 raise ValueError('配置包包含未知文件或重复记录')
             for info in archive.infolist():
-                limit = 100_000 if info.filename == 'profile.json' else 20_000_000
+                limit = 100_000 if info.filename == 'profile.json' else MAX_OWNED_LOGO_BYTES
                 if info.file_size > limit or info.flag_bits & 1:
                     raise ValueError('配置包文件超限或加密')
             manifest = json.loads(archive.read('profile.json'))
@@ -154,7 +156,7 @@ def prepare_profile(runtime, source):
                 with tempfile.TemporaryDirectory(prefix='dj-profile-') as temp:
                     path = Path(temp) / 'logo.png'
                     path.write_bytes(logo)
-                    image, _ = import_logo(runtime, path)
+                    image, _ = import_logo(runtime, path, max_bytes=MAX_OWNED_LOGO_BYTES)
                 layers['logo']['image'] = image
             return {'layers': layers, 'phrases': phrases, 'logoImageUrl': logo_url(runtime, layers), 'fileName': Path(source).name}
     except (zipfile.BadZipFile, RuntimeError, zlib.error, EOFError) as exc:

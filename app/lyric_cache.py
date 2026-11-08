@@ -78,11 +78,17 @@ CHANGE_FIELDS = ('segmentIndex', 'referenceLine', 'referenceSource', 'referenceL
 REVIEW_FIELDS = ('segmentIndex', 'reasonCode', 'originalText', 'bestSimilarity', 'referenceLine')
 
 
+def source_timing_provenance(timeline):
+    correction = timeline.get('correction')
+    original = correction.get('originalTimingProvenance') if isinstance(correction, dict) else None
+    return timeline.get('sourceTimingProvenance') or original or timeline.get('timingProvenance')
+
+
 def lyric_source_label(timeline):
     if not isinstance(timeline, dict) or not timeline:
         return ''
     provider = str(timeline.get('provider') or '')
-    timing = str(timeline.get('timingProvenance') or '')
+    timing = str(source_timing_provenance(timeline) or '')
     if provider.startswith('local-whisper') or timing.startswith('local_asr'):
         return '本地识别'
     if timing.startswith('imported_'):
@@ -96,7 +102,8 @@ def lyric_source_label(timeline):
 def portable_timeline(payload):
     """Whitelist the lyric protocol and its correction evidence, never task data."""
     result = _fields(payload, ('schemaVersion', 'versionId', 'durationMs', 'quality',
-                              'provider', 'timingProvenance', 'acousticAccuracyVerified', 'trimHeadMs'))
+                              'provider', 'timingProvenance', 'sourceTimingProvenance',
+                              'acousticAccuracyVerified', 'trimHeadMs'))
     result['segments'] = []
     for source in payload['segments']:
         segment = _fields(source, ('text', 'startMs', 'endMs', 'originalText', 'timingProvenance'))

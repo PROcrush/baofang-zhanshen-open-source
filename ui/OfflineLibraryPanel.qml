@@ -37,7 +37,7 @@ Item {
     function trackTone(track) { return track.offlineReady ? (track.needsReview ? "amber" : "green") : track.offlineState && track.offlineState !== "missing" ? "red" : "amber"; }
     function trackLabel(track) { return track.offlineLabel || (track.isDemo ? "回放演示" : track.offlineReady ? "离线就绪" : "未准备歌词"); }
     function phaseLabel(phase) {
-        return ({idle:"待规划", ready:"已缓存", needs_review:"已缓存 · 待复核", planned:"计划就绪", preflight:"检查文件", planning:"检查文件", running:"批次运行中", completed:"批次结束", processing:"识别中", polling:"等待结果", pending:"待准备", waiting:"待准备", reference_ready:"参考已选择", paused:"已暂停", failed:"失败", blocked:"需处理", unknown:"需续查"})[phase] || phase || "待准备";
+        return ({idle:"待规划", ready:"已缓存", candidate_ready:"云端结果待审阅", needs_review:"已缓存 · 待复核", planned:"计划就绪", preflight:"检查文件", planning:"检查文件", running:"批次运行中", completed:"批次结束", processing:"识别中", polling:"等待结果", pending:"待准备", waiting:"待准备", reference_ready:"参考已选择", paused:"已暂停", failed:"失败", blocked:"需处理", unknown:"需续查"})[phase] || phase || "待准备";
     }
 
     readonly property int processingCount: Number(libraryData.indexingCount || 0) + (batch.rows || []).filter(function(row){ return ["preflight","planning","processing","polling","running"].indexOf(row.phase || "") >= 0; }).length
@@ -240,6 +240,12 @@ Item {
                                                 ActionButton { objectName: "offlinePlan-" + trackRow.modelData.versionId; text: "审阅识别计划"; implicitHeight: 28; font.pixelSize: 11; padding: 9; enabled: !panel.offlineOnly && !trackRow.demo && !trackRow.modelData.offlineReady; onClicked: controller.planLibraryTrack(trackRow.modelData.versionId) }
                                                 ActionButton { objectName: "offlineQuery-" + trackRow.modelData.versionId; text: "继续查询"; implicitHeight: 28; font.pixelSize: 11; padding: 9; enabled: !panel.offlineOnly && trackRow.canQuery; onClicked: controller.queryLibraryTrack(trackRow.modelData.versionId) }
                                                 ActionButton { objectName: "offlineReference-" + trackRow.modelData.versionId; text: "参考纠错"; implicitHeight: 28; font.pixelSize: 11; padding: 9; enabled: trackRow.canCorrect; onClicked: controller.chooseLibraryReference(trackRow.modelData.versionId) }
+                                                ActionButton {
+                                                    objectName: "offlineLyricVersions-" + trackRow.modelData.versionId
+                                                    text: "歌词版本"; implicitHeight: 28; font.pixelSize: 11; padding: 9
+                                                    enabled: !!trackRow.modelData.hasLyricVersions || trackRow.modelData.preparationPhase === "candidate_ready"
+                                                    onClicked: versionsDialog.showSong(trackRow.modelData)
+                                                }
                                                 ActionButton { objectName: "offlineLrc-" + trackRow.modelData.versionId; text: "LRC"; implicitHeight: 28; implicitWidth: 48; font.pixelSize: 11; padding: 9; enabled: trackRow.canExport; onClicked: controller.exportLibraryLyrics(trackRow.modelData.versionId, "lrc") }
                                                 ActionButton { objectName: "offlineSrt-" + trackRow.modelData.versionId; text: "SRT"; implicitHeight: 28; implicitWidth: 48; font.pixelSize: 11; padding: 9; enabled: trackRow.canExport; onClicked: controller.exportLibraryLyrics(trackRow.modelData.versionId, "srt") }
                                             }
@@ -297,7 +303,7 @@ Item {
                                 ActionButton { objectName: "offlineBatchPause"; text: "暂停"; implicitHeight: 34; font.pixelSize: 12; enabled: ["running", "planning", "preflight", "processing"].indexOf(panel.batch.status || "") >= 0; onClicked: controller.pauseLibraryBatch() }
                             }
                             Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Theme.hairline; Layout.topMargin: 4 }
-                            Text { objectName: "offlineBatchSummary"; Layout.fillWidth: true; Layout.leftMargin: 12; Layout.rightMargin: 12; text: panel.phaseLabel(panel.batch.status || "idle") + " · 共 " + Number(panel.batch.total || 0) + " 首 · 已缓存 " + Number(panel.batch.ready || 0) + " · 计划就绪 " + Number(panel.batch.planned || 0) + " · 待准备 " + Number(panel.batch.pending || 0) + " · 失败 " + Number(panel.batch.failed || 0) + "   预估新任务费用 " + Number(panel.batch.estimatedCost || panel.batch.estimatedCostPTC || 0).toFixed(4) + " " + (panel.batch.costUnit || (panel.batch.estimatedCostPTC !== undefined ? "PTC" : "元")); color: Theme.secondary; font.pixelSize: 11; wrapMode: Text.Wrap; lineHeight: 1.3 }
+                            Text { objectName: "offlineBatchSummary"; Layout.fillWidth: true; Layout.leftMargin: 12; Layout.rightMargin: 12; text: panel.phaseLabel(panel.batch.status || "idle") + " · 共 " + Number(panel.batch.total || 0) + " 首 · 已缓存 " + Number(panel.batch.ready || 0) + " · 待审阅 " + Number(panel.batch.review || 0) + " · 计划就绪 " + Number(panel.batch.planned || 0) + " · 待准备 " + Number(panel.batch.pending || 0) + " · 失败 " + Number(panel.batch.failed || 0) + "   预估新任务费用 " + Number(panel.batch.estimatedCost || panel.batch.estimatedCostPTC || 0).toFixed(4) + " " + (panel.batch.costUnit || (panel.batch.estimatedCostPTC !== undefined ? "PTC" : "元")); color: Theme.secondary; font.pixelSize: 11; wrapMode: Text.Wrap; lineHeight: 1.3 }
                             Text { objectName: "offlineBatchBlockedReason"; Layout.fillWidth: true; Layout.leftMargin: 12; Layout.rightMargin: 12; text: panel.offlineOnly ? "离线演出已启用，云端新提交和续查关闭。关闭后可继续准备曲库。" : panel.batch.blockedReason || panel.batch.detail || "先生成计划并审阅曲目；已有缓存直接复用，批量准备受云识别设置和本机额度约束。"; color: panel.offlineOnly || panel.batch.blockedReason ? Theme.amber : Theme.muted; font.pixelSize: 11; wrapMode: Text.Wrap; lineHeight: 1.3 }
                             Item { Layout.fillHeight: true }
                             Text { Layout.fillWidth: true; Layout.leftMargin: 12; Layout.rightMargin: 12; Layout.bottomMargin: 10; text: "歌词库备份包含本地时间轴与版本索引，不复制原始音频；迁移后请核验实际音频版本。"; color: Theme.muted; font.pixelSize: 10; wrapMode: Text.Wrap }
@@ -402,7 +408,7 @@ Item {
                 Text { Layout.fillWidth: true; text: "审阅批量歌词计划"; color: Theme.text; font.pixelSize: 18; font.weight: Font.Medium }
                 ActionButton { objectName: "offlineBatchReviewClose"; text: "关闭"; implicitHeight: 32; onClicked: reviewDialog.close() }
             }
-            Text { Layout.fillWidth: true; text: "共 " + Number(panel.batch.total || 0) + " 首 · 已缓存 " + Number(panel.batch.ready || 0) + " · 新任务预估 " + Number(panel.batch.estimatedCost || panel.batch.estimatedCostPTC || 0).toFixed(4) + " " + (panel.batch.costUnit || (panel.batch.estimatedCostPTC !== undefined ? "PTC" : "元")) + "。上传源为各曲实际音频文件，已缓存曲目直接复用。"; color: Theme.secondary; font.pixelSize: 12; wrapMode: Text.Wrap }
+            Text { Layout.fillWidth: true; text: "共 " + Number(panel.batch.total || 0) + " 首 · 已缓存 " + Number(panel.batch.ready || 0) + " · 待审阅 " + Number(panel.batch.review || 0) + " · 新任务预估 " + Number(panel.batch.estimatedCost || panel.batch.estimatedCostPTC || 0).toFixed(4) + " " + (panel.batch.costUnit || (panel.batch.estimatedCostPTC !== undefined ? "PTC" : "元")) + "。上传源为各曲实际音频文件，已缓存曲目直接复用。"; color: Theme.secondary; font.pixelSize: 12; wrapMode: Text.Wrap }
             Text { Layout.fillWidth: true; text: (panel.stateData.preparation || {}).config ? ((panel.stateData.preparation || {}).config.summary || "") : "服务、路线与本机额度请在云识别设置中核验。"; color: Theme.muted; font.pixelSize: 11; wrapMode: Text.Wrap }
             Text { visible: !!panel.batch.blockedReason; Layout.fillWidth: true; text: panel.batch.blockedReason || ""; color: Theme.amber; font.pixelSize: 11; wrapMode: Text.Wrap }
             ListView {
@@ -442,6 +448,88 @@ Item {
                 }
             }
             Text { Layout.fillWidth: true; text: "关闭审阅后可启动本次计划。暂停仅停止启动后续任务，已经受理的云任务保留。"; color: Theme.muted; font.pixelSize: 11; wrapMode: Text.Wrap }
+        }
+    }
+    Dialog {
+        id: versionsDialog
+        objectName: "offlineLyricVersionsDialog"
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: Math.min(760, parent ? parent.width - 48 : 760)
+        height: Math.min(540, parent ? parent.height - 48 : 540)
+        modal: true
+        padding: 18
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        background: Rectangle { radius: Theme.radiusCard; color: Theme.surface; border.color: Theme.strokeStrong }
+        property string songVersion: ""
+        property string songTitle: ""
+        property var versions: []
+        property var selected: null
+        property var lines: []
+        function showSong(track) {
+            songVersion = track.versionId;
+            songTitle = track.title;
+            versions = controller.lyricVersions(songVersion);
+            selectVersion(versions.find(function(version) { return version.pending; }) || versions[0] || null);
+            open();
+        }
+        function selectVersion(version) {
+            selected = version;
+            lines = version ? controller.lyricVersionLines(songVersion, version.revisionId) : [];
+            revisionLines.positionViewAtBeginning();
+        }
+        contentItem: ColumnLayout {
+            spacing: 10
+            RowLayout {
+                Layout.fillWidth: true
+                Text { Layout.fillWidth: true; text: "歌词版本 · " + versionsDialog.songTitle; color: Theme.text; font.pixelSize: 18; elide: Text.ElideRight }
+                ActionButton { text: "关闭"; onClicked: versionsDialog.close() }
+            }
+            Text { Layout.fillWidth: true; text: "选一个版本查看歌词和时间码。确认后切换现场使用的歌词。"; color: Theme.secondary; font.pixelSize: 12; wrapMode: Text.Wrap }
+            RowLayout {
+                Layout.fillWidth: true; Layout.fillHeight: true
+                spacing: 12
+                ListView {
+                    id: versionList
+                    Layout.preferredWidth: 220; Layout.fillHeight: true
+                    clip: true; spacing: 6
+                    model: versionsDialog.versions
+                    ScrollBar.vertical: ScrollBar {}
+                    delegate: ActionButton {
+                        required property var modelData
+                        objectName: "offlineLyricRevision-" + modelData.revisionId
+                        width: versionList.width
+                        text: modelData.source + (modelData.active ? " · 当前使用" : modelData.pending ? " · 待审阅" : " · 已保留") +
+                              (modelData.createdMs ? "\n" + Qt.formatDateTime(new Date(modelData.createdMs), "MM-dd HH:mm:ss") : "")
+                        selected: versionsDialog.selected !== null && versionsDialog.selected.revisionId === modelData.revisionId
+                        onClicked: versionsDialog.selectVersion(modelData)
+                    }
+                }
+                ListView {
+                    id: revisionLines
+                    objectName: "offlineLyricRevisionPreview"
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    clip: true; spacing: 7
+                    model: versionsDialog.lines
+                    ScrollBar.vertical: ScrollBar {}
+                    delegate: Text {
+                        required property string modelData
+                        width: revisionLines.width - 12
+                        text: modelData; textFormat: Text.PlainText
+                        color: Theme.secondary; font.pixelSize: 13; wrapMode: Text.WrapAnywhere
+                    }
+                }
+            }
+            ActionButton {
+                objectName: "offlineUseLyricVersion"
+                Layout.alignment: Qt.AlignRight
+                text: "使用此版本"; tone: "primary"
+                enabled: versionsDialog.selected !== null && !versionsDialog.selected.active && versionsDialog.lines.length > 0
+                onClicked: {
+                    controller.useLyricVersion(versionsDialog.songVersion, versionsDialog.selected.revisionId);
+                    versionsDialog.close();
+                }
+            }
         }
     }
     Dialog {

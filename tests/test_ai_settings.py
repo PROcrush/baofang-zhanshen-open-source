@@ -37,7 +37,7 @@ class ControllerStub(QObject):
 class StudioStub:
     def __init__(self,track):
         self._sources={'audio':{'path':track['path'],'sha256':track['versionId'][7:]}}
-        self.value={'busy':False,'durationMs':1000,'audioTitle':'测试歌曲','segments':[{'text':'今完的节奏','startMs':0,'endMs':900,'characters':[{'text':'今完的节奏','startMs':0,'endMs':900}]}]}
+        self.value={'busy':False,'durationMs':track.get('durationMs') or 1000,'audioTitle':'测试歌曲','segments':[{'text':'今完的节奏','startMs':0,'endMs':900,'characters':[{'text':'今完的节奏','startMs':0,'endMs':900}]}]}
     @property
     def state(self):return copy.deepcopy(self.value)
     def applyAIResult(self,rows,version,digest):
@@ -332,6 +332,44 @@ class AISettingsTests(unittest.TestCase):
         self.assertEqual(restarted.state['proposalSource'], '云端识别')
         self.assertEqual(restarted.state['previewText'], '测试云端字幕')
 
+    def test_repeat_speech_bypasses_legacy_draft_only_after_reviewed_plan(self):
+        from worker.ai_tasks import run
+        version = self.track['versionId']
+        draft = {'schemaVersion': 1, 'versionId': version, 'durationMs': 1000,
+                 'quality': 'sentence', 'timingProvenance': 'local_asr_sentence',
+                 'segments': [{'startMs': 0, 'endMs': 900, 'text': '旧本地草稿'}]}
+        self.controller.timelines = {version: draft}
+        self.model.configureBailian(KEY, 'https://dashscope.aliyuncs.com', 'fun-asr', 'qwen-plus')
+        self.model.planSpeech()
+        self.assertEqual(self.processes, [])
+        self.assertEqual(self.model.state['proposalSource'], '本地识别')
+        self.model.planRepeatSpeech()
+        self.assertEqual(self.model.process.request['action'], 'plan')
+        self.complete(run(self.model.process.request))
+        self.assertTrue(self.model.state['plan']['repeat'])
+        self.model.startSpeech()
+        self.assertEqual(self.model.process.request['action'], 'recognize')
+        cloud = dict(draft, timingProvenance='provider_sentence', provider='bailian-asr',
+                     segments=[{'startMs': 0, 'endMs': 900, 'text': '新云端结果'}])
+        self.complete({'phase':'review','proposal':{'timeline':cloud}})
+        self.assertEqual(self.model.state['previewText'], '新云端结果')
+        self.assertEqual(self.controller.timelines[version], draft)
+        self.assertEqual(self.studio.state['segments'][0]['text'], '今完的节奏')
+
+    def test_legacy_text_cache_is_reference_and_does_not_block_timing_plan(self):
+        from app.speech_cache import speech_cache_path
+        path = speech_cache_path(self.model.runtime, self.track['versionId'])
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps({'text': '旧参考文字'}))
+        self.assertFalse(self.model.state['speechCacheAvailable'])
+        self.assertTrue(self.model.state['speechTextCached'])
+        self.model.reuseSpeechText()
+        self.assertEqual(self.model.state['previewText'], '旧参考文字')
+        self.assertFalse(self.model.state['canApply'])
+        self.model.configureBailian(KEY, 'https://dashscope.aliyuncs.com', 'fun-asr', 'qwen-plus')
+        self.model.planSpeech()
+        self.assertEqual(self.model.process.request['action'], 'plan')
+
     def test_bailian_new_plan_recovers_same_version_task_instead_of_resubmitting(self):
         from worker.ai_tasks import run
         self.model.configureBailian(KEY,'https://dashscope.aliyuncs.com','fun-asr','qwen-plus')
@@ -339,11 +377,29 @@ class AISettingsTests(unittest.TestCase):
         self.model.startSpeech();original=self.processes[-1].request
         Path(original['receipt']).write_text(json.dumps({'state':'polling'}))
         self.complete({'phase':'polling','detail':'百炼正在识别'})
-        self.model.planSpeech();self.complete({'phase':'planned','plan':run(self.processes[-1].request)['plan']})
+        self.model.planRepeatSpeech();self.complete({'phase':'planned','plan':run(self.processes[-1].request)['plan']})
         self.model.startSpeech();restored=self.processes[-1].request
         self.assertEqual(restored['action'],'query')
         self.assertEqual(restored['plan']['versionId'],original['plan']['versionId'])
         self.assertEqual(restored['snapshot'],original['snapshot'])
+
+    def test_repeated_sync_plan_preserves_an_uncertain_legacy_submission(self):
+        from worker.ai_providers import profile
+        from worker.ai_tasks import run
+        config = profile('volc-asr')
+        self.assertTrue(self.model.configure('speech', config['provider'], config['baseUrl'], config['model'], KEY, 0))
+        receipt = self.model.runtime / 'ai-jobs' / 'old-plan' / 'receipt.json'
+        receipt.parent.mkdir(parents=True)
+        receipt.write_text(json.dumps({'versionId': self.track['versionId'], 'config': config, 'state': 'unknown'}))
+        self.model.planRepeatSpeech()
+        self.complete(run(self.model.process.request))
+        self.model.startSpeech()
+        request = self.model.process.request
+        self.assertEqual(Path(request['receipt']), receipt)
+        with patch('worker.ai_tasks.transcribe') as transcribe:
+            with self.assertRaisesRegex(ValueError, '已有提交记录'):
+                run(request, KEY)
+            transcribe.assert_not_called()
 
     def test_bailian_start_failure_before_worker_submit_can_be_confirmed_again(self):
         from worker.ai_tasks import run

@@ -58,7 +58,8 @@ def run(request, key='', *, transport=None, poll_limit=1):
     if action=='plan':
         host=clean['baseUrl'] if clean['provider']=='302-singing' else 'api.302ai.cn'
         plan=preflight(request['track'],host,clean.get('budgetPTC',0))
-        plan.update(config=clean,scope=request['scope'],snapshot=request['snapshot'],planId=request['planId'])
+        plan.update(config=clean,scope=request['scope'],snapshot=request['snapshot'],
+                    planId=request['planId'],repeat=request.get('repeat') is True)
         if clean['provider']!='302-singing':
             from worker.ai_providers import MAX_AUDIO_BYTES
             if clean['provider']=='bailian-asr':
@@ -125,14 +126,22 @@ def run(request, key='', *, transport=None, poll_limit=1):
 
 
 def _recognize_once(clean,key,plan,receipt,transport):
-    # Durable intent comes before networking. Re-running this exact plan is
-    # never a reason to upload again, including after timeout or cancellation.
+    # Durable intent comes before networking, including across new preflights.
+    saved = receipt.with_name('proposal.json')
     if receipt.exists():
-        raise ValueError('该识别计划已有提交记录，不重复上传；请核对结果或手动创建新计划')
+        prior = _read_json(receipt, limit=16384)
+        if prior.get('versionId') != plan['versionId'] or prior.get('config') != clean:
+            raise ValueError('识别回执与当前歌曲或模型不一致，请先核对原任务')
+        if prior.get('state') == 'ready' and saved.is_file():
+            _verify_source(dict(plan,maxCostPTC=plan.get('maxCostPTC',0)))
+            return {'phase':'review','proposal':_read_json(saved,limit=4_000_000),
+                    'detail':'已恢复同一模型的识别结果，可切换模型后重新识别'}
+        raise ValueError('同一歌曲和模型已有提交记录，请核对原结果或使用其他模型')
     _verify_source(dict(plan,maxCostPTC=plan.get('maxCostPTC',0)))
     _atomic(receipt,{'planId':plan['planId'],'versionId':plan['versionId'],'config':clean,'state':'unknown','networkStarted':True})
     proposal=transcribe(clean,key,plan['sourcePath'],plan['versionId'],plan['durationMs'],transport)
     _verify_source(dict(plan,maxCostPTC=plan.get('maxCostPTC',0)))
+    _atomic(saved,proposal)
     _atomic(receipt,{'planId':plan['planId'],'versionId':plan['versionId'],'config':clean,'state':'ready'})
     return {'phase':'review','proposal':proposal,'detail':'识别已返回，审阅后应用' if proposal.get('timeline') else '识别已返回文字，没有时间码；可保存为参考歌词'}
 

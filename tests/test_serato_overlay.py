@@ -128,6 +128,19 @@ class OverlayRouteTests(unittest.TestCase):
                 SeratoOverlay.tick(harness)
                 self.assertFalse(window.visible)
                 source[field]=previous
+            source['selectedSource'] = 'none'
+            for extra in (
+                {'screenLayers': {'text': {'visible': True}}},
+                {'screenLayers': {'logo': {'visible': True}}, 'logoImageUrl': 'file:///logo.png'},
+                {'guestMessage': {'visible': True}},
+                {'guestQr': {'running': True, 'onScreen': True, 'image': 'file:///qr.png'}},
+            ):
+                source.update(extra)
+                SeratoOverlay.tick(harness)
+                self.assertTrue(window.visible)
+                for key in extra:
+                    source.pop(key)
+            source['selectedSource'] = 'A'
             bridge.current=False
             SeratoOverlay.tick(harness)
             self.assertFalse(window.visible)

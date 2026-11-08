@@ -12,7 +12,7 @@ import wave
 from pathlib import Path
 from unittest.mock import patch
 
-from app.lyric_cache import atomic_bytes, checksum, encode_json
+from app.lyric_cache import atomic_bytes, checksum, encode_json, lyric_source_label
 from app.storage import Library, inspect_audio, validate_timeline
 
 
@@ -69,6 +69,61 @@ class OfflineCacheTests(unittest.TestCase):
         self.assertEqual(self.library.timeline(self.track['versionId']), self.payload)
         self.assertTrue(self.library.offline_tracks()[0]['offlineReady'])
         self.assertEqual(self.library.cache_summary()['ready'], 1)
+
+    def test_legacy_active_and_new_cloud_revision_remain_selectable_after_restart(self):
+        version = self.track['versionId']
+        imported = dict(self.payload, timingProvenance='imported_sentence')
+        cloud = dict(self.payload, provider='bailian-asr', timingProvenance='provider_sentence')
+        path = self.library.cache_directory / (version[7:] + '.json')
+        atomic_bytes(path, encode_json(imported))
+        imported_id = self.library.lyric_revisions(version)[0]['revisionId']
+        cloud_id = self.library.add_timeline(cloud, self.track, activate=False)
+        self.library.close()
+        self.library = Library(self.root / 'library')
+        self.assertEqual(self.library.timeline(version), imported)
+        self.assertTrue(self.library.has_pending_lyric_revision(version))
+        self.assertEqual(self.library.pending_lyric_revision(version), cloud)
+        self.assertEqual([row['source'] for row in self.library.lyric_revisions(version)], ['导入字幕', '云端识别'])
+
+        self.assertEqual(self.library.add_timeline(self.library.lyric_revision(version, cloud_id), self.track), cloud_id)
+        self.assertFalse(self.library.has_pending_lyric_revision(version))
+        self.assertEqual(self.library.lyric_revision(version, imported_id), imported)
+        self.library.add_timeline(imported, self.track, activate=False)
+        self.assertFalse(self.library.has_pending_lyric_revision(version))
+        self.library.add_timeline(self.library.lyric_revision(version, imported_id), self.track)
+        self.assertEqual(self.library.timeline(version), imported)
+
+    def test_reference_correction_preserves_origin_on_repeated_edits(self):
+        from worker.correction import correct_with_reference
+
+        imported = copy.deepcopy(self.payload)
+        imported['timingProvenance'] = 'imported_sentence'
+        imported['segments'][0]['text'] = '深夜断网也能继续播放歌次'
+        corrected = correct_with_reference(imported, '深夜断网也能继续播放歌词\n继续播放')
+        self.assertEqual(corrected['timingProvenance'], 'corrected_provider_sentence')
+        corrected = correct_with_reference(corrected, '深夜断网也能继续播放歌曲\n继续播放')
+        self.library.add_timeline(corrected, self.track)
+        self.assertEqual(lyric_source_label(self.library.timeline(self.track['versionId'])), '导入字幕')
+
+    def test_interrupted_replacement_keeps_legacy_active_as_a_revision(self):
+        version = self.track['versionId']
+        path = self.library.cache_directory / (version[7:] + '.json')
+        atomic_bytes(path, encode_json(self.payload))
+        original_id = self.library.lyric_revisions(version)[0]['revisionId']
+        updated = dict(self.payload, provider='bailian-asr')
+        self.library.add_timeline(updated, self.track, activate=False)
+
+        def replace_then_exit(target, data):
+            atomic_bytes(target, data)
+            raise SystemExit(1)
+
+        with patch('app.storage.atomic_bytes', side_effect=replace_then_exit), self.assertRaises(SystemExit):
+            self.library.add_timeline(updated, self.track)
+        self.library.close()
+        self.library = Library(self.root / 'library')
+        self.assertEqual(self.library.timeline(version), updated)
+        self.assertEqual(self.library.lyric_revision(version, original_id), self.payload)
+        self.assertFalse(self.library.has_pending_lyric_revision(version))
 
     def test_cache_is_private_and_contains_only_whitelisted_lyrics(self):
         unsafe = dict(self.payload, apiKey='fixture-secret', taskId='fixture-task',

@@ -166,6 +166,28 @@ class BatchPreparationTests(unittest.TestCase):
         self.assertFalse(view['canStart'])
         self.assertEqual(self.processes, [])
 
+    def test_legacy_timed_cache_stages_for_review_and_stays_archived_after_use(self):
+        from app.speech_cache import speech_cache_path
+        track = self.tracks[0]
+        version = track['versionId']
+        original = dict(self.payload(track), provider='bailian-asr')
+        path = speech_cache_path(self.runtime, version)
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps({'timeline': original}))
+
+        self.manager.plan_batch([track])
+        self.assertEqual(self.manager.batch_view()['review'], 1)
+        self.assertIsNone(self.library.timeline(version))
+        self.assertEqual(self.library.pending_lyric_revision(version), original)
+        self.assertEqual(self.processes, [])
+
+        self.library.add_timeline(original, track)
+        self.cache(track)
+        self.manager.plan_batch([track])
+        self.assertEqual(self.manager.batch_view()['review'], 0)
+        self.assertEqual(self.manager.batch_view()['ready'], 1)
+        self.assertEqual(self.processes, [])
+
     def test_preflights_are_serial_and_carry_no_key(self):
         self.configure()
         self.manager.plan_batch(self.tracks)

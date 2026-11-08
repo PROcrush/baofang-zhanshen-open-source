@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 import sqlite3
+import time
 import wave
 from pathlib import Path
 
@@ -108,11 +109,27 @@ class Library:
         CREATE TABLE IF NOT EXISTS tracks(version_id TEXT PRIMARY KEY, payload TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS bindings(path TEXT PRIMARY KEY, version_id TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS timelines(version_id TEXT PRIMARY KEY, payload TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS lyric_revisions(
+            version_id TEXT NOT NULL, revision_id TEXT NOT NULL, payload TEXT NOT NULL,
+            source TEXT NOT NULL, quality TEXT NOT NULL, preview TEXT NOT NULL,
+            created_ns INTEGER NOT NULL, pending INTEGER NOT NULL,
+            PRIMARY KEY(version_id, revision_id));
         CREATE TABLE IF NOT EXISTS jobs(job_id TEXT PRIMARY KEY, state TEXT NOT NULL, payload TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS cache_metadata(name TEXT PRIMARY KEY, value TEXT NOT NULL);
         ''')
         self.connection.commit()
         self._migrate_timeline_files()
+        self._reconcile_active_revisions()
+
+    def _reconcile_active_revisions(self):
+        pending = self.connection.execute('SELECT DISTINCT version_id FROM lyric_revisions WHERE pending=1').fetchall()
+        for (version,) in pending:
+            active = self.timeline(version)
+            if active:
+                self.connection.execute('UPDATE lyric_revisions SET pending=0 WHERE version_id=? AND revision_id=?',
+                                        (version, checksum(encode_json(active))))
+        if pending:
+            self.connection.commit()
 
     def _migrate_timeline_files(self):
         """One-time migration only; subsequently a missing/bad file stays visible."""
@@ -164,6 +181,9 @@ class Library:
     def tracks(self):
         return [json.loads(row[0]) for row in self.connection.execute('SELECT payload FROM tracks ORDER BY rowid DESC')]
 
+    def bindings(self):
+        return dict(self.connection.execute('SELECT path, version_id FROM bindings'))
+
     def _cache_record(self, version_id, expected_duration=None, *, copy_payload=True):
         """Fully inspect changed files once; healthy-list reads need no lyric copies."""
         try:
@@ -204,7 +224,58 @@ class Library:
             expected_duration = track.get('durationMs') if track else None
         return self._cache_record(version_id, expected_duration)[1]
 
-    def add_timeline(self, payload, verified_audio=None):
+    def _save_lyric_revision(self, payload, data, *, pending=False):
+        revision = checksum(data)
+        self.connection.execute('''
+            INSERT INTO lyric_revisions VALUES (?,?,?,?,?,?,?,?)
+            ON CONFLICT(version_id, revision_id) DO UPDATE
+            SET pending=MIN(lyric_revisions.pending, excluded.pending)
+            ''', (payload['versionId'], revision, data.decode('utf-8'), lyric_source_label(payload),
+                  payload['quality'], payload['segments'][0]['text'][:160], time.time_ns(), int(pending)))
+        return revision
+
+    def lyric_revisions(self, version):
+        active = self.timeline(version)
+        active_id = checksum(encode_json(active)) if active else None
+        rows = [
+            {'revisionId': revision, 'source': source, 'quality': quality, 'previewText': preview,
+             'createdMs': created // 1_000_000, 'active': revision == active_id,
+             'pending': bool(pending and revision != active_id)}
+            for revision, source, quality, preview, created, pending in self.connection.execute(
+                'SELECT revision_id,source,quality,preview,created_ns,pending FROM lyric_revisions '
+                'WHERE version_id=? ORDER BY created_ns DESC', (version,))
+        ]
+        if active and not any(row['active'] for row in rows):
+            rows.insert(0, {'revisionId': active_id, 'source': lyric_source_label(active),
+                            'quality': active['quality'], 'previewText': active['segments'][0]['text'][:160],
+                            'createdMs': 0, 'active': True, 'pending': False})
+        return sorted(rows, key=lambda row: not row['active'])
+
+    def lyric_revision(self, version, revision_id):
+        row = self.connection.execute(
+            'SELECT payload FROM lyric_revisions WHERE version_id=? AND revision_id=?',
+            (version, revision_id)).fetchone()
+        if row is None:
+            active = self.timeline(version)
+            return active if active and checksum(encode_json(active)) == revision_id else None
+        return validate_timeline(json.loads(row[0]), version)
+
+    def pending_lyric_revision(self, version):
+        row = self.connection.execute(
+            'SELECT payload FROM lyric_revisions WHERE version_id=? AND pending=1 '
+            'ORDER BY created_ns DESC LIMIT 1', (version,)).fetchone()
+        return validate_timeline(json.loads(row[0]), version) if row else None
+
+    def has_pending_lyric_revision(self, version):
+        return self.connection.execute('SELECT 1 FROM lyric_revisions WHERE version_id=? AND pending=1 LIMIT 1',
+                                       (version,)).fetchone() is not None
+
+    def is_reviewed_lyric_revision(self, version, revision_id):
+        return self.connection.execute(
+            'SELECT 1 FROM lyric_revisions WHERE version_id=? AND revision_id=? AND pending=0',
+            (version, revision_id)).fetchone() is not None
+
+    def add_timeline(self, payload, verified_audio=None, *, activate=True):
         if not isinstance(payload, dict):
             raise ValueError('歌词片段格式无效')
         track = self.get_track(payload.get('versionId'))
@@ -218,23 +289,48 @@ class Library:
             raise ValueError('原文件已被替换，请重新导入')
         validate_timeline(payload, track['versionId'], track['durationMs'])
         payload = portable_timeline(payload)
-        path = self.cache_directory / cache_filename(track['versionId'])
-        previous = read_bytes(path) if path.exists() else None
-        atomic_bytes(path, encode_json(payload))
+        version = track['versionId']
+        data = encode_json(payload)
+        path = self.cache_directory / cache_filename(version)
+        previous = None
+        writing_active = False
+        self.connection.execute('BEGIN IMMEDIATE')
         try:
+            active = self.timeline(version)
+            if not activate:
+                revision = self._save_lyric_revision(payload, data, pending=active != payload)
+                self.connection.commit()
+                return revision
+            previous = read_bytes(path) if path.exists() else None
+            if active is not None and active != payload:
+                self._save_lyric_revision(active, encode_json(active))
+                # The previous revision must survive a process exit after
+                # replacing the active file but before committing its index.
+                self.connection.commit()
+                self.connection.execute('BEGIN IMMEDIATE')
+                if (read_bytes(path) if path.exists() else None) != previous:
+                    raise ValueError('其他进程已切换歌词，请重新打开版本列表')
+            revision = self._save_lyric_revision(payload, data)
+            writing_active = True
+            atomic_bytes(path, data)
             track.update(quality=payload['quality'], status='已绑定外部歌词；质量尚未声学校验')
-            self.connection.execute('INSERT OR REPLACE INTO timelines VALUES (?,?)', (track['versionId'], json.dumps(payload, ensure_ascii=False)))
-            self.connection.execute('UPDATE tracks SET payload=? WHERE version_id=?', (json.dumps(track, ensure_ascii=False), track['versionId']))
+            self.connection.execute('INSERT OR REPLACE INTO timelines VALUES (?,?)', (version, data.decode('utf-8')))
+            self.connection.execute('UPDATE tracks SET payload=? WHERE version_id=?', (json.dumps(track, ensure_ascii=False), version))
             self.connection.commit()
+            return revision
         except Exception:
-            self.connection.rollback()
-            if previous is not None:
-                atomic_bytes(path, previous)
-            else:
-                path.unlink(missing_ok=True)
+            try:
+                if writing_active and (read_bytes(path) if path.exists() else None) != previous:
+                    if previous is not None:
+                        atomic_bytes(path, previous)
+                    else:
+                        path.unlink(missing_ok=True)
+            finally:
+                self.connection.rollback()
             raise
         finally:
-            self._timeline_cache.pop(track['versionId'], None)
+            if activate:
+                self._timeline_cache.pop(version, None)
 
     @staticmethod
     def _source_state(track):
@@ -251,6 +347,7 @@ class Library:
                   'source_changed': '音频文件已变化，需重新核验', 'source_missing': '找不到原音频，需重新定位'}
         result = []
         current_versions = {row[0] for row in self.connection.execute('SELECT DISTINCT version_id FROM bindings')}
+        revisions = dict(self.connection.execute('SELECT version_id,COUNT(*) FROM lyric_revisions GROUP BY version_id'))
         for track in self.tracks():
             if track['versionId'] not in current_versions:
                 continue
@@ -263,7 +360,8 @@ class Library:
             result.append(dict(track, offlineReady=state == 'ready', offlineState=state,
                                offlineLabel=' · '.join(part for part in (lyric_source, labels[state],
                                                                          '待复核' if review else '') if part),
-                               cachePath=str(cache_path), needsReview=review))
+                               cachePath=str(cache_path), needsReview=review,
+                               hasLyricVersions=bool(payload or revisions.get(track['versionId']))))
         return result
 
     def cache_summary(self):

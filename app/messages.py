@@ -1,6 +1,9 @@
 """Validate complete IPC snapshots before callers replace live state."""
+import json
 import math
+import re
 
+from app.lyric_cache import MAX_CACHE_BYTES, read_bytes
 from app.storage import validate_timeline
 
 
@@ -8,6 +11,8 @@ MAX_INT64 = (1 << 63) - 1
 MAX_TTL_NS = 1_000_000_000
 SOURCES = ('auto', 'A', 'B', 'none')
 SCENES = ('amber', 'blue', 'black')
+MAX_PROGRAM_BYTES = MAX_CACHE_BYTES
+MAX_PROGRAM_TIMELINES_BYTES = 2 * MAX_CACHE_BYTES + 4096
 
 
 def _object(value, name):
@@ -213,11 +218,74 @@ def validate_program_payload(payload):
         _integer(state.get('faderValidUntilNs', 0), 'faderValidUntilNs')
         if {state.get('faderLeftSource', 'A'), state.get('faderRightSource', 'B')} != {'A', 'B'}:
             raise ValueError('客屏视频盘路由无效')
+    if 'guestMessage' in state:
+        message = _object(state['guestMessage'], 'guestMessage')
+        _boolean(message.get('visible'), 'guestMessage.visible')
+        _string(message.get('text'), 'guestMessage.text', 300, allow_empty=True)
+    if 'guestQr' in state:
+        qr = _object(state['guestQr'], 'guestQr')
+        for key in ('running', 'onScreen'):
+            if key in qr:
+                _boolean(qr[key], f'guestQr.{key}')
     timelines = _object(program.get('timelines'), 'timelines')
+    if 'timelineRef' in program:
+        _validate_timeline_ref(program['timelineRef'])
+        if timelines:
+            raise ValueError('客屏快照同时包含内联歌词和外部引用')
+    validate_program_timelines(timelines)
+    return payload
+
+
+def _validate_timeline_ref(value):
+    ref = _object(value, '客屏歌词引用')
+    if (set(ref) != {'slot', 'revision'} or type(ref['slot']) is not int or ref['slot'] not in (0, 1)
+            or not isinstance(ref['revision'], str) or not re.fullmatch('[0-9a-f]{32}', ref['revision'])):
+        raise ValueError('客屏歌词引用无效')
+
+
+def program_timeline_path(path, slot):
+    return path.with_name(f'program-timelines-{slot}.json')
+
+
+def validate_program_timelines(timelines, *, bounded=False):
+    _object(timelines, 'timelines')
+    if bounded and len(timelines) > 2:
+        raise ValueError('客屏歌词盘数超限')
     for version_id, timeline in timelines.items():
         _string(version_id, 'timeline.versionId', 256)
         try:
             validate_timeline(timeline, version_id)
+            if bounded and len(encode_program_json(timeline)) > MAX_CACHE_BYTES:
+                raise ValueError('客屏单首歌词大小超限')
         except (TypeError, KeyError, OverflowError) as exc:
             raise ValueError('歌词时间轴格式无效') from exc
+
+
+def encode_program_json(value):
+    return json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(',', ':')).encode('utf-8')
+
+
+def read_program_payload(path, timeline_cache=None, *, strict_timelines=True):
+    """Resolve a compact or legacy inline program snapshot, optionally reusing validated lyrics."""
+    payload = validate_program_payload(json.loads(read_bytes(path, limit=MAX_PROGRAM_BYTES)))
+    ref = payload.pop('timelineRef', None)
+    if ref is None:
+        return payload
+    if timeline_cache is not None and timeline_cache.get('ref') == ref:
+        payload['timelines'] = timeline_cache['timelines']
+        return payload
+    try:
+        sidecar = _object(json.loads(read_bytes(program_timeline_path(path, ref['slot']), limit=MAX_PROGRAM_TIMELINES_BYTES)),
+                          '客屏歌词')
+        if sidecar.get('revision') != ref['revision']:
+            raise ValueError('客屏歌词引用已变化')
+        timelines = sidecar.get('timelines')
+        validate_program_timelines(timelines, bounded=True)
+    except (OSError, ValueError, RecursionError):
+        if strict_timelines:
+            raise
+        return payload
+    payload['timelines'] = timelines
+    if timeline_cache is not None:
+        timeline_cache.update(ref=ref, timelines=timelines)
     return payload

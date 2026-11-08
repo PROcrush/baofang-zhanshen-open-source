@@ -9,6 +9,7 @@ import difflib
 import hashlib
 import unicodedata
 
+from app.lyric_cache import source_timing_provenance
 from app.storage import validate_timeline
 
 
@@ -157,7 +158,7 @@ def correct_with_reference(timeline, reference_text, *, reference_label='用户�
         'referenceLineCount': len(rows),
         'automaticSearch': 'unavailable', 'changes': changes, 'review': review,
         'originalQuality': timeline['quality'],
-        'originalTimingProvenance': timeline.get('timingProvenance'),
+        'originalTimingProvenance': source_timing_provenance(timeline),
         'timingRealigned': False,
     }
     return validate_timeline(result, result['versionId'])

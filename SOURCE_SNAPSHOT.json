@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "e47aeec814703719e215c93dc273289c3c71ffdb",
+  "sourceRevision": "ef45bc1f8da298df353a707f6362b7cf8b1b5a77",
   "files": [
     {
       "path": ".gitignore",
@@ -36,7 +36,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "ae8d058dba45a40880e6fd41c189eae60da3b9cd00762eb1b57d28a147c13d1f"
+      "sha256": "43dec09a82546310a3bffb1f234543288e0753aafd3d8798585c948a6d852e3f"
     },
     {
       "path": "SECURITY.md",
@@ -52,7 +52,7 @@
     },
     {
       "path": "app/ai_settings.py",
-      "sha256": "7bb25decb10811d2fa860ae15d61160e29643a406522c3bdfe371dc571cc463c"
+      "sha256": "57bb6bb50b09fdd57e26d3bf00a1d0f604faa515d9d80677ab9ebf45acf1db2d"
     },
     {
       "path": "app/clock.py",
@@ -64,7 +64,7 @@
     },
     {
       "path": "app/controller.py",
-      "sha256": "a3f01569f5e121dd0f845c61ac057358056d1055bcdadd5e55368906348c5c3c"
+      "sha256": "711b019b67f6ad703b4172e4568d3c23016b98aa0e281309d3d6ce61e1b24e0f"
     },
     {
       "path": "app/credentials.py",
@@ -104,7 +104,7 @@
     },
     {
       "path": "app/lyric_cache.py",
-      "sha256": "75a5c05252a48b301c6ea5215d29ef7adf00e57bd47181dffbf1778710325687"
+      "sha256": "301b89545de960d1df8ab6adfe269db19d0f4949b62e197b37acd44705e64b0b"
     },
     {
       "path": "app/lyric_paint.py",
@@ -120,7 +120,7 @@
     },
     {
       "path": "app/messages.py",
-      "sha256": "bc934b1fb3e50e6ca1a089768831883f99d5a10e074d9308959c8a2479ba1b59"
+      "sha256": "549a39f4722d39feec3447512744f91faf771529f9077c2515ef0a1fb87d94df"
     },
     {
       "path": "app/midi_control.py",
@@ -136,7 +136,7 @@
     },
     {
       "path": "app/preparation.py",
-      "sha256": "a6e9ee3bec9b627e479d1e5d9e1fa910151c9fe7702a38efd9e2560326e580b7"
+      "sha256": "237b79a6fe1c3b841e57600b3a3b12e149dea7fb81531baf0762c45ca5bead9a"
     },
     {
       "path": "app/preshow.py",
@@ -164,19 +164,19 @@
     },
     {
       "path": "app/screen_layers.py",
-      "sha256": "8194fc208e91c64b446f53b48fbe3c6e2a69d273fb7b4b61add2a14a2d8f0600"
+      "sha256": "1a636a1168f3f4f57fd1e09d6daeb12cfc077919ed3841d9ad087d33ae7a05a7"
     },
     {
       "path": "app/screen_library.py",
-      "sha256": "a2ad4977a2615559d0c98b4c434efa7e3552c1aaf221fcd1e14423e7ee9bb886"
+      "sha256": "a06def4043f95390d7676a5d42d3c5c0f881415769fe6223e660acc42852cae1"
     },
     {
       "path": "app/serato_adapter.py",
-      "sha256": "1adbee19964986e438d760c24641fbb00ad3874a29b7b3477d340626cb608dad"
+      "sha256": "7837a5e6aeb5e473ddfa13125021653dc2cb6c1a0e0c0776261ba1b77f814f59"
     },
     {
       "path": "app/serato_overlay.py",
-      "sha256": "6096e0e883c673fca6608fdd2f7ba2184633935dc07523a5e61ab9c8e3799c43"
+      "sha256": "2933c0d79de562a5bbe72863997a4b2c31df4e1d2e0ae5323322251f29b85838"
     },
     {
       "path": "app/setlist.py",
@@ -188,11 +188,15 @@
     },
     {
       "path": "app/source_routing.py",
-      "sha256": "f9adec23463d9019fc6a900b63079f1bcd9f1832c77f500eacd2059b172b2146"
+      "sha256": "4014100462e3f4a3f67a6e128ee44d14fcb94551578951398c73b1b97ce934d2"
+    },
+    {
+      "path": "app/speech_cache.py",
+      "sha256": "372a8068236f047c3e1aad9e08fb4bdf74f5dafb6dddee641f08ac81d945b8f8"
     },
     {
       "path": "app/storage.py",
-      "sha256": "d8fb3b947dadab0679be7c481a90f426f2c577d99a3737f22eb19f431d7e910f"
+      "sha256": "3ac49ec9dbd8fbd0b3fad8414893892f87bdb07418e51079d96de99609ac66e2"
     },
     {
       "path": "app/studio.py",
@@ -240,7 +244,7 @@
     },
     {
       "path": "app/wish_relay_client.py",
-      "sha256": "b5d5a51287f6ec11b84c7de630288d62ecd08383c16a0e7b08eb93853b36b219"
+      "sha256": "705706b4bab4078c362aa6a6504cdd7a35adfa48246e34189183b3b8ea586e45"
     },
     {
       "path": "assets/style_presets.json",
@@ -252,7 +256,7 @@
     },
     {
       "path": "docs/DJ常用语与配置-20261103.md",
-      "sha256": "c62678886d8effe0bce4a10b32cfda8d45cc0d6e0413c4c09fa441cfe82a81d5"
+      "sha256": "59891d64e917030e1a763ee7a66064b38ab4ebcfb87e6929fcdf1af7ec7242a3"
     },
     {
       "path": "docs/KTV跟唱-20261015.md",
@@ -276,7 +280,7 @@
     },
     {
       "path": "docs/open-source/README.md",
-      "sha256": "cad8a246e00d12d1e9e9fd1a4fc7b4898a35fbe3f9c8281daeb809e3a2813262"
+      "sha256": "363378bf4c0826cd5c12365e2db41214e7f5d5d9887b949fd8884cd572213cee"
     },
     {
       "path": "docs/主程序重开现场状态恢复-20261103.md",
@@ -288,7 +292,7 @@
     },
     {
       "path": "docs/公网扫码祝福.md",
-      "sha256": "f185afe43249b7f4de8508e8ed0bf68a0460ea9bd2d3eb2db5f7c6524ad66be0"
+      "sha256": "38ff2730da108ea31a0d4ccfd725fce1d2525f00581671eee586729a6dcd37d7"
     },
     {
       "path": "docs/制作引擎-0.6-接口.md",
@@ -488,11 +492,11 @@
     },
     {
       "path": "tests/test_ai_providers.py",
-      "sha256": "30f09c2c4c0fe63062a8f0f84bb856329b3f049248680567780873d3bfbd84ed"
+      "sha256": "276ed8dd318110d401d5e53c8d34c7288e271dae360cfeede38e3325486485d5"
     },
     {
       "path": "tests/test_ai_settings.py",
-      "sha256": "c01e314fa6545f5ab1aa1caf3111c1b2668de62db74010828ba99d2bdcd7ff59"
+      "sha256": "9c56c8c2e890ddbb1b99ddc0056d836c4001470f4028eb5f95946e314c0fc646"
     },
     {
       "path": "tests/test_bailian.py",
@@ -504,11 +508,11 @@
     },
     {
       "path": "tests/test_bailian_shared.py",
-      "sha256": "891dacbe3a5b8ead788583ef12132b1c440dbaea46027ec5155cbd40bd62c68c"
+      "sha256": "ac8a97d15ed52073ffb02248352e01d1523986158aaf1e7f53b250096140500d"
     },
     {
       "path": "tests/test_batch_preparation.py",
-      "sha256": "5c3bf1ca5956b12e6bb1c05729d2a0d327df4ba4e4d13b697e8637f32c0cdda3"
+      "sha256": "047beacaa4123e9495c330264df22dc9ab1e5f71daa3f2018ddb1d35e2a05288"
     },
     {
       "path": "tests/test_cloud_pipeline.py",
@@ -524,7 +528,7 @@
     },
     {
       "path": "tests/test_controller_modes.py",
-      "sha256": "b89c11a85e108a2b2b45788eb9ef2ef78068100c6e7c9bc0fa47936833aaf616"
+      "sha256": "d8b52ac04eab013a51775e0e67582f8ec7c38e5e4273b88dbce7a487f81a8872"
     },
     {
       "path": "tests/test_correction.py",
@@ -584,7 +588,7 @@
     },
     {
       "path": "tests/test_offline_cache.py",
-      "sha256": "ac93a240a568a9d66a6e0e3e82801f18852f9d8a8fdbff9b9b34ee9c578c36cc"
+      "sha256": "f7c41d419bc71bc3f56fb580ee0959b8306a7f1f878133f216aaa6557e0e935d"
     },
     {
       "path": "tests/test_output_recovery.py",
@@ -596,7 +600,7 @@
     },
     {
       "path": "tests/test_preparation.py",
-      "sha256": "b32c20e9e431236cb14dedb0e63b07b6fbbd6ee9757fc0c7fa8e9aa16ddf5482"
+      "sha256": "7737365611db8ffe8fed61b7bd8ac13574f57463897c82adb716dd6a690d60cc"
     },
     {
       "path": "tests/test_preshow.py",
@@ -668,11 +672,11 @@
     },
     {
       "path": "tests/test_screen_layers.py",
-      "sha256": "ef3976bd98ceba1177b05bb5674236ba0a3f60aaab95e8a3226e2a3d789e7724"
+      "sha256": "a25f5d064cdd5d7d9f39c29b5549dc1b653610df859adef424e42f90ba023cf1"
     },
     {
       "path": "tests/test_screen_library.py",
-      "sha256": "781d07cca770374cc27ec9b405f9c0e41309aef4ed1bdbaa5b3a62eadff4f9e6"
+      "sha256": "6da416f64268f1f8d5ab419cef505ca828cae661a6aa888d2842cb20199b5dae"
     },
     {
       "path": "tests/test_serato_adapter.py",
@@ -680,7 +684,7 @@
     },
     {
       "path": "tests/test_serato_overlay.py",
-      "sha256": "f8169a3331c159a7d327814254488eb22eac01a31c83c1d55e4eec193b9d207d"
+      "sha256": "74b698e3049df4a8ebdb7b1d654b0559e1bae807b8e59f2409525be1d1417bd1"
     },
     {
       "path": "tests/test_serato_reader.py",
@@ -692,7 +696,7 @@
     },
     {
       "path": "tests/test_source_routing.py",
-      "sha256": "e5591d9bc8d53ff3a07e0a107716a118c7d237bedae254a367e28d3b775114c6"
+      "sha256": "87e06593a85b9682057958b35b362c1b58af451e169282edca6f2b0a1afdc3b4"
     },
     {
       "path": "tests/test_storage.py",
@@ -744,7 +748,7 @@
     },
     {
       "path": "tests/test_wish_relay.py",
-      "sha256": "46f5ad33b6cf0ff16749a8967fbc71c4d8b75b451a49ef977804c792a99e97de"
+      "sha256": "3eec74a73f35bdab36b6267664b6edd0f450845c9277cba136b608e1309c3761"
     },
     {
       "path": "tools/capture_ui_pages.py",
@@ -880,7 +884,7 @@
     },
     {
       "path": "tools/check_wish_public.py",
-      "sha256": "e8f3dfd5fb011b2af847b5ee755e0c4cd8e88149c48a075a15aac47bc99af628"
+      "sha256": "4e5343f5b8bf6dc34f588f3ab9508efd47fc6c25b864db5699ecac3197ceba2d"
     },
     {
       "path": "tools/doubao_preflight.py",
@@ -928,7 +932,7 @@
     },
     {
       "path": "ui/APISettingsPanel.qml",
-      "sha256": "d0930bebe4150f3d23a6989d245a22ca42bc03daab9dc57ec426e36b13aea14d"
+      "sha256": "449acdf9f575e410e4d089b250d1d3c3d8016bb7c7d9e1a7548a584316aa9f0c"
     },
     {
       "path": "ui/AccentBar.qml",
@@ -968,7 +972,7 @@
     },
     {
       "path": "ui/GuestWishControls.qml",
-      "sha256": "e0cb2f287651449fce7ae8b5b024023a7e6dc5d65db26484beb55b7278a2d33e"
+      "sha256": "3d6e84e85c9d9eda3381ae19f961a1f4a232875a0f79bdeb81f33c41c113c3d0"
     },
     {
       "path": "ui/ImportCard.qml",
@@ -984,11 +988,11 @@
     },
     {
       "path": "ui/Main.qml",
-      "sha256": "0d6cb26f883be8bafbf382ebe86e3703cf892f842a54931f2dcabd8f7c776085"
+      "sha256": "7f9f01886a4249d83c3d15aec813e664820e4b1ff9f1e7b5fc3b7f7a92f85703"
     },
     {
       "path": "ui/OfflineLibraryPanel.qml",
-      "sha256": "704cf5d622f2fb469fce087f96b5fce6b91bc4f868cc2b0bdc301c80237082ee"
+      "sha256": "3e5a4d0846b4dae2abcd9e1e18a4d335aedb8d256c3dae30a8725570e10a31c8"
     },
     {
       "path": "ui/OutputStylePanel.qml",
@@ -1016,7 +1020,7 @@
     },
     {
       "path": "ui/RecognitionPanel.qml",
-      "sha256": "94d3daed6e0c15cfe761d3920b909e5adca9683467f398807660de6bee2e4137"
+      "sha256": "e8c56ff85bb8679bd3ca74cb2e9d80ab1dfb4428f75746cf032d1f51dc399984"
     },
     {
       "path": "ui/RekordboxAxBinding.qml",
@@ -1176,7 +1180,7 @@
     },
     {
       "path": "worker/ai_tasks.py",
-      "sha256": "ec2696a7bfa8292e501d69875fab2ec621bade15099b93c2683e3c639a7ed28b"
+      "sha256": "cf63158126e9b40d653e14b0283a595719f7ae6a080fbab251f1296a3c44cf72"
     },
     {
       "path": "worker/bailian.py",
@@ -1200,7 +1204,7 @@
     },
     {
       "path": "worker/correction.py",
-      "sha256": "9ee2d96f68e32e623cbe26b9b5478376e793ff319f82ba546f4c14250db5952c"
+      "sha256": "90c94cc41a4aa948e284d5b776721e60aa8f319e2c7df385aa7923548ea55486"
     },
     {
       "path": "worker/doubao.py",

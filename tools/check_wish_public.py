@@ -58,6 +58,7 @@ def check(root, temp, evidence, origin, context, unavailable):
     window.resize(1000, 700)
 
     def press(name):
+        assert wait_for(lambda: find(window, name) and find(window, name).isVisible()), name
         item = find(window, name)
         assert item and item.isVisible() and item.isEnabled(), name
         scroll = find(window, 'screenContentScroll')
@@ -117,20 +118,53 @@ def check(root, temp, evidence, origin, context, unavailable):
         QTest.qWait(2200)
         assert not controller.state['guestInbox'], 'a dismissed wish was delivered twice'
 
+        unavailable.set()
+        errors_before_close = len(network_errors)
         press('wishPublicToggle')
         assert not qr()['running'] and not qr()['url']
-        assert wait_for(lambda: not controller.wish_relay.network.findChildren(QNetworkReply))
+        assert wait_for(lambda: len(network_errors) > errors_before_close)
+        pending = find(window, 'wishPublicCloseStatus')
+        assert pending.isVisible() and '关闭待确认' in pending.property('text')
+        assert controller.wish_relay.room_key == '' and not controller.wish_relay.timer.isActive()
+        with urllib.request.urlopen(url, context=context, timeout=3) as response:
+            assert response.status == 200, 'the simulated failed DELETE must leave the old URL reachable'
+
+        with patch('app.guest_inbox.lan_address', return_value='127.0.0.1'):
+            press('wishServerToggle')
+        assert controller.inbox.running and qr()['running']
+        lan_url = qr()['url']
+        QTest.qWait(2200)
+        assert controller.inbox.running and qr()['url'] == lan_url
+        press('wishServerToggle')
+
+        press('wishPublicToggle')
+        assert wait_for(lambda: qr()['running'] and qr()['url'] != url)
+        new_url = qr()['url']
+        unavailable.clear()
+        assert wait_for(lambda: '已关闭' in controller.state['guestRelayCloseStatus'])
+        assert qr()['running'] and qr()['url'] == new_url
         try:
             urllib.request.urlopen(url, context=context, timeout=3)
             raise AssertionError('old QR still accepts visits')
         except urllib.error.HTTPError as exc:
             assert exc.code == 410, exc
 
+        unavailable.set()
+        press('wishPublicToggle')
+        assert '关闭待确认' in controller.state['guestRelayCloseStatus']
+        with patch('app.guest_inbox.lan_address', return_value='127.0.0.1'):
+            press('wishServerToggle')
+        lan_url = qr()['url']
+        unavailable.clear()
+        assert wait_for(lambda: '已关闭' in controller.state['guestRelayCloseStatus'])
+        assert controller.inbox.running and qr()['url'] == lan_url
+        assert wait_for(lambda: not controller.wish_relay.network.findChildren(QNetworkReply))
+        press('wishServerToggle')
         controller.setOfflineOnly(True)
         assert not find(window, 'wishPublicToggle').isEnabled()
         assert find(window, 'wishServerToggle').isEnabled()
         assert not warnings, warnings
-        print('HTTPS 访客提交、DJ 审核、断线隐藏、重连收取、防重复、关闭失效和离线模式通过；QML 警告 0')
+        print('HTTPS 提交、审核、断线恢复、关场失败重试、切换局域网和新场次、旧码失效及离线模式通过；QML 警告 0')
     finally:
         controller.shutdown()
         window.close()

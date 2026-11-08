@@ -601,6 +601,39 @@ class PreparationManagerTests(unittest.TestCase):
         self.assertIn('往事随风', target.read_text(encoding='utf-8'))
         self.assertNotIn('往事随疯', target.read_text(encoding='utf-8'))
 
+    def test_late_recognition_keeps_subtitle_imported_after_submission(self):
+        process = self.start()
+        version = self.track['versionId']
+        imported = {'schemaVersion': 1, 'versionId': version, 'durationMs': self.track['durationMs'],
+                    'quality': 'sentence', 'timingProvenance': 'imported_sentence',
+                    'segments': [{'text': '保留现场手动导入', 'startMs': 200, 'endMs': 900}]}
+        self.library.add_track(self.track)
+        self.library.add_timeline(imported, self.track)
+        self.timelines[version] = imported
+
+        process.queue({'phase': 'ready', 'timelinePath': str(self.result_file())})
+        process.finish()
+
+        self.assertEqual(self.library.timeline(version), imported)
+        self.assertEqual(self.timelines[version], imported)
+        self.assertFalse(self.published)
+        self.assertEqual(self.library.pending_lyric_revision(version)['segments'][0]['text'], '往事随疯')
+        self.assertEqual(self.manager.reports[version]['phase'], 'candidate_ready')
+
+    def test_late_duration_discrepancy_does_not_invalidate_active_subtitle(self):
+        planned = dict(self.track, durationMs=self.track['durationMs'] + 30)
+        process = self.start(planned)
+        version = self.track['versionId']
+        active = self.cache(payload=dict(self.payload(), timingProvenance='imported_token'))
+
+        process.queue({'phase': 'ready', 'timelinePath': str(self.result_file(self.payload(planned)))})
+        process.finish()
+
+        self.assertEqual(self.library.get_track(version)['durationMs'], self.track['durationMs'])
+        self.assertEqual(self.library.timeline(version), active)
+        self.assertEqual(self.timelines[version], active)
+        self.assertFalse(self.published)
+
     def test_reference_changed_while_cloud_running_retains_raw_without_publishing(self):
         reference = self.root / '不能悄悄改变的参考.txt'
         reference.write_text('往事随风', encoding='utf-8')

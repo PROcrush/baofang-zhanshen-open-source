@@ -1,4 +1,6 @@
 import copy
+import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -198,6 +200,27 @@ class ScreenLayerTests(unittest.TestCase):
         self.assertTrue(h.applyScreenContent('text', dict(default_layers()['text'], text='更新成功'), 15))
         self.assertFalse(h._state['guestMessage']['visible'])
 
+    def test_ipc_publish_failure_restores_disk_and_active_text(self):
+        h = self.controller
+        self.assertTrue(h.setScreenText('原内容'))
+        settings = self.runtime / 'screen-layers.json'
+        program = self.runtime / 'program.json'
+        previous = settings.read_bytes(), program.read_bytes()
+        replace = os.replace
+
+        def fail_program(source, destination):
+            if destination == program:
+                raise OSError('cannot replace program snapshot')
+            replace(source, destination)
+
+        with patch('app.controller.os.replace', side_effect=fail_program):
+            self.assertFalse(h.applyScreenContent('text', dict(default_layers()['text'], text='未发布'), 0))
+        self.assertEqual((settings.read_bytes(), program.read_bytes()), previous)
+        self.assertEqual(h._state['screenLayers']['text']['text'], '原内容')
+        self.assertEqual(h._state['screenContentLibrary']['history'], [])
+        Controller._write_program(h, h._state)
+        self.assertEqual(json.loads(program.read_bytes())['state']['screenLayers']['text']['text'], '原内容')
+
     def test_hide_all_preserves_assets_pending_wishes_and_lyric_source(self):
         h = self.controller
         self.assertTrue(h.setScreenText('原文字'))
@@ -218,7 +241,13 @@ class ScreenLayerTests(unittest.TestCase):
         h = self.controller
         self.assertTrue(h.setScreenText('请撤下'))
         self.assertTrue(h.chooseScreenLogo(str(self.logo())))
-        with patch('app.controller.save_layers', side_effect=OSError('disk full')):
+        def fail_settings(*_):
+            state = json.loads((self.runtime / 'program.json').read_bytes())['state']
+            self.assertFalse(state['screenLayers']['text']['visible'])
+            self.assertFalse(state['screenLayers']['logo']['visible'])
+            raise OSError('disk full')
+
+        with patch('app.controller.save_layers', side_effect=fail_settings):
             self.assertTrue(h.hideScreenExtras())
         self.assertFalse(h._state['screenLayers']['text']['visible'])
         self.assertFalse(h._state['screenLayers']['logo']['visible'])

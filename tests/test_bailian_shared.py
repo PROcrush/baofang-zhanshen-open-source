@@ -132,17 +132,36 @@ class SharedBailianTests(unittest.TestCase):
         model=self.model();self.configure(model)
         self.manager.set_budget(1);self.manager.set_new_submission_enabled(True)
         batch=self.plan_batch(1);self.manager.start_batch(batch);self.finish(BailianTransport())
-        model.planSpeech();proc=model.process;proc.queue(ai_run(proc.request));proc.finish()
-        model.startSpeech()
-        transport=BailianTransport()
-        result=ai_run(model.process.request,KEY,transport=transport)
-        model.process.queue(result);model.process.finish()
-        self.assertTrue(model.state['canApply'],model.state)
-        self.assertEqual(transport.calls,[])
-        model.discard()
         model.planSpeech()
         self.assertIsNone(model.process)
         self.assertTrue(model.state['canApply'])
+
+    def test_unapplied_single_result_is_reused_by_batch_after_restart(self):
+        model = self.model()
+        self.configure(model)
+        model.planSpeech()
+        process = model.process
+        process.queue(ai_run(process.request))
+        process.finish()
+        model.startSpeech()
+        process = model.process
+        process.queue(ai_run(process.request, KEY, transport=BailianTransport()))
+        process.finish()
+        version = self.tracks[0]['versionId']
+        self.assertIsNone(self.library.timeline(version))
+        self.assertIsNotNone(self.library.pending_lyric_revision(version))
+        self.assertTrue(model.state['canApply'])
+
+        restarted = self.new_manager()
+        restarted.plan_batch([self.tracks[0]])
+        view = restarted.batch_view()
+        self.assertEqual(view['rows'][0]['phase'], 'candidate_ready')
+        self.assertEqual(view['ready'], 0)
+        self.assertEqual(view['review'], 1)
+        self.assertEqual(view['estimatedCost'], 0)
+        self.assertFalse(view['canStart'])
+        self.assertFalse(restarted.processes)
+        self.assertFalse(restarted.reservations)
 
     def test_unknown_receipt_and_active_task_never_submit_again(self):
         model=self.model();self.configure(model)

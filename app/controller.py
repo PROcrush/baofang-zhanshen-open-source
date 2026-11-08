@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -11,11 +12,13 @@ from PySide6.QtCore import QObject, Property, QProcess, QTimer, Signal, Slot
 from PySide6.QtWidgets import QFileDialog
 
 from app.lyrics import project_lyrics
-from app.lyric_cache import lyric_source_label
+from app.lyric_cache import atomic_bytes, lyric_source_label, read_bytes
 from app.clock import monotonic_ns
-from app.messages import accept_snapshot, accept_serato_frame, validate_program_payload
+from app.messages import (MAX_PROGRAM_BYTES, accept_snapshot, accept_serato_frame, encode_program_json,
+                          program_timeline_path, read_program_payload, validate_program_timelines)
 from app.native import NativeClock
-from app.serato_adapter import adapt_serato_frame, filename_lyric_versions, proof_is_current, file_signature, song_filename
+from app.serato_adapter import (adapt_serato_frame, assign_serato_lyric_versions, filename_lyric_versions,
+                                proof_is_current, file_signature)
 from app.rekordbox_adapter import accept_rekordbox_frame, adapt_rekordbox_frame
 from app.rekordbox_ax_adapter import accept_ax_frame, adapt_ax_frame, make_ax_binding
 from app.source_routing import check_source_snapshot, select_lyric_source
@@ -75,7 +78,7 @@ def initial_state():
             'lyricTap': {'canUndo': False},
             'guestMessage': {'text': '', 'visible': False}, 'guestInbox': [],
             'guestQr': {'running': False, 'url': '', 'image': '', 'onScreen': False},
-            'guestRelayConfigured': False, 'guestRelayStatus': '',
+            'guestRelayConfigured': False, 'guestRelayStatus': '', 'guestRelayCloseStatus': '',
             'duetColors': False, 'midi': {'rows': [], 'ports': [], 'port': '', 'connected': False},
             'screenLayers': default_layers(), 'logoImageUrl': '', 'screenLayerNotice': '',
             'screenTextValidUntilNs': 0, 'screenTextRemaining': 0, 'guestMessageRemaining': 0, 'guestMessageValidUntilNs': 0,
@@ -83,18 +86,20 @@ def initial_state():
             'showLog': {'day': '', 'days': [], 'rows': [], 'summary': {}}}
 
 
-def project_state(state, raw, timelines, clock, now):
+def expire_screen_content(state, now):
+    deadline = state.get('screenTextValidUntilNs', 0)
+    state['screenTextRemaining'] = max(0, (deadline - now + 999_999_999) // 1_000_000_000) if deadline else 0
+    if deadline and now >= deadline and 'screenLayers' in state:
+        state['screenLayers']['text']['visible'] = False
+    guest_deadline = state.get('guestMessageValidUntilNs', 0)
+    state['guestMessageRemaining'] = max(0, (guest_deadline - now + 999_999_999) // 1_000_000_000) if guest_deadline else 0
+    if guest_deadline and now >= guest_deadline and 'guestMessage' in state:
+        state['guestMessage']['visible'] = False
+
+
+def project_state(state, raw, timelines, clock, now, *, timeline_checks=None):
     result = copy.deepcopy({key: value for key, value in state.items() if key not in STATE_COLLECTIONS})
-    deadline = result.get('screenTextValidUntilNs', 0)
-    result['screenTextRemaining'] = max(0, (deadline - now + 999_999_999) // 1_000_000_000) if deadline else 0
-    if deadline:
-        if now >= deadline:
-            result['screenLayers']['text']['visible'] = False
-    guest_deadline = result.get('guestMessageValidUntilNs', 0)
-    result['guestMessageRemaining'] = max(0, (guest_deadline - now + 999_999_999) // 1_000_000_000) if guest_deadline else 0
-    if guest_deadline:
-        if now >= guest_deadline:
-            result['guestMessage']['visible'] = False
+    expire_screen_content(result, now)
     result.update({key: state[key] for key in STATE_COLLECTIONS if key in state})
     if result.get('bridgeRunning') is False:
         raw = {}
@@ -118,7 +123,9 @@ def project_state(state, raw, timelines, clock, now):
         else:
             identity_ready = deck.get('identityReady', False) and proof_is_current(deck.get('identityProof'), deck['path']) if live else True
             timeline = timelines.get(deck['versionId'])
-        sources[key] = check_source_snapshot(deck, timeline, now, clock_status=status, identity_ready=identity_ready)
+        timeline_check = timeline_checks.setdefault(key, {}) if timeline_checks is not None else None
+        sources[key] = check_source_snapshot(deck, timeline, now, clock_status=status, identity_ready=identity_ready,
+                                             timeline_check=timeline_check)
         lyric_source = '合成时码' if deck['versionId'].startswith('demo:') else lyric_source_label(timeline)
         fresh_observation = deck['capturedNs'] <= now <= deck['validUntilNs']
         cache_state = ('error' if deck.get('errorText') else 'preparing') if live and not identity_ready else ('ready' if timeline else 'missing')
@@ -659,10 +666,11 @@ class Controller(QObject):
                     if message['epoch'] != self._state.get('bridgeEpoch'):
                         candidate_state['autoSide'] = None
                     candidate_raw = (adapt_rekordbox_frame if rekordbox else adapt_serato_frame)(message, self.file_proofs)
+                    if not rekordbox:
+                        assign_serato_lyric_versions(candidate_raw, self._serato_lyric_versions)
                     for deck in candidate_raw.values():
                         path = deck['path']
                         if not rekordbox:
-                            deck['lyricVersionId'] = self._serato_lyric_versions.get(song_filename(path), '') if path else ''
                             continue
                         deck['errorText'] = self.file_errors.get(path, '')
                         if path and not deck['identityReady']:
@@ -707,7 +715,8 @@ class Controller(QObject):
     def tick(self):
         if self._state['mode'] == 'rekordbox_ax':
             self.refresh_ax_view()
-        self._state = project_state(self._state, self.raw, self.timelines, self.clock, monotonic_ns())
+        self._state = project_state(self._state, self.raw, self.timelines, self.clock, monotonic_ns(),
+                                    timeline_checks=vars(self).setdefault('_timeline_checks', {}))
         Controller.track_setlist(self)
         Controller.live_inputs(self)
         self.refresh_preparation()
@@ -715,21 +724,69 @@ class Controller(QObject):
             self.refresh_output()
         if self.output:
             self.refresh_overlay_status()
+        previous_error = getattr(self, '_program_error', '')
+        try:
+            Controller._write_program(self, self._state)
+        except (OSError, ValueError) as exc:
+            self._program_error = '客屏快照未更新，正在重试：' + str(exc)
+            if self._program_error != previous_error:
+                self._state['notice'] = self._program_error
+        else:
+            self._program_error = ''
+            if previous_error and self._state.get('notice') == previous_error:
+                self._state['notice'] = ''
         self.stateChanged.emit()
-        render_state = {key: value for key, value in self._state.items() if key not in (*STATE_COLLECTIONS, 'notice')}
-        active_versions = {deck.get('lyricVersionId', deck['versionId']) for deck in self.raw.values()}
-        payload = {'state': render_state, 'raw': self.raw,
-                   'timelines': {key: value for key, value in self.timelines.items() if key in active_versions}}
-        temporary = self.runtime / 'program.tmp'
-        temporary.write_text(json.dumps(payload, ensure_ascii=False))
-        os.replace(temporary, self.runtime / 'program.json')
+
+    def _write_program(self, state, persist=None):
+        target = self.runtime / 'program.json'
+        raw = getattr(self, 'raw', {})
+        all_timelines = getattr(self, 'timelines', {})
+        active_versions = {deck.get('lyricVersionId', deck['versionId']) for deck in raw.values()}
+        timelines = {key: all_timelines[key] for key in active_versions if key in all_timelines}
+        previous, ref, has_timelines = getattr(self, '_program_timelines', ({}, None, False))
+        if previous.keys() != timelines.keys() or any(previous[key] is not item for key, item in timelines.items()):
+            published = {}
+            for key, item in timelines.items():
+                try:
+                    validate_program_timelines({key: item}, bounded=True)
+                except (ValueError, RecursionError):
+                    # Invalid lyrics must not prevent independent screen content.
+                    continue
+                published[key] = item
+            has_timelines = bool(published)
+            if has_timelines:
+                # Keep the referenced slot intact while staging the next revision.
+                ref = {'slot': 1 - ref['slot'] if ref else 0, 'revision': uuid.uuid4().hex}
+                sidecar = encode_program_json({'revision': ref['revision'], 'timelines': published})
+                atomic_bytes(program_timeline_path(target, ref['slot']), sidecar)
+        render_state = {key: value for key, value in state.items() if key not in (*STATE_COLLECTIONS, 'notice')}
+        payload = {'state': render_state, 'raw': raw, 'timelines': {}}
+        if has_timelines:
+            payload['timelineRef'] = ref
+        data = encode_program_json(payload)
+        if len(data) > MAX_PROGRAM_BYTES:
+            raise ValueError('客屏状态文件过大')
+        with tempfile.NamedTemporaryFile(dir=self.runtime, prefix='.program-', delete=False) as output:
+            temporary = Path(output.name)
+            try:
+                output.write(data)
+                output.close()
+                if persist is not None:
+                    persist()
+                os.replace(temporary, target)
+            finally:
+                temporary.unlink(missing_ok=True)
+        self._program_timelines = timelines, ref, has_timelines
 
     def refresh_library(self):
         demo = [{'title': f'原创同步样例 {key}', 'versionId': f'demo:{key}', 'path': '内置合成回放',
                  'durationText': '02:00', 'durationMs': 120000, 'quality': '合成字时码',
                  'status': '用于验证同步；无音频', 'isDemo': True} for key in ('A', 'B')]
         tracks = self.library.offline_tracks()
-        self._serato_lyric_versions = filename_lyric_versions(self.library.tracks(), self.timelines)
+        self._serato_lyric_versions = filename_lyric_versions(
+            self.library.bindings(), self.library.tracks(), self.timelines)
+        if self._state['mode'] == 'serato':
+            assign_serato_lyric_versions(self.raw, self._serato_lyric_versions)
         for track in tracks:
             track['durationText'] = stamp(track['durationMs'])[:5] if track.get('durationMs') else '待解析'
         self._offline_rows = tracks
@@ -832,6 +889,41 @@ class Controller(QObject):
         self._state['guestInbox'] = (self._state['guestInbox'] + wishes)[-MAX_QUEUE:]
 
     # ---- 客屏插字 ----
+    def _commit_screen_state(self, state, persist=None):
+        """Commit the settings and IPC snapshot before showing a new live state."""
+        attempted = False
+        if persist is not None:
+            settings = self.runtime / 'screen-layers.json'
+            try:
+                previous = read_bytes(settings, limit=200_000)
+            except FileNotFoundError:
+                previous = None
+
+        def save():
+            nonlocal attempted
+            attempted = True
+            persist()
+
+        try:
+            Controller._write_program(self, state, save if persist is not None else None)
+        except (OSError, ValueError) as exc:
+            if attempted:
+                try:
+                    try:
+                        current = read_bytes(settings, limit=200_000)
+                    except FileNotFoundError:
+                        current = None
+                    if current != previous:
+                        if previous is None:
+                            settings.unlink(missing_ok=True)
+                        else:
+                            atomic_bytes(settings, previous)
+                except (OSError, ValueError) as restore_error:
+                    raise OSError(f'{exc}；旧配置无法恢复，请重启前核对：{restore_error}') from exc
+            raise
+        self._state = state
+        self.stateChanged.emit()
+
     def _save_screen_layers(self, candidate, text_seconds=None):
         try:
             candidate = validate_layers(candidate)
@@ -848,17 +940,15 @@ class Controller(QObject):
             persisted = copy.deepcopy(candidate)
             if deadline:
                 persisted['text']['visible'] = False
-            save_layers(self.runtime, persisted)
-            self._state.update(screenLayers=candidate, logoImageUrl=logo_url(self.runtime, candidate),
-                               screenLayerNotice='', screenTextValidUntilNs=deadline,
-                               screenTextRemaining=max(0, (deadline-now+999_999_999)//1_000_000_000) if deadline else 0)
-            if text_seconds is not None and candidate['text']['visible']:
-                if getattr(self, '_message_timer', None):
-                    self._message_timer.stop()
-                self._state['guestMessage'] = {'text': '', 'visible': False}
-                self._state['guestMessageValidUntilNs'] = 0
-                self._state['guestMessageRemaining'] = 0
-            self.tick()
+            state = dict(self._state, screenLayers=candidate, logoImageUrl=logo_url(self.runtime, candidate),
+                         screenLayerNotice='', screenTextValidUntilNs=deadline, guestMessage=dict(self._state['guestMessage']))
+            replace_guest = text_seconds is not None and candidate['text']['visible']
+            if replace_guest:
+                state.update(guestMessage={'text': '', 'visible': False}, guestMessageValidUntilNs=0)
+            expire_screen_content(state, now)
+            Controller._commit_screen_state(self, state, lambda: save_layers(self.runtime, persisted))
+            if replace_guest and getattr(self, '_message_timer', None):
+                self._message_timer.stop()
             return True
         except (OSError, ValueError, TypeError) as exc:
             self._state['screenLayerNotice'] = '客屏图层未保存：' + str(exc)
@@ -1046,39 +1136,51 @@ class Controller(QObject):
                 raise ValueError('配置中的 Logo 不可用，请重新导入')
             candidate['logo']['visible'] = bool(candidate['logo']['image'])
             library = validate_library(dict(self._state['screenContentLibrary'], phrases=list(phrases)))
-            save_profile(self.runtime, candidate, library)
-            self._state.update(screenLayers=candidate, screenContentLibrary=library, logoImageUrl=logo_url(self.runtime, candidate),
-                               screenTextValidUntilNs=0, screenTextRemaining=0, screenLayerNotice='')
-            self.clearGuestMessage()
+            had_guest = self._state.get('guestMessage', {}).get('visible')
+            state = dict(self._state, screenLayers=candidate, screenContentLibrary=library,
+                         logoImageUrl=logo_url(self.runtime, candidate), screenLayerNotice='',
+                         screenTextValidUntilNs=0, screenTextRemaining=0,
+                         guestMessage={'text': '', 'visible': False}, guestMessageValidUntilNs=0, guestMessageRemaining=0)
+            Controller._commit_screen_state(self, state, lambda: save_profile(self.runtime, candidate, library))
+            if self._message_timer is not None:
+                self._message_timer.stop()
+            if had_guest:
+                Controller.log(self, 'message_clear')
             return True
         except (OSError, ValueError, TypeError) as exc:
             self._state['screenLayerNotice'] = 'DJ 配置未采用：' + str(exc)
             self.notice(self._state['screenLayerNotice'])
             return False
 
-    def _withdraw_screen_content(self, layers):
+    def _withdraw_screen_content(self, layers, *, hide_qr=False):
         candidate = copy.deepcopy(self._state['screenLayers'])
         for layer in layers:
             candidate[layer]['visible'] = False
+        self._state.update(screenLayers=candidate, screenLayerNotice='')
+        if hide_qr:
+            self._state['guestQr'] = dict(self._state.get('guestQr', {}), onScreen=False)
+        if 'text' in layers:
+            self._state.update(screenTextValidUntilNs=0, screenTextRemaining=0,
+                               guestMessage={'text': '', 'visible': False}, guestMessageValidUntilNs=0,
+                               guestMessageRemaining=0)
+            if self._message_timer is not None:
+                self._message_timer.stop()
+        problems = []
+        try:
+            Controller._write_program(self, self._state)
+        except (OSError, ValueError) as exc:
+            problems.append('客屏快照未更新，等待重试：' + str(exc))
+        self.stateChanged.emit()
         try:
             persisted = copy.deepcopy(candidate)
             if self._state.get('screenTextValidUntilNs', 0):
                 persisted['text']['visible'] = False
             save_layers(self.runtime, persisted)
-            self._state['screenLayerNotice'] = ''
         except (OSError, ValueError) as exc:
-            # Taking content down must still work if the settings disk fails.
-            self._state['screenLayerNotice'] = '已撤下；设置未保存，重启后请核对标识：' + str(exc)
-        self._state['screenLayers'] = candidate
-        if 'text' in layers:
-            self._state['screenTextValidUntilNs'] = 0
-            self._state['screenTextRemaining'] = 0
-            if getattr(self, '_message_timer', None):
-                self._message_timer.stop()
-            self._state['guestMessage'] = {'text': '', 'visible': False}
-            self._state['guestMessageValidUntilNs'] = 0
-            self._state['guestMessageRemaining'] = 0
-        self.tick()
+            problems.append('设置未保存，重启后请核对标识：' + str(exc))
+        if problems:
+            self._state['screenLayerNotice'] = '本机画面已撤下。' + '。'.join(problems)
+            self.notice(self._state['screenLayerNotice'])
         return True
 
     @Slot(str, result=bool)
@@ -1089,10 +1191,7 @@ class Controller(QObject):
 
     @Slot(result=bool)
     def hideScreenExtras(self):
-        qr = dict(self._state.get('guestQr', {}))
-        qr['onScreen'] = False
-        self._state['guestQr'] = qr
-        return self._withdraw_screen_content(('text', 'logo'))
+        return self._withdraw_screen_content(('text', 'logo'), hide_qr=True)
 
     @Slot(str, int, result=bool)
     def setGuestMessage(self, text, seconds):
@@ -1100,24 +1199,31 @@ class Controller(QObject):
         if not value:
             self.notice('客屏插字：先写一句话')
             return False
-        if self._state['screenLayers']['text']['visible']:
-            candidate = copy.deepcopy(self._state['screenLayers'])
-            candidate['text']['visible'] = False
-            if not self._save_screen_layers(candidate, text_seconds=0):
-                return False
-        self._state['guestMessage'] = {'text': value, 'visible': True}
-        self._state['guestMessageValidUntilNs'] = monotonic_ns() + min(seconds, 3600) * 1_000_000_000 if seconds > 0 else 0
+        seconds = min(max(seconds, 0), 3600)
+        candidate = copy.deepcopy(self._state['screenLayers'])
+        replace_text = candidate['text']['visible']
+        candidate['text']['visible'] = False
+        deadline = monotonic_ns() + seconds * 1_000_000_000 if seconds else 0
+        state = dict(self._state, screenLayers=candidate, screenLayerNotice='', screenTextValidUntilNs=0,
+                     screenTextRemaining=0, guestMessage={'text': value, 'visible': True},
+                     guestMessageValidUntilNs=deadline, guestMessageRemaining=seconds)
+        try:
+            persist = (lambda: save_layers(self.runtime, candidate)) if replace_text else None
+            Controller._commit_screen_state(self, state, persist)
+        except (OSError, ValueError) as exc:
+            self._state['screenLayerNotice'] = '祝福未上屏：' + str(exc)
+            self.notice(self._state['screenLayerNotice'])
+            return False
         Controller.log(self, 'message', value)
         if self._message_timer is None:
             self._message_timer = QTimer(self)
             self._message_timer.setSingleShot(True)
             self._message_timer.timeout.connect(self.clearGuestMessage)
         self._message_timer.stop()
-        if seconds > 0:
-            self._message_timer.start(min(seconds, 3600) * 1000)
-        self.tick()
+        if seconds:
+            self._message_timer.start(seconds * 1000)
         row = dict(default_layers()['text'], text=value, position='top-center', fontSize=40)
-        Controller._record_screen_send(self, row, min(max(seconds, 0), 3600), 'guest')
+        Controller._record_screen_send(self, row, seconds, 'guest')
         return True
 
     @Slot()
@@ -1159,8 +1265,8 @@ class Controller(QObject):
         if self.inbox.running:
             return
         if not enabled:
-            self.wish_relay.stop()
             self._state['guestInbox'] = []
+            self.wish_relay.stop()
             self.tick()
         elif not self._state['offlineLibrary'].get('offlineOnly'):
             self.wish_relay.start()
@@ -1179,9 +1285,9 @@ class Controller(QObject):
             qr = dict(qr, mode='public', running=True, active=True)
         elif relay.active:
             qr = dict(qr, mode='public', running=False, active=True)
-        else:
+        elif not self.inbox.running:
             qr = {'running': False, 'url': '', 'image': '', 'onScreen': False}
-        self._state.update(guestQr=qr, guestRelayStatus=relay.detail)
+        self._state.update(guestQr=qr, guestRelayStatus=relay.detail, guestRelayCloseStatus=relay.close_status)
         self.tick()
 
     @Slot(bool)
@@ -1518,7 +1624,7 @@ class Controller(QObject):
         self.preparation_action('set_offline_only', enabled)
         self.refresh_offline_library()
         if enabled and self.wish_relay.active:
-            self.wish_relay.stop('idle', '离线演出已开启，公网扫码已关闭')
+            self.wish_relay.stop('idle', '离线演出已开启，公网二维码已收起')
         self.notice('离线演出已开启：云请求已停止，歌词只从本机缓存读取' if enabled else
                     '已退出离线演出；新的云识别仍需审阅计划并手动启动')
 
@@ -1723,6 +1829,71 @@ class Controller(QObject):
                 self.preparation_action('export', '', self.library_track(version), str(destination), subtitle_format)
         except (OSError, ValueError) as exc:
             self.notice(str(exc))
+
+    @Slot(str, result='QVariantList')
+    def lyricVersions(self, version):
+        try:
+            track = self.library_track(version, require_verified=False)
+            rows = self.library.lyric_revisions(version)
+            cache = Controller._standalone_lyric_version(self, track)
+            if cache and all(row['revisionId'] != cache['revisionId'] for row in rows):
+                timeline = cache['timeline']
+                rows.append({'revisionId': cache['revisionId'], 'source': lyric_source_label(timeline),
+                             'quality': timeline['quality'], 'previewText': timeline['segments'][0]['text'][:160],
+                             'createdMs': 0, 'active': False, 'pending': True})
+            return rows
+        except (OSError, ValueError) as exc:
+            self.notice('歌词版本：' + str(exc))
+            return []
+
+    @Slot(str, str, result='QVariantList')
+    def lyricVersionLines(self, version, revision):
+        try:
+            track = self.library_track(version, require_verified=False)
+            payload = Controller._library_lyric_revision(self, track, revision)
+            if payload:
+                return [stamp(row['startMs']) + '  ' + row['text'] for row in payload['segments']]
+        except (OSError, ValueError) as exc:
+            self.notice('歌词版本：' + str(exc))
+        return []
+
+    def _standalone_lyric_version(self, track):
+        from app.speech_cache import read_speech_cache
+
+        cache = read_speech_cache(self.runtime, track['versionId'], track.get('durationMs') or None)
+        return cache if cache and cache.get('timeline') else None
+
+    def _library_lyric_revision(self, track, revision):
+        payload = self.library.lyric_revision(track['versionId'], revision)
+        if payload is not None:
+            return payload
+        cache = Controller._standalone_lyric_version(self, track)
+        return cache['timeline'] if cache and cache['revisionId'] == revision else None
+
+    @Slot(str, str)
+    def useLyricVersion(self, version, revision):
+        try:
+            track = self.library_track(version, require_verified=False)
+            payload = Controller._library_lyric_revision(self, track, revision)
+            if payload is None:
+                raise ValueError('找不到这份歌词，请重新打开版本列表')
+
+            def use(current):
+                try:
+                    if current['versionId'] != version:
+                        raise ValueError('原音频已变化，请为新的歌曲版本选择歌词')
+                    self.library.add_timeline(payload, current)
+                    self.preparation_timeline(version, payload)
+                    self.notice('已切换当前歌词 · ' + lyric_source_label(payload))
+                except (OSError, ValueError) as exc:
+                    self.notice('歌词版本：' + str(exc))
+
+            if track['identityVerified']:
+                use(track)
+            else:
+                self.index_audio(track['path'], use)
+        except (OSError, ValueError) as exc:
+            self.notice('歌词版本：' + str(exc))
 
     @Slot()
     def exportLyricCache(self):
@@ -2478,6 +2649,7 @@ class FileController(QObject):
         self._state = initial_state()
         self.payload = None
         self.last_mtime = None
+        self.timeline_cache = {}
         self.output_window = None
         self.placement_signature = None
         self.timer = QTimer(self)
@@ -2490,19 +2662,26 @@ class FileController(QObject):
         return self._state
 
     def tick(self):
+        now = monotonic_ns()
         try:
-            modified = self.path.stat().st_mtime_ns
+            stat = self.path.stat()
+            modified = (stat.st_ino, stat.st_mtime_ns, stat.st_size)
             if modified != self.last_mtime:
-                if self.path.stat().st_size > 4_000_000:
-                    raise ValueError('客屏状态文件过大')
-                self.payload = validate_program_payload(json.loads(self.path.read_text()))
                 self.last_mtime = modified
+                self.payload = None
+                if not hasattr(self, 'timeline_cache'):
+                    self.timeline_cache = {}
+                self.payload = read_program_payload(self.path, self.timeline_cache, strict_timelines=False)
             if self.payload:
-                self._state = project_state(self.payload['state'], self.payload['raw'], self.payload['timelines'], self.clock, monotonic_ns())
+                self._state = project_state(self.payload['state'], self.payload['raw'], self.payload['timelines'], self.clock, now,
+                                            timeline_checks=vars(self).setdefault('_timeline_checks', {}))
                 self._state['logoImageUrl'] = logo_url(self.path.parent, self._state.get('screenLayers', default_layers()))
-        except (OSError, ValueError, KeyError, TypeError, AttributeError):
+            else:
+                expire_screen_content(self._state, now)
+        except (OSError, ValueError, KeyError, TypeError, AttributeError, RecursionError):
             self._state['lyric'] = project_lyrics(None, 0)
             self._state['stale'] = True
+            expire_screen_content(self._state, now)
         window = getattr(self, 'output_window', None)
         if window is not None:
             from PySide6.QtGui import QGuiApplication

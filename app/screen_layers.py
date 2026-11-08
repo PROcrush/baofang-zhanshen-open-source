@@ -12,6 +12,9 @@ from app.lyric_cache import atomic_bytes, read_bytes, plain_directory
 POSITIONS = ('top-left', 'top-center', 'top-right', 'center-left', 'center', 'center-right',
              'bottom-left', 'bottom-center', 'bottom-right')
 MAX_TEXT = 300
+MAX_LOGO_SOURCE_BYTES = 20_000_000
+# A decoded 16 MP image can occupy 64 MB before lossless PNG overhead.
+MAX_OWNED_LOGO_BYTES = 66_000_000
 ASSET = re.compile(r'^[0-9a-f]{64}\.png$')
 STYLES = {'text': ('classic', 'midnight', 'champagne', 'record'),
           'logo': ('plain', 'matte', 'foil')}
@@ -100,12 +103,12 @@ def logo_url(runtime, value):
     return path.resolve().as_uri()
 
 
-def import_logo(runtime, source):
+def import_logo(runtime, source, *, max_bytes=MAX_LOGO_SOURCE_BYTES):
     """Keep an owned PNG copy; moving the user's original cannot break output."""
     from PySide6.QtCore import QByteArray, QBuffer, QIODevice
-    from PySide6.QtGui import QImageReader
+    from PySide6.QtGui import QImage, QImageReader
     source = Path(source)
-    data = read_bytes(source, limit=20_000_000)
+    data = read_bytes(source, limit=max_bytes)
     buffer = QBuffer()
     buffer.setData(data)
     buffer.open(QIODevice.OpenModeFlag.ReadOnly)
@@ -118,12 +121,16 @@ def import_logo(runtime, source):
     image = reader.read()
     if image.isNull():
         raise ValueError('DJ Logo 图片无法读取，请换一张图片')
+    if image.depth() > 32:
+        image = image.convertToFormat(QImage.Format.Format_ARGB32)
     output = QByteArray()
     target = QBuffer(output)
     target.open(QIODevice.OpenModeFlag.WriteOnly)
     if not image.save(target, 'PNG'):
         raise ValueError('DJ Logo 图片未能保存')
     encoded = bytes(output)
+    if len(encoded) > MAX_OWNED_LOGO_BYTES:
+        raise ValueError('DJ Logo 转换后文件过大，请缩小图片')
     folder = plain_directory(Path(runtime) / 'screen-assets', create=True)
     name = hashlib.sha256(encoded).hexdigest() + '.png'
     atomic_bytes(folder / name, encoded)

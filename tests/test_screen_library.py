@@ -1,5 +1,8 @@
 import copy
+import hashlib
 import json
+import os
+import random
 import tempfile
 import unittest
 import zipfile
@@ -9,8 +12,10 @@ from types import MethodType
 from unittest.mock import patch
 
 from app.controller import Controller
+from PySide6.QtGui import QImage
+
 from app.screen_layers import default_layers, load_layers
-from app.screen_library import (default_library, load_library,
+from app.screen_library import (MAX_PROFILE_BYTES, default_library, load_library,
                                 validate_library, export_profile, prepare_profile)
 from tests import test_screen_layers as layer_harness
 
@@ -120,6 +125,44 @@ class ScreenLibraryTests(unittest.TestCase):
         self.assertEqual(load_library(self.runtime)['phrases'], phrases)
         self.assertEqual(load_library(self.runtime)['history'], before['screenContentLibrary']['history'])
 
+    def test_profile_ipc_failure_preserves_active_profile_and_settings(self):
+        h = self.bind()
+        self.assertTrue(h.setScreenText('原内容'))
+        previous = (self.runtime / 'screen-layers.json').read_bytes()
+        replace = os.replace
+
+        def fail_program(source, destination):
+            if destination == self.runtime / 'program.json':
+                raise OSError('cannot replace program snapshot')
+            replace(source, destination)
+
+        with patch('app.controller.os.replace', side_effect=fail_program):
+            self.assertFalse(h.applyScreenProfile(default_layers(), []))
+        self.assertEqual(h._state['screenLayers']['text']['text'], '原内容')
+        self.assertEqual(h._state['screenContentLibrary'], default_library())
+        self.assertEqual((self.runtime / 'screen-layers.json').read_bytes(), previous)
+
+    def test_large_owned_png_roundtrips(self):
+        side = 2700
+        pixels = random.Random(1).randbytes(side * side * 3)
+        image = QImage(pixels, side, side, side * 3, QImage.Format.Format_RGB888)
+        source = self.runtime / 'logo.png'
+        self.assertTrue(image.save(str(source), 'PNG'))
+        self.assertGreater(source.stat().st_size, 20_000_000)
+        key = hashlib.sha256(source.read_bytes()).hexdigest() + '.png'
+        folder = self.runtime / 'screen-assets'
+        folder.mkdir()
+        source.rename(folder / key)
+        name = 'logo.jpg'
+        layers = default_layers()
+        layers['logo'].update(image=key, fileName=name, visible=True)
+        target = self.runtime / 'profile.bfdj.zip'
+        export_profile(self.runtime, layers, [], target)
+        with tempfile.TemporaryDirectory() as destination:
+            prepared = prepare_profile(destination, target)
+            self.assertTrue(prepared['logoImageUrl'])
+            self.assertEqual(prepared['layers']['logo']['fileName'], name)
+
     def test_rejects_paths_duplicates_bad_checksums_and_missing_logo(self):
         h = self.bind()
         self.assertTrue(h.chooseScreenLogo(str(self.logo())))
@@ -152,7 +195,7 @@ class ScreenLibraryTests(unittest.TestCase):
     def test_oversized_and_unknown_manifest_fields_are_rejected(self):
         path = self.runtime/'large.zip'
         with path.open('wb') as handle:
-            handle.truncate(24_000_001)
+            handle.truncate(MAX_PROFILE_BYTES + 1)
         with self.assertRaises(ValueError):
             prepare_profile(self.runtime,path)
         export_profile(self.runtime, default_layers(), default_library()['phrases'], path)

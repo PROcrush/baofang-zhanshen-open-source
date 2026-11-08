@@ -179,6 +179,8 @@ Item {
                 DarkComboBox { objectName:"apiScopeCombo"; Layout.preferredWidth:220; model:["当前制作歌曲","A盘当前歌曲","B盘当前歌曲"]; currentIndex:panel.api.scope==="A" ? 1 : panel.api.scope==="B" ? 2 : 0; enabled:panel.editable; Accessible.name:"AI处理的目标歌曲"; onActivated:panel.apiModel.setScope(index===0 ? "studio" : index===1 ? "A" : "B") }
                 Item { Layout.fillWidth:true }
                 ActionButton { objectName:"apiPlanSpeech"; visible:panel.kind==="speech"; text:panel.api.speechCacheAvailable ? "复用已缓存歌词" : "预检歌曲与上传计划"; enabled:panel.taskReady || (panel.editable && !!panel.api.speechCacheAvailable); onClicked:panel.apiModel.planSpeech() }
+                StudioButton { objectName:"apiRepeatSpeech"; visible:panel.kind==="speech"; text:"重新识别…"; enabled:panel.taskReady; onClicked:panel.apiModel.planRepeatSpeech() }
+                StudioButton { objectName:"apiReuseSpeechText"; visible:panel.kind==="speech" && !!panel.api.speechTextCached; text:"读取参考文字"; enabled:panel.editable; onClicked:panel.apiModel.reuseSpeechText() }
                 ActionButton { objectName:"apiCorrectLyrics"; visible:panel.kind==="text" && panel.modelCorrection; text:"生成模型建议"; tone:"primary"; enabled:panel.taskReady; hint:"仅发送歌词文字；模型未查找原版歌词，调用按服务账户计费"; onClicked:panel.apiModel.correctLyrics() }
             }
             Text { Layout.fillWidth:true; text:panel.kind==="speech" ? "预检在本机完成，不上传。确认计划后才发送完整音频，费用按服务账户实际用量结算。" : panel.referenceMode ? "搜索只发送歌名和歌手；匹配在本机完成。原版时码不会写入 Remix，截断采样、循环和口播保留识别原文。" : "只发送歌词文字给模型；建议来自语言模型推断，未搜索原版歌词。"; color:Theme.muted; font.pixelSize:12; wrapMode:Text.Wrap }
@@ -221,13 +223,15 @@ Item {
             }
             ColumnLayout {
                 visible:!!panel.plan.planId && panel.kind==="speech"; Layout.fillWidth:true; spacing:8
+                Text { visible:!!panel.plan.repeat; Layout.fillWidth:true; text:"重新识别计划。现有歌词保留，新结果须审阅。同一歌曲和模型已有结果或提交记录时，优先恢复原结果或任务。"; color:Theme.amber; font.pixelSize:12; wrapMode:Text.Wrap }
                 Text { Layout.fillWidth:true; text:"上传歌曲："+(panel.plan.sourcePath || ""); color:Theme.text; font.pixelSize:13; wrapMode:Text.WrapAnywhere }
                 Text { Layout.fillWidth:true; text:"服务："+((panel.plan.config || {}).provider || "")+" / "+((panel.plan.config || {}).model || "")+" · 时长 "+(Number(panel.plan.durationMs || 0)/1000).toFixed(1)+" 秒 · "+(Number(panel.plan.size || 0)/1048576).toFixed(2)+" MB"; color:Theme.secondary; font.pixelSize:12; wrapMode:Text.Wrap }
                 Text { Layout.fillWidth:true; text:"实际版本："+(panel.plan.versionId || ""); color:Theme.muted; font.pixelSize:11; wrapMode:Text.WrapAnywhere }
                 Text { visible:panel.config.provider==="302-singing"; text:"302预估："+Number(panel.plan.estimatedCostPTC || 0).toFixed(4)+" PTC；这是本机预估，不是账户余额。"; color:Theme.amber; font.pixelSize:12 }
                 Text { visible:panel.plan.estimatedCostCNY!==undefined && panel.plan.estimatedCostCNY!==null; Layout.fillWidth:true; text:"识别预估：约 ¥"+Number(panel.plan.estimatedCostCNY || 0).toFixed(4)+"，按整段时长估算，实际费用由百炼结算。"; color:Theme.amber; font.pixelSize:12; wrapMode:Text.Wrap }
+                Text { visible:panel.config.provider!=="302-singing" && (panel.plan.estimatedCostCNY===undefined || panel.plan.estimatedCostCNY===null); Layout.fillWidth:true; text:"当前模型未提供本机费用估算，按服务商实际用量计费。"; color:Theme.amber; font.pixelSize:12; wrapMode:Text.Wrap }
                 Text { visible:panel.config.provider==="bailian-asr"; Layout.fillWidth:true; text:"确认后将歌曲上传至百炼私有临时存储，文件有效期48小时。若已有原任务，将继续查询；识别结果需审阅后应用。"; color:Theme.muted; font.pixelSize:12; wrapMode:Text.Wrap }
-                ActionButton { objectName:"apiStartSpeech"; text:"确认上传并识别"; tone:"primary"; enabled:panel.taskReady; onClicked:panel.apiModel.startSpeech() }
+                ActionButton { objectName:"apiStartSpeech"; text:panel.plan.repeat ? "确认重新识别" : "确认上传并识别"; tone:"primary"; enabled:panel.taskReady; onClicked:panel.apiModel.startSpeech() }
             }
             ColumnLayout {
                 visible:!!panel.api.hasProposal; Layout.fillWidth:true; spacing:12

@@ -441,7 +441,7 @@ ApplicationWindow {
                 OfflineLibraryPanel { stateData: app.appState; onPreparationRequested: app.currentPage = 4 }
                 DiagnosticsPanel { stateData: app.appState }
                 OutputStylePanel { id:outputStyles; stateData: app.appState }
-                RecognitionPanel { stateData: app.appState; onApiRequested:app.currentPage=7 }
+                RecognitionPanel { stateData: app.appState; onApiRequested:app.currentPage=7; onSpeechRequested:function(deck){apiPanel.kind="speech";app.currentPage=7;if(apiPanel.apiModel)apiPanel.apiModel.setScope(deck);} }
                 StudioPanel { onToolsRequested: app.currentPage = 6; onLiveRequested: app.currentPage = 0; onApiRequested:function(kind){apiPanel.kind=kind;app.currentPage=7;if(apiPanel.apiModel)apiPanel.apiModel.setScope("studio");} }
                 StudioToolsPanel {}
                 APISettingsPanel { id:apiPanel }

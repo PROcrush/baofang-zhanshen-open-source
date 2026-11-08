@@ -1,5 +1,7 @@
 """Map verified reader frames to our source-time clock without guessing raw units."""
 import hashlib
+from collections import Counter
+from itertools import chain
 from pathlib import Path
 from unicodedata import normalize
 
@@ -11,22 +13,32 @@ def song_filename(path):
     return normalize('NFC', Path(path).name)
 
 
-def filename_lyric_versions(tracks, timelines):
-    """Index exact filenames; existing local drafts are a fallback."""
-    paths = {}
+def filename_lyric_versions(bindings, tracks, timelines):
+    """Count bound paths; keep historical lyrics for a uniquely bound path."""
+    path_counts = Counter(song_filename(path) for path in bindings)
     versions = {}
     local_versions = {}
-    for track in tracks:
-        path = track['path']
-        name = song_filename(path)
-        paths.setdefault(name, set()).add(path)
-        version = track['versionId']
+    historical = (
+        (track['path'], track['versionId']) for track in tracks if track['path'] in bindings
+    )
+    for path, version in chain(bindings.items(), historical):
         timeline = timelines.get(version)
         if timeline:
             candidates = local_versions if lyric_source_label(timeline) == '本地识别' else versions
-            candidates.setdefault(name, version)
-    return {name: versions.get(name, local_versions.get(name, '')) if len(sources) == 1 else None
-            for name, sources in paths.items()}
+            candidates.setdefault(song_filename(path), version)
+    return {name: versions.get(name, local_versions.get(name, '')) if count == 1 else None
+            for name, count in path_counts.items()}
+
+
+def assign_serato_lyric_versions(decks, index):
+    loaded_paths = {}
+    for deck in decks.values():
+        path = deck['path']
+        if path:
+            loaded_paths.setdefault(song_filename(path), set()).add(normalize('NFC', path))
+    for deck in decks.values():
+        name = song_filename(deck['path'])
+        deck['lyricVersionId'] = None if len(loaded_paths.get(name, ())) > 1 else index.get(name, '')
 
 
 def file_signature(path):

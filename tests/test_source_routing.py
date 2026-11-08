@@ -1,7 +1,9 @@
 import copy
 import unittest
+from unittest.mock import patch
 
 from app.source_routing import check_source_snapshot, select_lyric_source
+from app.storage import validate_timeline
 
 
 def deck(version='sha256:' + 'a' * 64):
@@ -55,6 +57,24 @@ class SourceReadinessTests(unittest.TestCase):
         bad = timeline()
         bad['durationMs'] = 5000
         self.assertEqual(self.check(lyrics=bad)['reasonCode'], 'lyrics_invalid')
+
+    def test_cached_structure_still_checks_each_observation_and_replacement(self):
+        source, lyrics, memo = deck(), timeline(), {}
+
+        def check(source, lyrics, now=1_100_000_000):
+            return check_source_snapshot(source, lyrics, now, clock_status=0, identity_ready=True, timeline_check=memo)
+
+        with patch('app.source_routing.validate_timeline', wraps=validate_timeline) as validate:
+            self.assertTrue(check(source, lyrics)['ready'])
+            self.assertEqual(check(dict(source, durationMs=5000), lyrics)['reasonCode'], 'lyrics_invalid')
+            self.assertEqual(check(source, lyrics, now=1_400_000_000)['reasonCode'], 'clock_stale')
+            self.assertEqual(check(dict(source, versionId='new'), lyrics)['reasonCode'], 'lyrics_version_mismatch')
+            self.assertTrue(check(source, lyrics)['ready'])
+            self.assertEqual(validate.call_count, 1)
+            invalid = dict(lyrics, segments=[])
+            self.assertEqual(check(source, invalid)['reasonCode'], 'lyrics_invalid')
+            self.assertEqual(check(source, invalid)['reasonCode'], 'lyrics_invalid')
+            self.assertEqual(validate.call_count, 2)
 
     def test_malformed_stamps_and_source_values_hide(self):
         cases = [('capturedNs', True), ('capturedNs', 0), ('capturedNs', 1 << 63),

@@ -12,10 +12,10 @@ from unittest.mock import patch
 from PySide6.QtCore import QProcess
 
 from app.controller import Controller, FileController, initial_state, project_state
-from app.messages import validate_program_payload
+from app.messages import read_program_payload, validate_program_payload
 from app.native import NativeClock
 from app.serato_adapter import adapt_serato_frame, filename_lyric_versions, proof_is_current
-from app.storage import inspect_audio
+from app.storage import Library, inspect_audio
 
 
 NOW = 1_000_000_000
@@ -155,13 +155,14 @@ class ControllerLifecycleTests(unittest.TestCase):
         frame['decks'][0]['audio_path'] = str(source)
 
         def observe(tracks):
-            harness._serato_lyric_versions = filename_lyric_versions(tracks, harness.timelines)
+            bindings = {row['path']: row['versionId'] for row in reversed(tracks)}
+            harness._serato_lyric_versions = filename_lyric_versions(bindings, tracks, harness.timelines)
             frame['sequence'] += 1
             harness.bridge.queue(frame)
             harness.read_bridge()
             with patch('app.controller.monotonic_ns', return_value=NOW):
                 harness.tick()
-            payload = validate_program_payload(json.loads((self.runtime / 'program.json').read_text()))
+            payload = read_program_payload(self.runtime / 'program.json')
             return project_state(payload['state'], payload['raw'], payload['timelines'], harness.clock, NOW)
 
         projected = observe([current, old])
@@ -178,6 +179,14 @@ class ControllerLifecycleTests(unittest.TestCase):
         frame['decks'][0]['audio_path'] = str(self.runtime / 'moved' / source.name)
         self.assertEqual(observe([current, old])['deckA']['versionId'], old_version)
 
+        frame['decks'][1]['audio_path'] = str(source)
+        projected = observe([current, old])
+        self.assertEqual(projected['selection']['reasonCode'], 'lyrics_ambiguous')
+        self.assertEqual([harness.raw[key]['lyricVersionId'] for key in ('A', 'B')], [None, None])
+        frame['decks'][0]['audio_path'] = str(source)
+        self.assertEqual(observe([current, old])['deckA']['versionId'], old_version)
+        frame['decks'][1]['audio_path'] = ''
+
         duplicate = dict(old, path=str(self.runtime / 'other' / source.name), versionId='sha256:' + 'b' * 64)
         projected = observe([current, old, duplicate])
         self.assertEqual(projected['effectiveSource'], 'none')
@@ -190,6 +199,21 @@ class ControllerLifecycleTests(unittest.TestCase):
         with patch('app.controller.monotonic_ns', return_value=NOW):
             Controller.verifySeratoPreparation(harness, 'A')
         self.assertEqual(harness.indexed, [str(source.with_suffix('.wav'))])
+
+    def test_serato_checks_all_bound_paths_even_when_their_version_is_identical(self):
+        library = Library(self.runtime / 'library')
+        self.addCleanup(library.close)
+        paths = [self.runtime / folder / '同名.mp3' for folder in ('one', 'two')]
+        for path in paths:
+            path.parent.mkdir()
+            path.write_bytes(b'identical audio')
+            library.add_track(inspect_audio(path))
+        tracks = library.tracks()
+        self.assertEqual(len(tracks), 1)
+        self.assertEqual(len(library.bindings()), 2)
+        version = tracks[0]['versionId']
+        timelines = {version: dict(timeline(), versionId=version)}
+        self.assertEqual(filename_lyric_versions(library.bindings(), tracks, timelines), {'同名.mp3': None})
 
     def test_stop_drops_buffered_frames_before_wait_and_keeps_lyrics_hidden(self):
         self.harness.bridge.queue(replay())
@@ -339,7 +363,9 @@ class ControllerLifecycleTests(unittest.TestCase):
         inspected = []
 
         def observe_replace(source, destination):
-            self.assertEqual(Path(destination), target)
+            if Path(destination) != target:
+                original_replace(source, destination)
+                return
             self.assertEqual(json.loads(target.read_text()), {'old': True})
             decoded = json.loads(Path(source).read_text())
             validate_program_payload(decoded)
@@ -353,6 +379,41 @@ class ControllerLifecycleTests(unittest.TestCase):
         self.assertEqual(len(inspected), 1)
         self.assertEqual(json.loads(target.read_text()), inspected[0])
         self.assertFalse((self.runtime / 'program.tmp').exists())
+
+    def test_program_reuses_one_validated_sidecar_until_timeline_changes(self):
+        self.harness.bridge.queue(replay())
+        self.harness.read_bridge()
+        target = self.runtime / 'program.json'
+        cache = {}
+        with patch('app.controller.monotonic_ns', return_value=NOW):
+            self.harness.tick()
+            original_ref = json.loads(target.read_text())['timelineRef']
+            previous = read_program_payload(target, cache)['timelines']
+            self.harness.tick()
+            self.assertEqual(json.loads(target.read_text())['timelineRef'], original_ref)
+            self.assertIs(read_program_payload(target, cache)['timelines'], previous)
+            self.harness.timelines['demo:A'] = timeline()
+            self.harness.timelines['demo:A']['segments'][0]['text'] = '更新歌词'
+            self.harness.tick()
+        self.assertNotEqual(json.loads(target.read_text())['timelineRef'], original_ref)
+        self.assertEqual(read_program_payload(target, cache)['timelines']['demo:A']['segments'][0]['text'], '更新歌词')
+
+    def test_program_supports_two_large_validated_timelines(self):
+        self.harness.bridge.queue(replay())
+        self.harness.read_bridge()
+        for deck in ('A', 'B'):
+            key = 'demo:' + deck
+            self.harness.timelines[key] = dict(timeline(), versionId=key, segments=[
+                {'startMs': index * 2, 'endMs': index * 2 + 2, 'text': '长' * 500}
+                for index in range(1600)
+            ])
+        with patch('app.controller.monotonic_ns', return_value=NOW):
+            self.harness.tick()
+        path = self.runtime / 'program.json'
+        self.assertLess(path.stat().st_size, 100_000)
+        ref = json.loads(path.read_bytes())['timelineRef']
+        self.assertGreater((self.runtime / f'program-timelines-{ref["slot"]}.json').stat().st_size, 4_000_000)
+        self.assertEqual(read_program_payload(path)['timelines'], self.harness.timelines)
 
 
 class IndependentRendererTests(unittest.TestCase):
@@ -406,6 +467,23 @@ class IndependentRendererTests(unittest.TestCase):
         self.tick(NOW + 10_000_000)
         self.assertFalse(self.harness._state['lyric']['visible'])
         self.assertTrue(self.harness._state['stale'])
+
+    def test_temporary_screen_content_expires_while_snapshot_is_corrupt(self):
+        state = self.payload['state']
+        state['screenLayers']['text'].update(text='限时文字', visible=True)
+        state['screenTextValidUntilNs'] = NOW + 100_000_000
+        state['guestMessage'] = {'text': '限时祝福', 'visible': True}
+        state['guestMessageValidUntilNs'] = NOW + 100_000_000
+        self.path.write_text(json.dumps(self.payload))
+        self.tick(NOW)
+        self.assertTrue(self.harness._state['screenLayers']['text']['visible'])
+        self.assertTrue(self.harness._state['guestMessage']['visible'])
+        self.path.write_text('{invalid JSON')
+        self.tick(NOW + 10_000_000)
+        self.assertFalse(self.harness._state['lyric']['visible'])
+        self.tick(NOW + 100_000_000)
+        self.assertFalse(self.harness._state['screenLayers']['text']['visible'])
+        self.assertFalse(self.harness._state['guestMessage']['visible'])
 
 
 class FileProofRegressionTests(unittest.TestCase):
