@@ -4,11 +4,7 @@
 
 ## 构建
 
-在项目 Python 3.12 环境安装 `requirements.txt`、`requirements-local-asr.txt`、`requirements-build.txt`，并准备官方 tiny 模型到 `assets/models/tiny.pt`。模型 SHA256 必须为：
-
-```text
-65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9
-```
+在项目 Python 3.12 环境安装 `requirements.txt` 和 `requirements-build.txt`。
 
 ```sh
 .venv/bin/python scripts/build_macos.py --archives
@@ -30,9 +26,9 @@
 ## 资源与运行边界
 
 - `Contents/MacOS/baofang` 是原生启动器，定位相对 Resources 下的 Python 和程序，不记录命令参数或凭据。正常 Finder 启动的错误日志在 `~/Library/Logs/包房战神/application.log`。
-- `Contents/Resources/python` 自带 Python、Qt、音频与识别依赖；Python 模块加载关闭用户 site，主进程与全部白名单 worker 从启动阶段禁止写字节码。Numba 等缓存定向到用户 `Library/Caches/包房战神`。
-- `Contents/Resources/app` 白名单收集应用源码、QML、合成演示、样式、原生库、tiny 模型和预编译 AX 助手；不收集项目 `runtime`、歌曲、Key、历史探针报告或开发依赖路径。
-- `packaged.json` 标记产品布局、版本、源提交、是否存在未提交修改、模型/FFmpeg/助手摘要和未公证状态。运行时只允许本产品固定位置的模型与 FFmpeg，继续拒绝借用其他应用包的资源。
+- `Contents/Resources/python` 自带 Python、Qt 和音频依赖。构建会从暂存运行时清除旧的 Whisper 和 PyTorch。Python 模块加载关闭用户 site，主进程与全部白名单 worker 从启动阶段禁止写字节码。
+- `Contents/Resources/app` 白名单收集应用源码、QML、合成演示、样式、原生库和预编译 AX 助手。
+- `packaged.json` 标记产品布局、版本、源提交、是否存在未提交修改、FFmpeg 和助手摘要，以及未公证状态。运行时使用随包固定位置的 FFmpeg。
 - 用户数据默认在 `~/Library/Application Support/包房战神`，`--runtime` 可指定隔离验收目录。第一次打开不导入开发版曲库或凭据；完整迁移说明在使用手册中。
 - 包内保留依赖自身的 LICENSE/COPYING 文件，另列第三方名称、版本和元数据许可字段。完整依赖来自当前经测试的 `.venv`，构建后检查组件清单；更换依赖需重新验证。
 
@@ -44,6 +40,6 @@
   --work-dir '/private/tmp/新的封包验收目录'
 ```
 
-该工具使用包内 Python、最小环境和禁止网络的 macOS 沙盒，实际运行 Qt 子进程：合成音频导入、字幕导入、工程保存/重开、视频导出、完整音视频解码、原生窗口截图。另核对原生库、模型与 FFmpeg 摘要，逐文件比较运行前后包内容，任何新写入的字节码或资源变化都失败。源音频保持不变；不读取真实 Key、不授权 AX、不上传歌曲。
+该工具在禁止网络的 macOS 沙盒中使用包内 Python 运行 Qt。检查合成音频和字幕导入、工程保存和重开、视频导出、音视频解码及原生窗口截图。另核对原生库、FFmpeg 摘要和本地识别组件已移除，并逐文件比较运行前后的包内容。
 
 验收记录包含 `report.json`、worker 报告、截图、成片和分步日志。应用包成功运行不等于真实百炼新任务、真实 Key 重启恢复、其他 macOS、实体控制器、场地电视或演出稳定性通过；这些沿用各专项验收边界。

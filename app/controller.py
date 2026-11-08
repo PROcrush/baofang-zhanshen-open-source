@@ -11,6 +11,7 @@ from PySide6.QtCore import QObject, Property, QProcess, QTimer, Signal, Slot
 from PySide6.QtWidgets import QFileDialog
 
 from app.lyrics import project_lyrics
+from app.lyric_cache import lyric_source_label
 from app.clock import monotonic_ns
 from app.messages import accept_snapshot, accept_serato_frame, validate_program_payload
 from app.native import NativeClock
@@ -118,8 +119,7 @@ def project_state(state, raw, timelines, clock, now):
             identity_ready = deck.get('identityReady', False) and proof_is_current(deck.get('identityProof'), deck['path']) if live else True
             timeline = timelines.get(deck['versionId'])
         sources[key] = check_source_snapshot(deck, timeline, now, clock_status=status, identity_ready=identity_ready)
-        cloud_timeline = bool(timeline and timeline.get('provider'))
-        label = '合成时码' if deck['versionId'].startswith('demo:') else (('云端字幕缓存' if cloud_timeline else '已导入歌词') if timeline else '暂无歌词')
+        lyric_source = '合成时码' if deck['versionId'].startswith('demo:') else lyric_source_label(timeline)
         fresh_observation = deck['capturedNs'] <= now <= deck['validUntilNs']
         cache_state = ('error' if deck.get('errorText') else 'preparing') if live and not identity_ready else ('ready' if timeline else 'missing')
         if not fresh_observation:
@@ -128,8 +128,9 @@ def project_state(state, raw, timelines, clock, now):
         result['deck' + key] = dict(deck, positionMs=position if status == 0 else deck['positionMs'],
                                     lyricOffsetMs=result.get('lyricOffsets', {}).get(deck['versionId'], 0),
                                     positionText=stamp(position if status == 0 else deck['positionMs']) if fresh_observation else '--:--.---',
-                                    valid=status == 0, quality=label, cacheState=cache_state, needsReview=needs_review,
-                                    cacheLabel={'ready': '歌词已缓存 · 待复核' if needs_review else '云端字幕缓存已就绪' if cloud_timeline else '歌词缓存已就绪', 'preparing': '后台核验实际音频文件', 'missing': '本曲无歌词缓存 · 请到歌曲准备页审阅识别计划',
+                                    valid=status == 0, quality=lyric_source or '暂无歌词', cacheState=cache_state,
+                                    lyricSource=lyric_source, needsReview=needs_review,
+                                    cacheLabel={'ready': lyric_source + (' · 已缓存 · 待复核' if needs_review else ' · 已缓存'), 'preparing': '后台核验实际音频文件', 'missing': '本曲无歌词缓存 · 请到歌曲准备页审阅识别计划',
                                                 'error': '文件核验失败', 'suspended': '播放状态过期 · 已隐藏歌词'}[cache_state])
         if result.get('mode') == 'rekordbox_ax' and not identity_ready and fresh_observation:
             result['deck' + key]['cacheLabel'] = deck.get('bindingMessage', '请确认此盘实际歌曲文件')
@@ -138,8 +139,6 @@ def project_state(state, raw, timelines, clock, now):
                 result['deck' + key]['cacheLabel'] = '曲库有同名文件 · 请区分文件名后再匹配'
                 if sources[key]['reasonCode'] == 'lyrics_missing':
                     sources[key].update(reasonCode='lyrics_ambiguous', reason='选中盘在曲库有多个同名文件，已隐藏歌词')
-            elif cache_state == 'ready' and not needs_review:
-                result['deck' + key]['cacheLabel'] = '已按文件名匹配歌词'
     selected = result['selectedSource']
     if live:
         selection = select_lyric_source(selected, result.get('videoFader', -1), result.get('autoSide'), sources,
@@ -1824,6 +1823,10 @@ class Controller(QObject):
     @Slot(str)
     def planRecognition(self, key):
         try:
+            version = self.raw.get(key, {}).get('lyricVersionId')
+            if self._state['mode'] == 'serato' and version and version in self.timelines:
+                self.notice('当前盘已匹配歌词缓存，无需重新识别')
+                return
             self.preparation_action('plan', key, self.recognition_track(key, require_verified=False))
         except (OSError, ValueError, TypeError, KeyError) as exc:
             self.notice('歌曲准备：' + str(exc))
@@ -1831,6 +1834,10 @@ class Controller(QObject):
     @Slot(str, str)
     def startRecognition(self, key, plan_id):
         try:
+            version = self.raw.get(key, {}).get('lyricVersionId')
+            if self._state['mode'] == 'serato' and version and version in self.timelines:
+                self.notice('当前盘已匹配歌词缓存，无需重新识别')
+                return
             self.preparation_action('start', key, self.recognition_track(key), plan_id)
         except (OSError, ValueError, TypeError, KeyError) as exc:
             self.notice('歌曲准备：' + str(exc))

@@ -125,7 +125,7 @@ Item {
                             Layout.fillWidth: true
                             Rectangle { Layout.preferredWidth: 28; Layout.preferredHeight: 28; radius: 7; color: Theme.elevated; Text { anchors.centerIn: parent; text: deckPanel.modelData; color: Theme.accent; font.pixelSize: 15; font.weight: Font.Bold } Accessible.name: deckPanel.modelData + " 盘" }
                             Text { Layout.fillWidth: true; text: deckPanel.currentDeck.title || "等待歌曲"; color: Theme.text; font.pixelSize: 14; font.weight: Font.Medium; elide: Text.ElideRight }
-                            StatusPill { text: deckPanel.preparationDeck.label || "等待已核验音频"; tone: panel.phaseTone(deckPanel.preparationDeck.phase || "") }
+                            StatusPill { text: deckPanel.currentDeck.cacheState === "ready" && deckPanel.currentDeck.lyricSource ? deckPanel.currentDeck.cacheLabel : deckPanel.preparationDeck.label || "等待已核验音频"; tone: deckPanel.currentDeck.needsReview ? "amber" : panel.phaseTone(deckPanel.preparationDeck.phase || "") }
                         }
                         Text { objectName: "recognitionVersion-" + deckPanel.modelData; Layout.fillWidth: true; text: deckPanel.preparationDeck.versionId || deckPanel.currentDeck.versionId || "尚无音频版本"; color: Theme.muted; font.family: Theme.numberFont; font.pixelSize: 10; wrapMode: Text.WrapAnywhere }
                         Text { objectName: "recognitionDetail-" + deckPanel.modelData; Layout.fillWidth: true; text: deckPanel.preparationDeck.detail || "识别前先核验实际音频文件；合成回放不提交云端。"; color: Theme.secondary; font.pixelSize: 12; wrapMode: Text.Wrap }

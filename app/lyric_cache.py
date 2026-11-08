@@ -78,6 +78,21 @@ CHANGE_FIELDS = ('segmentIndex', 'referenceLine', 'referenceSource', 'referenceL
 REVIEW_FIELDS = ('segmentIndex', 'reasonCode', 'originalText', 'bestSimilarity', 'referenceLine')
 
 
+def lyric_source_label(timeline):
+    if not isinstance(timeline, dict) or not timeline:
+        return ''
+    provider = str(timeline.get('provider') or '')
+    timing = str(timeline.get('timingProvenance') or '')
+    if provider.startswith('local-whisper') or timing.startswith('local_asr'):
+        return '本地识别'
+    if timing.startswith('imported_'):
+        return '导入字幕'
+    if timing.startswith('provider_') or provider in (
+            '302-doubao-vc', '302-singing', 'bailian-asr', 'volc-asr', 'siliconflow-asr', 'compatible-asr'):
+        return '云端识别'
+    return '来源未标记'
+
+
 def portable_timeline(payload):
     """Whitelist the lyric protocol and its correction evidence, never task data."""
     result = _fields(payload, ('schemaVersion', 'versionId', 'durationMs', 'quality',

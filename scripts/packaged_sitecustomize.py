@@ -11,7 +11,6 @@ if source.is_dir():
     sys.path.insert(0, str(source))
 cache = Path.home() / 'Library/Caches/包房战神'
 # Every worker imports sitecustomize even with the app's minimal environment.
-os.environ['NUMBA_CACHE_DIR'] = str(cache / 'numba')
 os.environ['XDG_CACHE_HOME'] = str(cache)
 os.environ['PYTHONNOUSERSITE'] = '1'
 os.environ['PYTHONDONTWRITEBYTECODE'] = '1'

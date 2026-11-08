@@ -184,9 +184,7 @@ Item {
         id: importMenu
         MenuItem { text: "歌曲音频…"; enabled: panel.editable; onTriggered: if(panel.commitPendingLyrics()) { panel.selectedObject = "audio"; panel.libraryPage = 0; panel.studioModel.chooseAudio(); } }
         MenuItem { text: "歌词字幕…"; enabled: panel.editable && !!panel.studioState.audioPath; onTriggered: { panel.selectedObject = "lyrics"; panel.libraryPage = 1; panel.studioModel.chooseSubtitles(); } }
-        MenuItem { text: "本地识别歌词…"; enabled: panel.editable && !!panel.studioState.audioPath; onTriggered: { panel.selectObject("lyrics"); panel.studioModel.recognizeLocal(); } }
-        MenuItem { text: "国内模型识别与纠错…"; enabled: panel.editable; onTriggered:panel.apiRequested("speech") }
-        MenuItem { text: "选择本地模型…"; enabled: panel.editable; onTriggered: panel.studioModel.chooseAsrModel() }
+        MenuItem { text: "云端识别歌词…"; enabled: panel.editable && !!panel.studioState.audioPath; onTriggered:panel.apiRequested("speech") }
         MenuItem { text: "工程素材…"; enabled: panel.editable && !!panel.studioState.audioPath; onTriggered: { panel.libraryPage=0; panel.studioModel.chooseMaterial(); } }
         MenuItem { text: "独立文字"; enabled: panel.editable && !!panel.studioState.audioPath; onTriggered: { panel.studioModel.addText(); panel.selectNewest("text"); } }
         MenuItem { text: "背景图片 / 视频…"; enabled: panel.editable && !!panel.studioState.audioPath; onTriggered: { panel.selectedObject = "background"; panel.libraryPage = 0; panel.studioModel.chooseBackground(); } }
@@ -286,6 +284,7 @@ Item {
                     studioModel: panel.studioModel; stateData: panel.studioState; commitEdits: panel.commitPendingLyrics
                     selectedPage: panel.libraryPage; selectedSegment: panel.selectedSegment; selectedObject: panel.selectedObject
                     selectedSourceId: panel.selectedSourceId; selectedConcertRow: panel.selectedConcertRow
+                    onCloudRecognitionRequested: panel.apiRequested("speech")
                     onPageSelected: function(index) { panel.libraryPage=index; if(index===2) panel.selectObject("concert"); }
                     onObjectSelected: function(kind) { if(kind==="clip" || kind==="text") panel.selectNewest(kind); else panel.selectObject(kind); }
                     onLineSelected: function(index) { panel.selectLine(index,true); }
@@ -332,7 +331,6 @@ Item {
                                     anchors.fill: parent; studioModel: panel.studioModel; stateData: panel.studioState
                                     visible: !panel.showRendered && (!panel.studioState.audioPath || (!panel.segments.length && !(panel.composition.clips || []).length && !(panel.composition.texts || []).length))
                                     onSubtitlesRequested: { panel.selectObject("lyrics"); panel.studioModel.chooseSubtitles(); }
-                                    onRecognitionRequested: { panel.selectObject("lyrics"); panel.studioModel.recognizeLocal(); }
                                     onLiveRequested: panel.liveRequested()
                                     onApiRequested:panel.apiRequested("speech")
                                 }
@@ -521,9 +519,7 @@ Item {
                                     StudioButton { Layout.fillWidth: true; text: panel.studioState.audioPath ? "制作下一首" : "导入歌曲"; iconName: "audio"; enabled: panel.editable; onClicked: if(panel.commitPendingLyrics()) panel.studioModel.chooseAudio() }
                                     StudioButton { objectName: "studioAnalyzeFromInspector"; Layout.fillWidth: true; text: "分析波形与节拍"; enabled: panel.editable && !!panel.studioState.audioPath; onClicked: panel.studioModel.analyzeAudio() }
                                     Text { Layout.fillWidth: true; text: panel.studioState.analysisStatus || "分析后，波形与节拍会显示在时间轴。"; color: Theme.muted; font.pixelSize: 10; wrapMode: Text.Wrap; lineHeight: 1.4 }
-                                    StudioButton { objectName: "studioRecognizeLocal"; Layout.fillWidth: true; text: "本地识别歌词"; enabled: panel.editable && !!panel.studioState.audioPath; onClicked: panel.studioModel.recognizeLocal() }
-                                    StudioButton { objectName: "studioChooseAsrModel"; Layout.fillWidth: true; text: "选择本地模型"; enabled: panel.editable; onClicked: panel.studioModel.chooseAsrModel() }
-                                    Text { Layout.fillWidth: true; text: panel.studioState.asrStatus || "识别在本机运行，不上传歌曲。"; color: Theme.muted; font.pixelSize: 10; wrapMode: Text.Wrap; lineHeight: 1.4 }
+                                    StudioButton { Layout.fillWidth: true; text: "云端识别歌词"; enabled: panel.editable && !!panel.studioState.audioPath; onClicked: panel.apiRequested("speech") }
                                     Text { Layout.fillWidth: true; text: "主歌曲保持原始时钟，附加音轨在各自轨道设置增益。"; color: Theme.muted; font.pixelSize: 10; wrapMode: Text.Wrap; lineHeight: 1.4 }
                                 }
                             }

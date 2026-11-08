@@ -6,12 +6,11 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from app import runtime_paths
 from probes import rekordbox_ax
-from scripts import repair_qt_metadata
-from worker import studio_transcribe
+from scripts import build_macos, repair_qt_metadata
 from worker.studio_render import _usable_tool
 from app.studio_tools import _ffmpeg_path
 
@@ -69,33 +68,16 @@ class PackagedRuntimeTests(unittest.TestCase):
         self.assertEqual(json.loads(result.stdout), [42, 1, 1])
         self.assertFalse((self.folder / '__pycache__').exists())
 
-    def test_only_own_exact_tiny_model_is_allowed_inside_an_app(self):
-        model = self.root / 'assets/models/tiny.pt'
-        model.parent.mkdir(parents=True)
-        model.write_bytes(b'model fixture')
-        self.assertEqual(runtime_paths.validate_model_location(model, self.root), model)
-        for other in (self.folder / 'Other.app/tiny.pt', self.root / 'assets/models/large.pt'):
-            with self.assertRaises(ValueError):
-                runtime_paths.validate_model_location(other, self.root)
-        external = self.folder / 'external.pt'
-        external.write_bytes(b'external')
-        self.assertEqual(runtime_paths.validate_model_location(external, self.root), external)
-        model.unlink()
-        model.symlink_to(self.folder / 'Other.app/tiny.pt')
-        with self.assertRaises(ValueError):
-            runtime_paths.validate_model_location(model, self.root)
-        self.assertFalse(runtime_paths.is_packaged_model(model, self.root))
-
-    def test_bundled_model_still_requires_official_hash_even_with_explicit_path(self):
-        model = self.root / 'assets/models/tiny.pt'
-        model.parent.mkdir(parents=True)
-        model.write_bytes(b'not the official tiny model')
-        whisper = Mock()
-        with patch.object(runtime_paths, 'ROOT', self.root), \
-                patch.dict('sys.modules', {'torch': Mock(), 'whisper': whisper}):
-            with self.assertRaisesRegex(ValueError, '官方 SHA256'):
-                studio_transcribe._load_backend({'modelPath': str(model)}, None)
-        whisper.load_model.assert_not_called()
+    def test_reused_bundle_runtime_drops_legacy_asr_and_keeps_app_dependencies(self):
+        site = self.folder / 'site-packages'
+        site.mkdir()
+        for name in ('whisper', 'openai_whisper-20250625.dist-info', 'torch', 'torch-2.14.1.dist-info',
+                     'functorch', 'torchgen', 'PySide6', 'imageio_ffmpeg'):
+            (site / name).mkdir()
+            (site / name / 'fixture').touch()
+        build_macos.remove_legacy_asr(site)
+        build_macos.remove_legacy_asr(site)
+        self.assertEqual({p.name for p in site.iterdir()}, {'PySide6', 'imageio_ffmpeg'})
 
     def test_only_own_unmodified_ffmpeg_is_accepted_inside_an_app(self):
         ffmpeg = self.root.parent / ('python/lib/python3.12/site-packages/imageio_ffmpeg/'

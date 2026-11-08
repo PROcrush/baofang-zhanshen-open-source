@@ -1,6 +1,7 @@
 """A first-use journey through real controls, local fixtures and our renderer."""
 import json
 import os
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -19,7 +20,7 @@ from app.studio_preview import StudioPreviewProvider
 from tools.ui_state_smoke import SmokeController,click,named_items,visual_items
 
 
-def main():
+def main(lyrics_only=False):
     root=Path(__file__).resolve().parent.parent
     target=root/'runtime/ui-user-20261014/studio';target.mkdir(parents=True,exist_ok=True)
     run=target/uuid.uuid4().hex;run.mkdir()
@@ -66,11 +67,19 @@ def main():
         wait();assert studio.state['audioPath']==str(audio)
         assert item('studioLibrary').isVisible() and item('studioTimeline').isVisible()
         assert item('studioSaveStatus').property('text')=='未保存'
-        assert item('studioWelcomeSubtitles').isVisible() and item('studioWelcomeRecognize').isEnabled()
+        assert item('studioWelcomeSubtitles').isVisible() and item('studioCloudRecognition').isEnabled()
+        tap('studioCloudRecognition');assert window.property('currentPage')==7
+        tap('nav-5');assert window.property('currentPage')==5
+        tap('studioLibraryRecognize');assert window.property('currentPage')==7
+        tap('nav-5');assert window.property('currentPage')==5
         screens.append(shot('song-imported-1000.png'))
         subtitle=run/'歌词.srt';subtitle.write_text('1\n00:00:00,050 --> 00:00:00,350\n让今晚的每一句都有画面\n\n2\n00:00:00,400 --> 00:00:00,750\n把喜欢的声音留在这里\n')
         with patch('app.studio.QFileDialog.getOpenFileName',return_value=(str(subtitle),'')):tap('studioWelcomeSubtitles')
         wait();assert len(studio.state['segments'])==2
+        if lyrics_only:
+            assert not warnings,'\n'.join(warnings)
+            print('云端识别入口与本地字幕导入通过')
+            return
         assert item('templateTile-headline').isVisible()
         assert not item('styleLayout-amplitude').isVisible()
         tap('templateTile-headline');assert studio.state['settings']['templateId']=='headline'
@@ -79,7 +88,7 @@ def main():
         tap_text('字体');tap('styleColor-textColor-#FFD890')
         assert studio.state['settings']['textColor']=='#FFD890'
         tap_text('模板')
-        checks.append('song import points to subtitles or offline recognition; subtitle import reveals real template previews; advanced controls are optional')
+        checks.append('welcome and library recognition buttons open cloud settings; local subtitle import reveals real template previews')
         tap('studioStep-2')
         background=run/'背景 #1.png';image=QImage(400,225,QImage.Format_RGBA8888);image.fill(QColor('#294449'));assert image.save(str(background))
         with patch('app.studio.QFileDialog.getOpenFileName',return_value=(str(background),'')):tap('studioChooseBackground')
@@ -112,4 +121,4 @@ def main():
         provider.shutdown();studio.shutdown();window.close();application.processEvents()
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':main('--lyrics' in sys.argv)

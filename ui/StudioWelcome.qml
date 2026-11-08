@@ -10,7 +10,6 @@ Item {
     readonly property bool compactContent: height<330 || width<520
     readonly property bool editable: !!studioModel && !stateData.busy
     signal subtitlesRequested()
-    signal recognitionRequested()
     signal liveRequested()
     signal apiRequested()
     ColumnLayout {
@@ -26,7 +25,7 @@ Item {
         }
         Text {
             Layout.fillWidth:true
-            text:welcome.hasAudio ? "有字幕直接导入；没有字幕，可选择本地或云端识别。" : "选择歌曲、添加歌词，就能直接试听和导出。\n背景和模板随时可以调整。"
+            text:welcome.hasAudio ? "有字幕可以直接导入，没有字幕可用云端识别。" : "选择歌曲、添加歌词，就能直接试听和导出。\n背景和模板随时可以调整。"
             color:Theme.secondary; font.pixelSize:13; lineHeight:1.5
             horizontalAlignment:welcome.hasAudio ? Text.AlignHCenter : Text.AlignLeft; wrapMode:Text.Wrap
         }
@@ -48,7 +47,7 @@ Item {
             StudioButton { objectName:"studioStartAudio"; visible:!welcome.hasAudio; text:"选择歌曲"; iconName:"audio"; tone:"primary"; implicitWidth:146; implicitHeight:44; enabled:welcome.editable; onClicked:welcome.studioModel.chooseAudio() }
             ActionButton { objectName:"studioWelcomeOpen"; visible:!welcome.hasAudio; text:"打开已有工程"; implicitHeight:44; enabled:welcome.editable; onClicked:welcome.studioModel.openProject() }
             StudioButton { objectName:"studioWelcomeSubtitles"; visible:welcome.hasAudio; text:"导入歌词字幕"; iconName:"lyrics"; tone:"primary"; implicitHeight:40; enabled:welcome.editable; onClicked:welcome.subtitlesRequested() }
-            StudioButton { objectName:"studioWelcomeRecognize"; visible:welcome.hasAudio; text:"本地识别歌词"; implicitHeight:40; enabled:welcome.editable; onClicked:welcome.recognitionRequested() }
+            StudioButton { objectName:"studioCloudRecognition"; visible:welcome.hasAudio; text:"云端识别歌词"; implicitHeight:40; enabled:welcome.editable; onClicked:welcome.apiRequested() }
         }
         Rectangle { visible:!welcome.hasAudio; Layout.fillWidth:true; Layout.preferredHeight:1; Layout.topMargin:8; color:Theme.stroke }
         Text {
@@ -83,7 +82,6 @@ Item {
             Text { Layout.fillWidth:true; text:"现场跟随歌词，无需先生成视频。"; color:Theme.muted; font.pixelSize:12; wrapMode:Text.Wrap }
             StudioButton { objectName:"studioWelcomeLive"; text:"进入现场"; iconName:"stage"; implicitHeight:34; onClicked:welcome.liveRequested() }
         }
-        Text { visible:welcome.hasAudio; Layout.fillWidth:true; text:"支持 SRT / LRC / JSON，本地识别不会上传歌曲。"; color:Theme.muted; font.pixelSize:11; horizontalAlignment:Text.AlignHCenter; wrapMode:Text.Wrap }
-        StudioButton { objectName:"studioCloudRecognition"; visible:welcome.hasAudio; Layout.alignment:Qt.AlignHCenter; text:"使用国内云端模型"; implicitHeight:34; enabled:!welcome.stateData.busy; onClicked:welcome.apiRequested() }
+        Text { visible:welcome.hasAudio; Layout.fillWidth:true; text:"支持 SRT / LRC / JSON。云端识别须先审阅上传计划。"; color:Theme.muted; font.pixelSize:11; horizontalAlignment:Text.AlignHCenter; wrapMode:Text.Wrap }
     }
 }

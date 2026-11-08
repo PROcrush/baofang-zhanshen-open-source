@@ -11,7 +11,6 @@ from PySide6.QtGui import QImage
 from PySide6.QtWidgets import QFileDialog
 
 from app.studio_tools import load_subtitles, export_subtitles, split_segment, merge_segments
-from app.runtime_paths import validate_model_location
 
 
 def domain():
@@ -78,7 +77,6 @@ class StudioAuthoring(QObject):
             outputFormat='mp4', waveform=[], beatsMs=[], analysisStatus='尚未分析歌曲波形',
             concertRows=[], concertSourceId='', concertLyricsPath='', concertStatus='导入演唱会视频和对应歌词',
             concertCoverage={}, concertReviewed=False, concertGapSourceId='', concertAnalysis={}, advancedBoundary='高级制作使用包房战神自己的分镜与渲染引擎')
-        self._state.update(asrModelPath=str(self.root/'assets/models/tiny.pt'),asrStatus='使用本机独立Whisper模型识别，不上传歌曲')
         self._concert_draft = None
         self._last_lyric_digest = self._lyric_digest()
 
@@ -536,44 +534,3 @@ class StudioAuthoring(QObject):
             with output.open('xb') as file:file.write(bytes(buffer.data()))
             self._state['status']='透明文字PNG已导出：'+str(output);self._emit()
         except (OSError,ValueError,TypeError) as error:self._failure(str(error))
-
-    @Slot()
-    @Slot(str)
-    def chooseAsrModel(self,path=''):
-        if self._state['busy']:return
-        if not path:path,_=QFileDialog.getOpenFileName(None,'选择本地Whisper模型','','Whisper模型 (*.pt)')
-        if not path:return
-        try:
-            source=Path(path).resolve(strict=True)
-            if not source.is_file() or source.suffix!='.pt' or any(part.endswith('.app') for part in source.parts):
-                raise ValueError('请选择独立的Whisper模型文件，不使用应用包里的资源')
-            self._state['asrModelPath']=str(source)
-            self._state['asrStatus']='本地模型已选择，识别全程在本机进行';self._emit()
-        except (OSError,ValueError) as error:self._failure(str(error))
-
-    @Slot()
-    def recognizeLocal(self):
-        if self._state['busy']:return
-        try:
-            from app.studio import file_identity,check_identity,from_recognition
-            audio=copy.deepcopy(self._sources['audio'])
-            if not audio:raise ValueError('请先导入主歌曲')
-            check_identity(audio)
-            model=file_identity(self._state['asrModelPath'])
-            validate_model_location(model['path'], self.root)
-            if not self._start_job('本地Whisper正在识别，歌曲不会上传'):return
-            output=self._job_dir/'local-recognition.json'
-            request=self._write_json('local-asr-request.json',{'audioPath':audio['path'],'durationMs':self._state['durationMs'],
-                'modelPath':model['path'],'output':str(output)})
-            def done(events):
-                check_identity(audio);check_identity(model)
-                data=json.loads(output.read_text())
-                rows=from_recognition(data,self._state['durationMs'])
-                if not rows:raise ValueError('本地模型未识别到可用歌词，已有字幕保持原样')
-                self._remember();self._state.update(segments=rows,busy=False,progress=1,
-                    status='本地识别完成，共 '+str(len(rows))+' 句；请核对歌唱、伴奏与时码',
-                    asrStatus='识别结果来自本机Whisper，模型与音频身份已核验')
-                self._emit()
-            import sys
-            self._launch(sys.executable,[self.root/'worker/studio_transcribe.py','--request',request],done,timeout_ms=7200000)
-        except (OSError,ValueError,TypeError,KeyError) as error:self._failure('本地识别未开始：'+str(error))

@@ -149,6 +149,8 @@ class ControllerLifecycleTests(unittest.TestCase):
         old_version = 'sha256:' + 'a' * 64
         old = dict(current, versionId=old_version)
         harness.timelines[old_version] = dict(timeline(), versionId=old_version)
+        harness.timelines[current['versionId']] = dict(
+            timeline(), versionId=current['versionId'], timingProvenance='local_asr_sentence')
         frame = live_frame()
         frame['decks'][0]['audio_path'] = str(source)
 
@@ -168,6 +170,10 @@ class ControllerLifecycleTests(unittest.TestCase):
         self.assertTrue(projected['lyric']['visible'])
         self.assertFalse(harness.raw['A']['identityReady'])
         self.assertEqual(harness.indexed, [])
+        fallback = observe([current])
+        self.assertEqual(fallback['effectiveSource'], 'A')
+        self.assertEqual(fallback['deckA']['lyricSource'], '本地识别')
+        self.assertTrue(fallback['deckA']['needsReview'])
 
         frame['decks'][0]['audio_path'] = str(self.runtime / 'moved' / source.name)
         self.assertEqual(observe([current, old])['deckA']['versionId'], old_version)

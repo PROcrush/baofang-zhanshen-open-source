@@ -310,6 +310,28 @@ class AISettingsTests(unittest.TestCase):
         self.assertEqual(restarted.process.request['receipt'],request['receipt'])
         self.assertEqual(restarted.process.request['plan'],request['plan'])
 
+    def test_completed_speech_timeline_reuses_cache_after_restart_without_key(self):
+        from worker.ai_tasks import run
+        self.model.configureBailian(KEY,'https://dashscope.aliyuncs.com','fun-asr','qwen-plus')
+        self.model.planSpeech()
+        self.complete({'phase':'planned','plan':run(self.processes[-1].request)['plan']})
+        self.model.startSpeech()
+        timeline = {'schemaVersion': 1, 'versionId': self.track['versionId'], 'durationMs': 1000,
+                    'quality': 'sentence', 'provider': 'bailian-asr', 'timingProvenance': 'provider_sentence',
+                    'segments': [{'startMs': 0, 'endMs': 900, 'text': '测试云端字幕'}]}
+        self.complete({'phase':'review','proposal':{'timeline':timeline}})
+        self.assertEqual(self.model.state['proposalSource'], '云端识别')
+        before = len(self.processes)
+        restarted = AISettings(self.root, self.model.runtime, self.controller, self.studio,
+                               process_factory=self.model.process_factory)
+        self.addCleanup(restarted.shutdown)
+        self.assertTrue(restarted.state['speechCacheAvailable'])
+        self.assertFalse(restarted.state['speech']['keyReady'])
+        restarted.planSpeech()
+        self.assertEqual(len(self.processes), before)
+        self.assertEqual(restarted.state['proposalSource'], '云端识别')
+        self.assertEqual(restarted.state['previewText'], '测试云端字幕')
+
     def test_bailian_new_plan_recovers_same_version_task_instead_of_resubmitting(self):
         from worker.ai_tasks import run
         self.model.configureBailian(KEY,'https://dashscope.aliyuncs.com','fun-asr','qwen-plus')

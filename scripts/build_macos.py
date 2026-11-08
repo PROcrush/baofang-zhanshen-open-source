@@ -24,7 +24,6 @@ VERSION = '0.13.0'
 IDENTIFIER = 'local.baofangzhanshen.mac'
 NAME = '包房战神'
 MINIMUM = '15.0'
-TINY_SHA = '65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9'
 IGNORE = shutil.ignore_patterns('__pycache__', '*.pyc', '.DS_Store', '_virtualenv*')
 
 
@@ -53,6 +52,18 @@ def copy_tree(source, target):
             copied = target / original.relative_to(source)
             if not original.is_symlink() and copied.is_file():
                 copied.chmod(original.stat().st_mode & 0o777)
+
+
+def remove_legacy_asr(site):
+    # A development venv or reused package runtime can contain the old engine.
+    for entry in site.iterdir():
+        if entry.name not in {'whisper', 'torch', 'functorch', 'torchgen'} and not (
+                entry.name.startswith(('openai_whisper-', 'torch-')) and entry.name.endswith('.dist-info')):
+            continue
+        if entry.is_dir() and not entry.is_symlink():
+            shutil.rmtree(entry)
+        else:
+            entry.unlink()
 
 
 def write_plist(path, value):
@@ -130,6 +141,7 @@ def build(args):
         copy_tree(Path(sys.base_prefix), private_python)
         shutil.rmtree(site, ignore_errors=True)
         copy_tree(Path(sysconfig.get_paths()['purelib']), site)
+    remove_legacy_asr(site)
     copy_file(ROOT / 'scripts/packaged_sitecustomize.py', site / 'sitecustomize.py')
     # The app uses Python sqlite3. These unused optional Qt SQL drivers refer
     # to Homebrew/Postgres/Mimer installations that must not be required.
@@ -148,10 +160,6 @@ def build(args):
         copy_file(path, source / path.relative_to(ROOT))
     copy_file(ROOT / 'scripts/repair_qt_metadata.py', source / 'scripts/repair_qt_metadata.py')
     copy_file(ROOT / 'assets/style_presets.json', source / 'assets/style_presets.json')
-    model = ROOT / 'assets/models/tiny.pt'
-    if digest(model) != TINY_SHA:
-        raise SystemExit('本地 tiny 模型不是已核验的官方模型')
-    copy_file(model, source / 'assets/models/tiny.pt')
     (resources / 'bin').mkdir(exist_ok=True)
     ffmpeg = site / 'imageio_ffmpeg/binaries/ffmpeg-macos-aarch64-v7.1'
     link = resources / 'bin/ffmpeg'
@@ -204,7 +212,7 @@ def build(args):
     manifest = {'schemaVersion': 1, 'bundleIdentifier': IDENTIFIER, 'version': VERSION,
                 'minimumMacOS': MINIMUM, 'architecture': 'arm64', 'sourceCommit': revision,
                 'sourceDirty': dirty, 'axHelperSha256': digest(helper_exe),
-                'localModelSha256': digest(model), 'ffmpegSha256': digest(ffmpeg),
+                'ffmpegSha256': digest(ffmpeg),
                 'pythonVersion': platform.python_version(), 'notarized': False,
                 'signature': 'ad-hoc', 'includesPersonalData': False}
     (source / 'packaged.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n')
@@ -212,7 +220,7 @@ def build(args):
     packages = sorted(({'name': d.metadata['Name'], 'version': d.version,
                        'license': d.metadata.get('License-Expression') or d.metadata.get('License', ''),
                        'homePage': d.metadata.get('Home-page', '')}
-                      for d in importlib.metadata.distributions()), key=lambda d: d['name'].lower())
+                      for d in importlib.metadata.distributions(path=[str(site)])), key=lambda d: d['name'].lower())
     (output / '第三方组件.json').write_text(json.dumps(packages, ensure_ascii=False, indent=2)+'\n')
     manual(output)
     for name in ('使用手册.html', '使用手册.md', '第三方组件.json'):

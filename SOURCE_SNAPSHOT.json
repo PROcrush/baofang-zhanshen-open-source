@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "ce0dce1565d4ec79b9ea29c01f26b84c23c3593a",
+  "sourceRevision": "e47aeec814703719e215c93dc273289c3c71ffdb",
   "files": [
     {
       "path": ".gitignore",
@@ -24,7 +24,7 @@
     },
     {
       "path": "DESIGN.md",
-      "sha256": "236cdc35d2a66d04a84fe729c1c9c53dd59a6e9df1b87b4fc544dbf1955d51de"
+      "sha256": "ee46fdf05027a9ac2357b9aa55af652ad75974a047c875dc2de261b31770a178"
     },
     {
       "path": "LICENSE",
@@ -36,7 +36,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "15e5cd441f657bebd7db3dd5887efa30852bef1fa43193c9fc43a31a30f8aab7"
+      "sha256": "ae8d058dba45a40880e6fd41c189eae60da3b9cd00762eb1b57d28a147c13d1f"
     },
     {
       "path": "SECURITY.md",
@@ -44,7 +44,7 @@
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
-      "sha256": "628662df30a0c1b4090cf241942b4f3dd73ee0affaf010f8375452040d1fad2c"
+      "sha256": "2502094064b041d9b6b88bbe49113331be8ccfde93650b64b8a42160521f552c"
     },
     {
       "path": "app/__init__.py",
@@ -52,7 +52,7 @@
     },
     {
       "path": "app/ai_settings.py",
-      "sha256": "65ecf2ea6b9d01a8eec1dbc55dbc3d2995cd1c2bf05d63681acdfb1db0105091"
+      "sha256": "7bb25decb10811d2fa860ae15d61160e29643a406522c3bdfe371dc571cc463c"
     },
     {
       "path": "app/clock.py",
@@ -64,7 +64,7 @@
     },
     {
       "path": "app/controller.py",
-      "sha256": "5edc2836a96f8cd9c96f4402d25c8f7befe5f3fa873881b84208fb2b15b904ba"
+      "sha256": "a3f01569f5e121dd0f845c61ac057358056d1055bcdadd5e55368906348c5c3c"
     },
     {
       "path": "app/credentials.py",
@@ -104,7 +104,7 @@
     },
     {
       "path": "app/lyric_cache.py",
-      "sha256": "0ac79662580af7efb268490027e829278804fe544708cbf31fcbd7ab1902821c"
+      "sha256": "75a5c05252a48b301c6ea5215d29ef7adf00e57bd47181dffbf1778710325687"
     },
     {
       "path": "app/lyric_paint.py",
@@ -160,7 +160,7 @@
     },
     {
       "path": "app/runtime_paths.py",
-      "sha256": "bd0b4112a0d2baa23dbfce840836b0f8d621a0869793112f729b81d688663c59"
+      "sha256": "039f2af52ecb386f261d56010fa7eb2fefd7de9457b503b1032abae8b63329e7"
     },
     {
       "path": "app/screen_layers.py",
@@ -172,7 +172,7 @@
     },
     {
       "path": "app/serato_adapter.py",
-      "sha256": "5d12f8b4518ce8b308f3e9be8768682b4a3585ab4e9f47fa6f05300c05d19bd2"
+      "sha256": "1adbee19964986e438d760c24641fbb00ad3874a29b7b3477d340626cb608dad"
     },
     {
       "path": "app/serato_overlay.py",
@@ -192,7 +192,7 @@
     },
     {
       "path": "app/storage.py",
-      "sha256": "36dceb2165eaf62dbdfaa42f6e78d59d5da0a18bf0264bf1b758ca7041e9e72b"
+      "sha256": "d8fb3b947dadab0679be7c481a90f426f2c577d99a3737f22eb19f431d7e910f"
     },
     {
       "path": "app/studio.py",
@@ -200,7 +200,7 @@
     },
     {
       "path": "app/studio_authoring.py",
-      "sha256": "ba7aa191d734d105a48f35c64a2f851ca6c23104fc23cc4bd34c6d663469e864"
+      "sha256": "6d437200578bb160c7388d4a1327f763e4b0363c1a5325dd63695cf28dfd7667"
     },
     {
       "path": "app/studio_examples.py",
@@ -260,11 +260,11 @@
     },
     {
       "path": "docs/macOS使用手册.md",
-      "sha256": "1f65b9de15c5b899be01a3768cd79c5b7d51ad79143d09fea99fa707095b8848"
+      "sha256": "7284627ea0865699a5de41ce9103a76c2cc6481860cef0b52e07c910bee67478"
     },
     {
       "path": "docs/macOS构建说明.md",
-      "sha256": "1d63dcf13d757f55c6eda4f5745862eb566091fd732161ba634fe31229d9ed10"
+      "sha256": "acd32dd54f93cffc40a36c932b6c8b5a72262f5ad0341ad24f17077a199fbd53"
     },
     {
       "path": "docs/open-source/AGENTS.md",
@@ -276,7 +276,7 @@
     },
     {
       "path": "docs/open-source/README.md",
-      "sha256": "55f88f2c4e2e728874413a9704c707d5ae42148a0d4bcae6b8a4e6e7b1389a2c"
+      "sha256": "cad8a246e00d12d1e9e9fd1a4fc7b4898a35fbe3f9c8281daeb809e3a2813262"
     },
     {
       "path": "docs/主程序重开现场状态恢复-20261103.md",
@@ -313,10 +313,6 @@
     {
       "path": "docs/客屏文字与DJLogo-20261103.md",
       "sha256": "50b23d534f86d47ae73a0b6d631bde59b72308b0e5e64ba183bb7f8c1cfffc87"
-    },
-    {
-      "path": "docs/本地识别-0.6.md",
-      "sha256": "362135ab62ace03d566b09fcc9f7616c2b11d146af4cfb1b30fb256f6ec7fed4"
     },
     {
       "path": "docs/歌词走带开关-20261021.md",
@@ -447,10 +443,6 @@
       "sha256": "5ea659ac7aad29fb94bcca606418dec367de9c7c2a589499f8f26cf1a9add254"
     },
     {
-      "path": "requirements-local-asr.txt",
-      "sha256": "38e39d108b591fd9544b62d9597381983558306ac36cfca6c7f7e9b637fa6aa5"
-    },
-    {
       "path": "requirements.txt",
       "sha256": "b9f03944964de0dd9099f0d3b15b38e6315ca3eaacb58a73b88b98be4bd68350"
     },
@@ -460,7 +452,7 @@
     },
     {
       "path": "scripts/build_macos.py",
-      "sha256": "42534056265cf79316113be56b7318af92655856e2fd03bb4a9cb7fb076feeef"
+      "sha256": "f22ee85ac308f3aab0fadf6601c667b60f734db90283a3b43dff33af3131bae9"
     },
     {
       "path": "scripts/build_native.sh",
@@ -468,7 +460,7 @@
     },
     {
       "path": "scripts/export_public_source.py",
-      "sha256": "b9fd9c18850703240a4f63e2b7f1ae17222ce6c59efde77aa3567fdfa91dbc8b"
+      "sha256": "8255180d4d2bad6436b2bbcf04d451c94c7f5761f5619707504bc45bde39d712"
     },
     {
       "path": "scripts/macos_launcher.m",
@@ -476,7 +468,7 @@
     },
     {
       "path": "scripts/packaged_sitecustomize.py",
-      "sha256": "1b9f2e8ea0f7e7abd48b902a3c43b6c595b3ee53b70deb3817b989dc52a4343e"
+      "sha256": "018bdd25f2d15c368b5776d6438171ae70c93efb2a40840d03e85651d3604f40"
     },
     {
       "path": "scripts/repair_qt_metadata.py",
@@ -500,7 +492,7 @@
     },
     {
       "path": "tests/test_ai_settings.py",
-      "sha256": "8885ea92fd4a7ca8a9380900d6c60b8144c5a77b7bd9103f55a0ffabca367e10"
+      "sha256": "c01e314fa6545f5ab1aa1caf3111c1b2668de62db74010828ba99d2bdcd7ff59"
     },
     {
       "path": "tests/test_bailian.py",
@@ -512,7 +504,7 @@
     },
     {
       "path": "tests/test_bailian_shared.py",
-      "sha256": "79ffcd9a2f012416a03a356455feb3f76a9e625660f764a0ca9dd7b150a76f21"
+      "sha256": "891dacbe3a5b8ead788583ef12132b1c440dbaea46027ec5155cbd40bd62c68c"
     },
     {
       "path": "tests/test_batch_preparation.py",
@@ -532,7 +524,7 @@
     },
     {
       "path": "tests/test_controller_modes.py",
-      "sha256": "d3e66484e22bcbeee9e9d35d19ffd49cb6ccde71cba4b81b53887be76a6fa46b"
+      "sha256": "b89c11a85e108a2b2b45788eb9ef2ef78068100c6e7c9bc0fa47936833aaf616"
     },
     {
       "path": "tests/test_correction.py",
@@ -600,7 +592,7 @@
     },
     {
       "path": "tests/test_packaged_runtime.py",
-      "sha256": "566bbb2c57059b841c39401614134f019fb7134ad17e16e70e8c521123895f9f"
+      "sha256": "0aa4430d2619bd31526b8bf2ed125f5c9f7cfcf888e7d7f08101ddcaa1fca316"
     },
     {
       "path": "tests/test_preparation.py",
@@ -712,7 +704,7 @@
     },
     {
       "path": "tests/test_studio_authoring.py",
-      "sha256": "c0248b1429c7dee1419f399fa7413cc87101418a7c3fb9b61658f9e93401b7a1"
+      "sha256": "390cef8537abe185cf9b2df1ed05f0a6eba6f3dc80d2778b9aa9c5c084574c7a"
     },
     {
       "path": "tests/test_studio_karaoke.py",
@@ -733,10 +725,6 @@
     {
       "path": "tests/test_studio_tools.py",
       "sha256": "5d93a87d555d1934d74d77f801ab5dc6578a1e9b63ba15671338ecde18189ddf"
-    },
-    {
-      "path": "tests/test_studio_transcribe.py",
-      "sha256": "fd3b928bc5fa8014359f15f504bd69047c54cd699690be1a3551f80b227f116c"
     },
     {
       "path": "tests/test_studio_usability.py",
@@ -808,7 +796,7 @@
     },
     {
       "path": "tools/check_macos_package.py",
-      "sha256": "f128234f7f1c2e01de7ea3275f551450f3f6b098d15da3c08306cc61caac5424"
+      "sha256": "4982bb5344425327046006b088bec6fdc89dd03f4f2f5893871f3491b2b8e12e"
     },
     {
       "path": "tools/check_output_recovery.py",
@@ -852,7 +840,7 @@
     },
     {
       "path": "tools/check_studio_onboarding.py",
-      "sha256": "4ae57368cd0a2ad6ddb2e66e2932a8bc7ab4a27ec0b46ff56ffab1caaff2386f"
+      "sha256": "8e169995e958cb33732e1e1ce935d3c3bbbea813868aebb875fc90fbde25f0b2"
     },
     {
       "path": "tools/check_studio_playback.py",
@@ -940,7 +928,7 @@
     },
     {
       "path": "ui/APISettingsPanel.qml",
-      "sha256": "35ea404d3cb1cc652d1155976c6831efac24556442d1697a62eb609c74e1e268"
+      "sha256": "d0930bebe4150f3d23a6989d245a22ca42bc03daab9dc57ec426e36b13aea14d"
     },
     {
       "path": "ui/AccentBar.qml",
@@ -968,7 +956,7 @@
     },
     {
       "path": "ui/DeckCard.qml",
-      "sha256": "66105d321a166ed97412f4f0dd69a6285773ba308b62d8204bc3f6f7970a2cf9"
+      "sha256": "c00748d3ad0de8c6c43deeeba9097b494908cf9dd472a7a3195dffd8fc1882d2"
     },
     {
       "path": "ui/DiagnosticsPanel.qml",
@@ -1028,7 +1016,7 @@
     },
     {
       "path": "ui/RecognitionPanel.qml",
-      "sha256": "bf6adb95082ed3e3cc533e7307f60814e3b399acb7d0032b3e9832632287fb38"
+      "sha256": "94d3daed6e0c15cfe761d3920b909e5adca9683467f398807660de6bee2e4137"
     },
     {
       "path": "ui/RekordboxAxBinding.qml",
@@ -1112,7 +1100,7 @@
     },
     {
       "path": "ui/StudioLibraryPane.qml",
-      "sha256": "0eda3a70b9dfbcae84997cfc554947381f7c80ce2cd07e6e7abd48bd3ebd5b87"
+      "sha256": "5e9cf1b27cd26ce40c87ff871225ea65752a52cd8866e17005afbb960ec70ec9"
     },
     {
       "path": "ui/StudioLyricTimingInspector.qml",
@@ -1120,11 +1108,11 @@
     },
     {
       "path": "ui/StudioPanel.qml",
-      "sha256": "b7475f89157a849bf7fbd0b6a58da068c7e1e5e3b20a101697a6a3844f354a98"
+      "sha256": "e5ef99bb139c08ba7e2031613caab1b80d6d721cdc7aafacacf1d9e36e655e75"
     },
     {
       "path": "ui/StudioSimplePanel.qml",
-      "sha256": "e08a314c87c10d1e31b12c81632aea3733aa99d53f865b0db8580bca486654d0"
+      "sha256": "7544b205099a9d697c33e6b3adc653f3662ce9f344d85f4097cff2a788775c6d"
     },
     {
       "path": "ui/StudioStyleInspector.qml",
@@ -1148,7 +1136,7 @@
     },
     {
       "path": "ui/StudioWelcome.qml",
-      "sha256": "8eb9450152f6d1a4f85bdd30a5685c0901441b773c14cdbe2ae1e5c14784dea2"
+      "sha256": "58920e16bca9e0d7c4654beb01d35bf58e7c1945d148caaa5d3307ab59c16f72"
     },
     {
       "path": "ui/StudioWorkflow.qml",
@@ -1241,10 +1229,6 @@
     {
       "path": "worker/studio_render.py",
       "sha256": "374eb0fc5d7571785d8b6ad3169caef033e01c845f924b0dceef83bd2648a9c8"
-    },
-    {
-      "path": "worker/studio_transcribe.py",
-      "sha256": "ff0bbbceb852fbd865b9fa2aaf7624780f127d478e5e674a1dd2e546c31e3c99"
     },
     {
       "path": "worker/studio_video.py",

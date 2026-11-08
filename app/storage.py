@@ -7,7 +7,7 @@ import sqlite3
 import wave
 from pathlib import Path
 
-from app.lyric_cache import (atomic_bytes, cache_filename, checksum, encode_json,
+from app.lyric_cache import (atomic_bytes, cache_filename, checksum, encode_json, lyric_source_label,
                              plain_directory, portable_timeline, read_bytes, read_json)
 
 AUDIO_EXTENSIONS = {'.wav', '.mp3', '.flac', '.m4a', '.aiff', '.aif', '.ogg'}
@@ -15,6 +15,9 @@ AUDIO_EXTENSIONS = {'.wav', '.mp3', '.flac', '.m4a', '.aiff', '.aif', '.ogg'}
 
 def timeline_needs_review(timeline):
     correction = timeline.get('correction') if isinstance(timeline, dict) else None
+    if lyric_source_label(timeline) == '本地识别' and (
+            not isinstance(correction, dict) or correction.get('status') != 'applied'):
+        return True
     return bool(isinstance(correction, dict) and
                 (correction.get('status') == 'needs_review' or correction.get('review')))
 
@@ -255,9 +258,11 @@ class Library:
             source_state = self._source_state(track)
             state = source_state if cache_state == 'ready' and source_state != 'ready' else cache_state
             review = timeline_needs_review(payload)
+            lyric_source = lyric_source_label(payload)
             cache_path = self.cache_directory / cache_filename(track['versionId'])
             result.append(dict(track, offlineReady=state == 'ready', offlineState=state,
-                               offlineLabel=labels[state] + (' · 待复核' if review else ''),
+                               offlineLabel=' · '.join(part for part in (lyric_source, labels[state],
+                                                                         '待复核' if review else '') if part),
                                cachePath=str(cache_path), needsReview=review))
         return result
 

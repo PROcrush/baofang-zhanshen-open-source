@@ -11,6 +11,8 @@ from PySide6.QtCore import QObject, Property, QProcess, QProcessEnvironment, Sig
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QFileDialog
 
+from app.lyric_cache import (atomic_bytes, cache_filename, encode_json, lyric_source_label,
+                             plain_directory, portable_timeline, read_json)
 from app.preparation import _atomic, _proof_current
 from app.storage import validate_timeline
 from app.credentials import KeychainStore
@@ -188,6 +190,14 @@ class AISettings(QObject):
         proposal=pending.get('proposal',{})
         session=self.reference_session or {}
         speech,text=self._bailian_configs()
+        target_id, target_title = self._target()
+        target_version = ('sha256:' + target_id if self.scope == 'studio' else
+                          getattr(self.controller, 'raw', {}).get(self.scope, {}).get('versionId', target_id))
+        try:
+            cache_available = bool(getattr(self.controller, 'timelines', {}).get(target_version)
+                                   or self._speech_cache(target_version).is_file())
+        except (OSError, ValueError):
+            cache_available = False
         using_bailian=(self.active=={'speech':'bailian-asr','text':'qwen'}
                        and self._key_slot(self._config('speech'))==self._key_slot(self._config('text')))
         return {'providers':[dict(id=key,**value) for key,value in PROVIDERS.items()],**values,
@@ -198,8 +208,11 @@ class AISettings(QObject):
                     'textResult':self.results.get(self._result_slot(text),'尚未验证')},
                 'portalNotice':self.portal_notice,'portalFallbackUrl':self.portal_fallback_url,
                 'busy':self.process is not None,'offline':self._offline(),'detail':self.detail,'phase':self.phase,'scope':self.scope,
-                'plan':copy.deepcopy(self.plan or {}),'canQuery':bool(self.query_request),'targetTitle':self._target()[1],
+                'plan':copy.deepcopy(self.plan or {}),'canQuery':bool(self.query_request),'targetTitle':target_title,
+                'speechCacheAvailable':cache_available,
                 'proposalKind':pending.get('kind',''),'changes':copy.deepcopy(proposal.get('changes',[])),
+                'proposalSource':(lyric_source_label(proposal.get('timeline')) or '云端识别')
+                    if pending.get('kind') == 'speech' else '',
                 'previewText':proposal.get('text','') or '\n'.join(row.get('text','') for row in proposal.get('rows',proposal.get('timeline',{}).get('segments',[]))),
                 'canApply':bool(self.pending and not self._proposal_stale and (proposal.get('timeline') or any(row.get('selected') for row in proposal.get('changes',[])))),
                 'proposalStale':self._proposal_stale,
@@ -442,11 +455,50 @@ class AISettings(QObject):
         return {'track':copy.deepcopy(track),'rows':copy.deepcopy(rows),'timeline':copy.deepcopy(timeline),
                 'snapshot':rows_digest(rows),'scope':self.scope}
 
+    def _speech_cache(self, version):
+        return self.runtime / 'speech-cache' / cache_filename(version)
+
+    def _use_cached_speech(self, source):
+        track = source['track']
+        version = track['versionId']
+        timeline = getattr(self.controller, 'timelines', {}).get(version)
+        try:
+            if timeline:
+                proposal = {'timeline': timeline}
+            else:
+                path = self._speech_cache(version)
+                proposal = read_json(plain_directory(path.parent) / path.name)
+                timeline = proposal.get('timeline')
+            if timeline:
+                validate_timeline(timeline, version)
+            elif not isinstance(proposal.get('text'), str) or not proposal['text'].strip():
+                raise ValueError('缓存缺少识别结果')
+        except (OSError, ValueError, KeyError, TypeError, AttributeError):
+            deck = getattr(self.controller, 'raw', {}).get(self.scope, {})
+            live_cached = getattr(self.controller, 'timelines', {}).get(deck.get('lyricVersionId'))
+            if live_cached:
+                self.plan = None
+                self.pending = None
+                self._notice(lyric_source_label(live_cached) + ' · 现场已匹配歌词缓存，无需重新识别', 'ready')
+                return True
+            return False
+        self.plan = None
+        self.pending = {'kind': 'speech', 'source': source, 'proposal': proposal}
+        self._proposal_stale = False
+        source_label = lyric_source_label(timeline) or '云端识别'
+        detail = ' · 已读取缓存，请审阅后应用' if timeline else ' · 已读取缓存，可保存为参考歌词'
+        self._notice(source_label + detail, 'review')
+        return True
+
     @Slot()
     def planSpeech(self):
         try:
-            config=self._ready('speech')
+            if self.process:
+                raise ValueError('已有识别或纠错任务正在处理')
             source=self._source()
+            if self._use_cached_speech(source):
+                return
+            config=self._ready('speech')
             self.pending=None
             self.plan=None
             self.query_request=None
@@ -462,6 +514,8 @@ class AISettings(QObject):
             source=self._source()
             if not plan or plan['config']!=config or plan['scope']!=self.scope or plan['versionId']!=source['track']['versionId'] or plan['snapshot']!=source['snapshot']:
                 raise ValueError('歌曲、歌词或模型已改变，请重新预检并审阅计划')
+            if self._use_cached_speech(source):
+                return
             if config['provider']=='302-singing' and not plan['budgetAllowed']:
                 raise ValueError('302单次预算不足，请调整预算后重新预检')
             if config['provider']=='302-singing':
@@ -640,7 +694,25 @@ class AISettings(QObject):
                 for kind,value in output.get('capabilities',{}).items():
                     config=request['speechConfig'] if kind=='speech' else request['config']
                     self.results[self._result_slot(config)]=value
+            cache_warning = ''
             if output.get('proposal'):
+                if request['action'] in ('recognize', 'query'):
+                    proposal = output['proposal']
+                    timeline = proposal.get('timeline')
+                    version = request['track']['versionId']
+                    if timeline:
+                        validate_timeline(timeline, version, request['plan']['durationMs'])
+                        cached_proposal = {'timeline': portable_timeline(timeline)}
+                    else:
+                        text = proposal.get('text', '')
+                        cached_proposal = {'text': text} if isinstance(text, str) and text.strip() else {}
+                    if cached_proposal:
+                        try:
+                            path = self._speech_cache(version)
+                            plain_directory(path.parent, create=True)
+                            atomic_bytes(path, encode_json(cached_proposal))
+                        except (OSError, ValueError):
+                            cache_warning = '。未能写入复用缓存，请先保存当前结果'
                 self.pending={'kind':'correct' if request['action'] in ('correct','search-reference','match-reference') else 'speech','source':request,'proposal':output['proposal']}
                 self._proposal_stale=False
                 try:
@@ -655,7 +727,7 @@ class AISettings(QObject):
                 self.query_request=request
             elif request['action'] in ('recognize','query'):
                 self.query_request=None
-            self._notice(output.get('detail','任务完成'),output.get('phase','ready'))
+            self._notice(output.get('detail','任务完成') + cache_warning,output.get('phase','ready'))
         except (OSError,ValueError,KeyError,IndexError,TypeError) as exc:
             self._notice(exc)
 

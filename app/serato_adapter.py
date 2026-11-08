@@ -3,6 +3,7 @@ import hashlib
 from pathlib import Path
 from unicodedata import normalize
 
+from app.lyric_cache import lyric_source_label
 from app.messages import validate_serato_frame
 
 
@@ -11,17 +12,20 @@ def song_filename(path):
 
 
 def filename_lyric_versions(tracks, timelines):
-    """Index exact filenames; newer cached revisions of one path take priority."""
+    """Index exact filenames; existing local drafts are a fallback."""
     paths = {}
     versions = {}
+    local_versions = {}
     for track in tracks:
         path = track['path']
         name = song_filename(path)
         paths.setdefault(name, set()).add(path)
         version = track['versionId']
-        if version in timelines:
-            versions.setdefault(name, version)
-    return {name: versions.get(name, '') if len(sources) == 1 else None
+        timeline = timelines.get(version)
+        if timeline:
+            candidates = local_versions if lyric_source_label(timeline) == '本地识别' else versions
+            candidates.setdefault(name, version)
+    return {name: versions.get(name, local_versions.get(name, '')) if len(sources) == 1 else None
             for name, sources in paths.items()}
 
 

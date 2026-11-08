@@ -39,8 +39,9 @@ class AuthoringIntegrationTests(unittest.TestCase):
     def test_advanced_slots_registered_and_catalogs_really_exposed(self):
         meta=self.studio.metaObject()
         signatures={bytes(meta.method(i).methodSignature()).decode() for i in range(meta.methodCount())}
-        for prefix in ('addClip(','editClipRange(','setTransition(','generateConcertPlan(','editText(','analyzeAudio(','exportTextPNG(','recognizeLocal(','analyzeConcertVideo('):
+        for prefix in ('addClip(','editClipRange(','setTransition(','generateConcertPlan(','editText(','analyzeAudio(','exportTextPNG(','analyzeConcertVideo('):
             self.assertTrue(any(value.startswith(prefix) for value in signatures),prefix)
+        self.assertFalse(any(value.startswith(('recognizeLocal(', 'chooseAsrModel(')) for value in signatures))
         self.assertEqual([len(self.studio.state[key]) for key in ('templates','effects','layouts','transitions')],[16,8,184,53])
 
     def test_v2_project_migration_preserves_media_and_original_file(self):

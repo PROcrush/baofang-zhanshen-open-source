@@ -311,7 +311,7 @@ Item {
                         Layout.fillWidth: true; rail: simple.railSources
                         iconName: "correct"; title: "识别"
                         detail: "没有歌词文件时，用百炼识别"
-                        text: "自动识别"
+                        text: "云端识别"
                         enabled: simple.editable
                         onClicked: simple.apiRequested("speech")
                     }
@@ -421,7 +421,7 @@ Item {
                     Layout.fillWidth: true; spacing: 6
                 Text {
                     Layout.fillWidth: true; wrapMode: Text.Wrap; font.pixelSize: 11; lineHeight: 1.3
-                    text: !simple.rows.length ? "有歌词文件就直接导入，也可以自动识别歌曲。" : !simple.settings.lyricSweep ? "歌词走带已关闭，按演唱时间自动换句。" : Number((simple.stateData.karaokeTiming || {}).timed || 0)>=simple.rows.length ? "跟唱字幕已就绪" : Number((simple.stateData.karaokeTiming || {}).timed || 0)>0 ? "跟唱已就绪，部分句子按句估算扫色。" : "按句估算扫色；补充词时码后可更贴合人声。"
+                    text: !simple.rows.length ? "有歌词文件可以直接导入，也可以用云端识别。" : !simple.settings.lyricSweep ? "歌词走带已关闭，按演唱时间自动换句。" : Number((simple.stateData.karaokeTiming || {}).timed || 0)>=simple.rows.length ? "跟唱字幕已就绪" : Number((simple.stateData.karaokeTiming || {}).timed || 0)>0 ? "跟唱已就绪，部分句子按句估算扫色。" : "按句估算扫色；补充词时码后可更贴合人声。"
                     color: simple.rows.length ? Theme.secondary : Theme.muted
                 }
                     StudioButton { objectName: "simpleEditLyrics"; visible: simple.rows.length>0; Layout.alignment: Qt.AlignTop; text: "改词"; tone: "primary"; implicitHeight: 28; font.pixelSize: 12; enabled: simple.editable; onClicked: simple.startEditing() }

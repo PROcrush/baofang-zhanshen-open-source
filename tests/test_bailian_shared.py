@@ -139,6 +139,10 @@ class SharedBailianTests(unittest.TestCase):
         model.process.queue(result);model.process.finish()
         self.assertTrue(model.state['canApply'],model.state)
         self.assertEqual(transport.calls,[])
+        model.discard()
+        model.planSpeech()
+        self.assertIsNone(model.process)
+        self.assertTrue(model.state['canApply'])
 
     def test_unknown_receipt_and_active_task_never_submit_again(self):
         model=self.model();self.configure(model)

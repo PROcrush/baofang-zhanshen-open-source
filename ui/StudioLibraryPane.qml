@@ -19,6 +19,7 @@ Item {
     signal lineSelected(int index)
     signal sourceSelected(string id)
     signal concertSelected(int index)
+    signal cloudRecognitionRequested()
     function sourceTitle(source) { return source.title || source.label || String((source.identity || {}).path || source.path || "素材").split('/').pop(); }
     function clock(ms) { var seconds=Math.floor(Number(ms || 0)/1000); return Math.floor(seconds/60).toString().padStart(2,"0")+":"+(seconds%60).toString().padStart(2,"0"); }
     ColumnLayout {
@@ -47,7 +48,7 @@ Item {
         RowLayout {
             visible: !!library.stateData.audioPath && !(library.stateData.segments || []).length; Layout.fillWidth: true; spacing: 5
             StudioButton { objectName: "studioLibrarySubtitles"; Layout.fillWidth: true; text: "导入歌词"; tone: "primary"; implicitHeight: 32; enabled: library.editable; onClicked: { library.pageSelected(1); library.studioModel.chooseSubtitles(); } }
-            StudioButton { objectName: "studioLibraryRecognize"; Layout.fillWidth: true; text: "本地识别"; implicitHeight: 32; enabled: library.editable; onClicked: library.studioModel.recognizeLocal() }
+            StudioButton { objectName: "studioLibraryRecognize"; Layout.fillWidth: true; text: "云端识别"; implicitHeight: 32; enabled: library.editable; onClicked: library.cloudRecognitionRequested() }
         }
         StackLayout {
             Layout.fillWidth: true; Layout.fillHeight: true; currentIndex: library.selectedPage

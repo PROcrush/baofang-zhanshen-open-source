@@ -178,7 +178,7 @@ Item {
                 Text { text:panel.kind==="speech" ? "识别哪首歌" : "纠错哪份歌词"; color:Theme.text; font.pixelSize:16; font.weight:Font.Medium }
                 DarkComboBox { objectName:"apiScopeCombo"; Layout.preferredWidth:220; model:["当前制作歌曲","A盘当前歌曲","B盘当前歌曲"]; currentIndex:panel.api.scope==="A" ? 1 : panel.api.scope==="B" ? 2 : 0; enabled:panel.editable; Accessible.name:"AI处理的目标歌曲"; onActivated:panel.apiModel.setScope(index===0 ? "studio" : index===1 ? "A" : "B") }
                 Item { Layout.fillWidth:true }
-                ActionButton { objectName:"apiPlanSpeech"; visible:panel.kind==="speech"; text:"预检歌曲与上传计划"; enabled:panel.taskReady; onClicked:panel.apiModel.planSpeech() }
+                ActionButton { objectName:"apiPlanSpeech"; visible:panel.kind==="speech"; text:panel.api.speechCacheAvailable ? "复用已缓存歌词" : "预检歌曲与上传计划"; enabled:panel.taskReady || (panel.editable && !!panel.api.speechCacheAvailable); onClicked:panel.apiModel.planSpeech() }
                 ActionButton { objectName:"apiCorrectLyrics"; visible:panel.kind==="text" && panel.modelCorrection; text:"生成模型建议"; tone:"primary"; enabled:panel.taskReady; hint:"仅发送歌词文字；模型未查找原版歌词，调用按服务账户计费"; onClicked:panel.apiModel.correctLyrics() }
             }
             Text { Layout.fillWidth:true; text:panel.kind==="speech" ? "预检在本机完成，不上传。确认计划后才发送完整音频，费用按服务账户实际用量结算。" : panel.referenceMode ? "搜索只发送歌名和歌手；匹配在本机完成。原版时码不会写入 Remix，截断采样、循环和口播保留识别原文。" : "只发送歌词文字给模型；建议来自语言模型推断，未搜索原版歌词。"; color:Theme.muted; font.pixelSize:12; wrapMode:Text.Wrap }
@@ -231,7 +231,7 @@ Item {
             }
             ColumnLayout {
                 visible:!!panel.api.hasProposal; Layout.fillWidth:true; spacing:12
-                Text { text:panel.api.proposalKind==="correct" ? "逐句审阅纠错建议" : "识别结果"; color:Theme.text; font.pixelSize:18; font.weight:Font.Medium }
+                Text { text:panel.api.proposalKind==="correct" ? "逐句审阅纠错建议" : (panel.api.proposalSource || "识别")+" · 审阅结果"; color:Theme.text; font.pixelSize:18; font.weight:Font.Medium }
                 Text { objectName:"apiReferenceProof"; visible:!!panel.api.referenceProposal; Layout.fillWidth:true; text:"参考："+((panel.api.reference || {}).title || "")+" · "+((panel.api.reference || {}).artist || "")+" / "+((panel.api.reference || {}).providerLabel || "")+"\n"+((panel.api.reference || {}).url || "")+"\n文字匹配 "+Math.round(panel.api.referenceCoverage*100)+"%，不代表听音准确率。修改保留实际句时码；字数变化的建议需试听确认。"; textFormat:Text.PlainText; color:Theme.secondary; font.pixelSize:12; wrapMode:Text.Wrap; Accessible.role:Accessible.StaticText; Accessible.name:text }
                 Text { visible:!!panel.api.referenceProposal && !(panel.api.changes || []).length; Layout.fillWidth:true; text:"未发现可确认的错字；未匹配片段保留原文。"; color:Theme.secondary; font.pixelSize:13; wrapMode:Text.Wrap }
                 Text { visible:!!panel.api.proposalStale; Layout.fillWidth:true; text:"歌曲或歌词已改变，此结果不能覆盖当前内容。请重新生成建议或预检。"; color:Theme.amber; font.pixelSize:13; wrapMode:Text.Wrap }

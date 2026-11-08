@@ -13,8 +13,6 @@ The public source repository does not vendor Python wheels, Qt libraries, FFmpeg
 | Segno | BSD-3-Clause. [Upstream](https://github.com/heuer/segno) |
 | Mido | MIT. [Upstream](https://github.com/mido/mido) |
 | python-rtmidi / RtMidi | MIT and included upstream notices. [Upstream](https://github.com/SpotlightKid/python-rtmidi) |
-| OpenAI Whisper (optional) | MIT. Model files are downloaded separately. [Upstream](https://github.com/openai/whisper) |
-| PyTorch (optional) | Upstream license and bundled component notices. [Upstream license](https://github.com/pytorch/pytorch/blob/main/LICENSE) |
 | NumPy (transitive) | BSD-3-Clause and component notices. [Upstream](https://github.com/numpy/numpy/blob/main/LICENSE.txt) |
 | Python-Markdown (build only) | BSD-3-Clause. [Upstream](https://github.com/Python-Markdown/markdown) |
 

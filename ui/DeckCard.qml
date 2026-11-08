@@ -90,7 +90,7 @@ Rectangle {
             StatusPill {
                 objectName: "deckCache-" + card.deckId
                 implicitHeight: card.dense ? 22 : 24
-                text: !card.deck.valid && !card.replay ? "等待曲目状态" : card.cacheState === "ready" ? (card.deck.needsReview ? "歌词待复核" : "歌词已就绪") : card.cacheState === "preparing" ? "正在核验歌曲" : card.cacheState === "missing" ? "尚无歌词" : card.cacheState === "error" ? "歌曲核验失败" : card.cacheState === "suspended" ? "准备已挂起" : "等待核验"
+                text: !card.deck.valid && !card.replay ? "等待曲目状态" : card.cacheState === "ready" ? (card.deck.lyricSource ? card.cacheText : card.deck.needsReview ? "歌词待复核" : "歌词已就绪") : card.cacheState === "preparing" ? "正在核验歌曲" : card.cacheState === "missing" ? "尚无歌词" : card.cacheState === "error" ? "歌曲核验失败" : card.cacheState === "suspended" ? "准备已挂起" : "等待核验"
                 tone: card.cacheState === "ready" && !card.deck.needsReview ? "green" : card.cacheState === "error" ? "red" : "amber"
                 ToolTip.visible: cacheHover.containsMouse
                 ToolTip.text: card.deck.bindingMessage || card.deck.errorText || card.cacheText

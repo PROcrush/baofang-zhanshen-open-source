@@ -16,7 +16,7 @@ import time
 
 
 PROBE = r'''
-import hashlib,json,math,os,struct,subprocess,sys,time,wave
+import hashlib,importlib.util,json,math,os,struct,subprocess,sys,time,wave
 from pathlib import Path
 root,work=map(Path,sys.argv[1:3])
 def sha(path):
@@ -25,12 +25,13 @@ def inside(path,parent):return Path(path).resolve().is_relative_to(parent.resolv
 assert inside(sys.executable,root.parent/'python'),sys.executable
 assert inside(sys.prefix,root.parent/'python'),sys.prefix
 assert not any('/.venv/' in str(path) for path in sys.path),sys.path
-import PySide6,torch,whisper,imageio_ffmpeg,tinytag,pypinyin,segno,mido,rtmidi
-for module in (PySide6,torch,whisper,imageio_ffmpeg,tinytag,pypinyin,segno,mido,rtmidi):
+import PySide6,imageio_ffmpeg,tinytag,pypinyin,segno,mido,rtmidi
+for module in (PySide6,imageio_ffmpeg,tinytag,pypinyin,segno,mido,rtmidi):
     assert inside(module.__file__,root.parent/'python'),module.__file__
 from PySide6.QtCore import QTimer
+from PySide6.QtQuickControls2 import QQuickStyle
 from PySide6.QtWidgets import QApplication
-from app.runtime_paths import packaged_info,TINY_SHA256,is_packaged_ffmpeg
+from app.runtime_paths import packaged_info,is_packaged_ffmpeg
 from app.native import NativeClock
 from app.serato_overlay import NativeOverlayBridge
 from app.studio import StudioController,file_identity
@@ -41,8 +42,9 @@ for resource in ('ui/Main.qml','ui/ScreenContentPanel.qml','ui/GuestWishControls
                  'fixtures/replay_timelines.json','assets/style_presets.json',
                  'build/native/libbaofang_sync.dylib','build/native/libbaofang_overlay.dylib'):
     assert (root/resource).is_file(),resource
-model=root/'assets/models/tiny.pt'
-assert sha(model)==TINY_SHA256,'Bundled tiny model hash differs from the official model'
+assert not (root/'assets/models').exists(), 'Unexpected local ASR model'
+for module in ('worker.studio_transcribe', 'whisper', 'torch'):
+    assert importlib.util.find_spec(module) is None, module
 helper=root/'helpers/包房战神-rekordbox-AX.app/Contents/MacOS/rekordbox-ax'
 assert sha(helper)==info['axHelperSha256'],'AX helper hash mismatch'
 clock=NativeClock(root)
@@ -55,9 +57,10 @@ ffmpeg=find_ffmpeg()
 assert ffmpeg and is_packaged_ffmpeg(ffmpeg),ffmpeg
 assert sha(ffmpeg)==info['ffmpegSha256']
 report={'python':sys.executable,'pythonVersion':sys.version.split()[0],
-        'modules':{m.__name__:getattr(m,'__version__','imported') for m in (PySide6,torch,whisper)},
-        'modelSHA256':sha(model),'ffmpeg':ffmpeg,'nativeLibrariesLoaded':True,
+        'modules':{'PySide6':PySide6.__version__},
+        'localASRExcluded':True,'ffmpeg':ffmpeg,'nativeLibrariesLoaded':True,
         'axHelperVerified':True,'cloudRequests':0,'realCredentialsRead':False}
+QQuickStyle.setStyle('Basic')
 application=QApplication([])
 # Check the rebuilt live features using bundled modules and Python. Reader
 # substitutes prevent inspection of any real DJ app; the renderer is real.
