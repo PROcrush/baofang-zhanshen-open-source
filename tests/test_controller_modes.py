@@ -220,6 +220,25 @@ class ControllerLifecycleTests(unittest.TestCase):
         source.unlink()
         self.assertFalse(project_state(payload['state'], payload['raw'], payload['timelines'], harness.clock, NOW)['lyric']['visible'])
 
+    def test_serato_preparation_needs_a_fresh_registered_track(self):
+        harness = self.harness
+        harness._state.update(mode='serato', inputMode='serato')
+        version = 'sha256:' + 'a' * 64
+        harness.raw['A'] = {'identityReady': True, 'versionId': version,
+                            'capturedNs': NOW, 'validUntilNs': NOW + 350_000_000}
+        harness._serato_indexed_versions = set()
+        harness.preparation = SimpleNamespace(view=lambda decks: {'decks': decks})
+        with patch('app.controller.monotonic_ns', return_value=NOW):
+            harness.refresh_preparation()
+            self.assertFalse(harness._state['preparation']['decks']['A']['audioReady'])
+            self.assertTrue(harness.raw['A']['identityReady'])
+            harness._serato_indexed_versions.add(version)
+            harness.refresh_preparation()
+            self.assertTrue(harness._state['preparation']['decks']['A']['audioReady'])
+        with patch('app.controller.monotonic_ns', return_value=NOW + 1_000_000_000):
+            harness.refresh_preparation()
+            self.assertFalse(harness._state['preparation']['decks']['A']['audioReady'])
+
     def test_stop_drops_buffered_frames_before_wait_and_keeps_lyrics_hidden(self):
         self.harness.bridge.queue(replay())
         self.harness.bridge.on_wait = self.harness.read_bridge

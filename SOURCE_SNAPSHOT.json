@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "94a64c34eea3047ff622d71b5ec2c5d3beed2fc0",
+  "sourceRevision": "eb37ad071dbb0fe0454638f70669d551aad122b3",
   "files": [
     {
       "path": ".gitignore",
@@ -64,7 +64,7 @@
     },
     {
       "path": "app/controller.py",
-      "sha256": "94df0390ece4c4de5657f7d8429e3c4c2f00b32c7893ca45b54d5bded87c6c25"
+      "sha256": "05583842e43793ded156bd1d72607249a0d8b909a311da1b9e259e4ed5653d46"
     },
     {
       "path": "app/credentials.py",
@@ -264,7 +264,7 @@
     },
     {
       "path": "docs/macOS使用手册.md",
-      "sha256": "e831d159ad0f0d9890a15df510f9d6753c607a02fcf1583fe1bc652dd57dc28b"
+      "sha256": "6e00d553f1def7edb77055468e585d1c469a7d53a83a0bbd66dc8ae2a449e984"
     },
     {
       "path": "docs/macOS构建说明.md",
@@ -532,7 +532,7 @@
     },
     {
       "path": "tests/test_controller_modes.py",
-      "sha256": "0477371cff4acbb5710c07d723236521305765ff47889da693f94fd7c6fec976"
+      "sha256": "490e658a52906a3efd13a8480560166f74b43e774cf80b83975428cd1e2dab43"
     },
     {
       "path": "tests/test_correction.py",
@@ -1024,7 +1024,7 @@
     },
     {
       "path": "ui/RecognitionPanel.qml",
-      "sha256": "e8c56ff85bb8679bd3ca74cb2e9d80ab1dfb4428f75746cf032d1f51dc399984"
+      "sha256": "fd96e2bf9c27639f9c29e752e778730afa5dd2a88d20b5c33cf5ce78c9b4aaf1"
     },
     {
       "path": "ui/RekordboxAxBinding.qml",

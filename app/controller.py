@@ -225,6 +225,7 @@ class Controller(QObject):
         self._state['logoImageUrl'] = logo_url(self.runtime, self._state['screenLayers'])
         self.file_proofs = {}
         self._serato_indexed_proofs = {}
+        self._serato_indexed_versions = set()
         self._serato_lyric_versions = {}
         self.file_errors = {}
         self.failed_file_signatures = {}
@@ -799,6 +800,7 @@ class Controller(QObject):
         indexed = self.library.tracks()
         self._serato_lyric_versions = serato_lyric_index(indexed, self.timelines)
         self._serato_indexed_proofs = {track['path']: track for track in indexed}
+        self._serato_indexed_versions = {track['versionId'] for track in indexed}
         if self._state['mode'] == 'serato':
             assign_serato_lyric_versions(self.raw, self._serato_lyric_versions, self.timelines)
         for track in tracks:
@@ -1938,7 +1940,20 @@ class Controller(QObject):
         manager = getattr(self, 'preparation', None)
         if manager is not None:
             decks = {key: dict(self.raw.get(key) or self._state.get('deck' + key) or {}) for key in ('A', 'B')}
-            self._state['preparation'] = manager.view(decks)
+            serato = self._state['mode'] == 'serato'
+            if serato:
+                # A playback proof can reuse lyrics without adding the song
+                # to the library. Preparation needs the explicit registration.
+                now = monotonic_ns()
+                for deck in decks.values():
+                    deck['identityReady'] = bool(deck.get('identityReady') and
+                                                 deck.get('versionId') in self._serato_indexed_versions and
+                                                 deck['capturedNs'] <= now <= deck['validUntilNs'])
+            view = manager.view(decks)
+            if serato:
+                for key, deck in decks.items():
+                    view['decks'][key]['audioReady'] = deck['identityReady']
+            self._state['preparation'] = view
 
     def preparation_changed(self):
         if self.shutting_down:

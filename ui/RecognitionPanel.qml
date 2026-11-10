@@ -108,6 +108,7 @@ Item {
                     required property string modelData
                     readonly property var currentDeck: panel.stateData["deck" + modelData] || ({})
                     readonly property var preparationDeck: (panel.preparation.decks || ({}))[modelData] || ({})
+                    readonly property bool audioReady: panel.stateData.inputMode === "serato" ? !!preparationDeck.audioReady : !!currentDeck.identityReady
                     readonly property var plan: preparationDeck.plan || ({})
                     readonly property bool reviewable: !!(plan.planId && plan.title && plan.versionId && plan.sourcePath && plan.uploadSource && plan.service && plan.routeLabel && plan.durationText && plan.budgetLabel) && plan.estimatedCost !== undefined
                     Layout.fillWidth: true; Layout.alignment: Qt.AlignTop
@@ -155,10 +156,10 @@ Item {
                             Layout.fillWidth: true
                             Layout.preferredHeight: childrenRect.height
                             spacing: 8
-                            ActionButton { objectName: "recognitionVerify-" + deckPanel.modelData; text: "核验当前音频"; visible: panel.stateData.inputMode === "serato" && !!deckPanel.currentDeck.path && !deckPanel.currentDeck.identityReady; implicitHeight: 32; font.pixelSize: 12; onClicked: controller.verifySeratoPreparation(deckPanel.modelData) }
-                            ActionButton { objectName: "recognitionLocal-" + deckPanel.modelData; text: "导入本地字幕"; tone: "primary"; implicitHeight: 32; font.pixelSize: 12; enabled: !!deckPanel.currentDeck.identityReady; onClicked: controller.chooseLocalSubtitles(deckPanel.modelData) }
-                            ActionButton { objectName: "recognitionPlan-" + deckPanel.modelData; text: "审阅识别计划"; implicitHeight: 32; font.pixelSize: 12; enabled: panel.stateData.inputMode !== "serato" || !!deckPanel.currentDeck.identityReady; onClicked: controller.planRecognition(deckPanel.modelData) }
-                            ActionButton { objectName: "recognitionSpeech-" + deckPanel.modelData; text: "云端结果 / 重新识别"; implicitHeight: 32; font.pixelSize: 12; enabled: !!deckPanel.currentDeck.identityReady; onClicked: panel.speechRequested(deckPanel.modelData) }
+                            ActionButton { objectName: "recognitionVerify-" + deckPanel.modelData; text: "核验当前音频"; visible: panel.stateData.inputMode === "serato" && !!deckPanel.currentDeck.path && !deckPanel.audioReady; implicitHeight: 32; font.pixelSize: 12; onClicked: controller.verifySeratoPreparation(deckPanel.modelData) }
+                            ActionButton { objectName: "recognitionLocal-" + deckPanel.modelData; text: "导入本地字幕"; tone: "primary"; implicitHeight: 32; font.pixelSize: 12; enabled: deckPanel.audioReady; onClicked: controller.chooseLocalSubtitles(deckPanel.modelData) }
+                            ActionButton { objectName: "recognitionPlan-" + deckPanel.modelData; text: "审阅识别计划"; implicitHeight: 32; font.pixelSize: 12; enabled: panel.stateData.inputMode !== "serato" || deckPanel.audioReady; onClicked: controller.planRecognition(deckPanel.modelData) }
+                            ActionButton { objectName: "recognitionSpeech-" + deckPanel.modelData; text: "云端结果 / 重新识别"; implicitHeight: 32; font.pixelSize: 12; enabled: deckPanel.audioReady; onClicked: panel.speechRequested(deckPanel.modelData) }
                             ActionButton { objectName: "recognitionStart-" + deckPanel.modelData; visible: deckPanel.reviewable; text: "启动识别"; tone: "primary"; implicitHeight: 32; font.pixelSize: 12; enabled: deckPanel.reviewable && !!deckPanel.plan.canSubmit && !!panel.configuration.ready && !!panel.configuration.newSubmissionEnabled; onClicked: controller.startRecognition(deckPanel.modelData, deckPanel.plan.planId) }
                             ActionButton { objectName: "recognitionQuery-" + deckPanel.modelData; text: "继续查询"; implicitHeight: 32; font.pixelSize: 12; enabled: !!deckPanel.preparationDeck.canQuery; onClicked: controller.queryRecognition(deckPanel.modelData) }
                             ActionButton { objectName: "recognitionCorrect-" + deckPanel.modelData; text: "选择参考歌词"; implicitHeight: 32; font.pixelSize: 12; enabled: !!deckPanel.preparationDeck.canCorrect; onClicked: controller.chooseReferenceLyrics(deckPanel.modelData) }
