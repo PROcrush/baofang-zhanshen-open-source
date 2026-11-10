@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "ef45bc1f8da298df353a707f6362b7cf8b1b5a77",
+  "sourceRevision": "94a64c34eea3047ff622d71b5ec2c5d3beed2fc0",
   "files": [
     {
       "path": ".gitignore",
@@ -32,11 +32,11 @@
     },
     {
       "path": "PRODUCT.md",
-      "sha256": "1797298c1c0add1459112c2870ab2f7e7ef1ffb758e0f808836b58b1663670a7"
+      "sha256": "ad0fae3340b0f1501f891626dc14254d8faeb3b18c0b02177398b75d96ca449a"
     },
     {
       "path": "README.md",
-      "sha256": "43dec09a82546310a3bffb1f234543288e0753aafd3d8798585c948a6d852e3f"
+      "sha256": "cdce1530be090f3ebf056cf880ce546c0ac62db1c2a3f186baf7443089edcc44"
     },
     {
       "path": "SECURITY.md",
@@ -64,7 +64,7 @@
     },
     {
       "path": "app/controller.py",
-      "sha256": "711b019b67f6ad703b4172e4568d3c23016b98aa0e281309d3d6ce61e1b24e0f"
+      "sha256": "94df0390ece4c4de5657f7d8429e3c4c2f00b32c7893ca45b54d5bded87c6c25"
     },
     {
       "path": "app/credentials.py",
@@ -120,7 +120,7 @@
     },
     {
       "path": "app/messages.py",
-      "sha256": "549a39f4722d39feec3447512744f91faf771529f9077c2515ef0a1fb87d94df"
+      "sha256": "8a3efffa8edb965776cb4975fc7892b3906ef4ce63239867491003828a0aafeb"
     },
     {
       "path": "app/midi_control.py",
@@ -172,7 +172,7 @@
     },
     {
       "path": "app/serato_adapter.py",
-      "sha256": "7837a5e6aeb5e473ddfa13125021653dc2cb6c1a0e0c0776261ba1b77f814f59"
+      "sha256": "440e1516000a718f2d75f883ad597350d99500e000bb85f813ca5705d3865100"
     },
     {
       "path": "app/serato_overlay.py",
@@ -264,7 +264,7 @@
     },
     {
       "path": "docs/macOS使用手册.md",
-      "sha256": "7284627ea0865699a5de41ce9103a76c2cc6481860cef0b52e07c910bee67478"
+      "sha256": "e831d159ad0f0d9890a15df510f9d6753c607a02fcf1583fe1bc652dd57dc28b"
     },
     {
       "path": "docs/macOS构建说明.md",
@@ -280,7 +280,7 @@
     },
     {
       "path": "docs/open-source/README.md",
-      "sha256": "363378bf4c0826cd5c12365e2db41214e7f5d5d9887b949fd8884cd572213cee"
+      "sha256": "5482a6c8719d40d8074c4b4f364772dafa151a40b435602b7e55d26ff53fc8c9"
     },
     {
       "path": "docs/主程序重开现场状态恢复-20261103.md",
@@ -436,7 +436,7 @@
     },
     {
       "path": "protocol/serato-readonly.md",
-      "sha256": "834d19198e49e33c1da45b8626be21262573a2d2fea2177e3d3f01ca5e5f620a"
+      "sha256": "da80f71b184d148717ba31924b8ad01de00f548282348435a42f26362cfe794b"
     },
     {
       "path": "protocol/timeline-format.md",
@@ -499,6 +499,10 @@
       "sha256": "9c56c8c2e890ddbb1b99ddc0056d836c4001470f4028eb5f95946e314c0fc646"
     },
     {
+      "path": "tests/test_audio_identity.py",
+      "sha256": "80c358aeffbd47f042487d7700c80de65c51804204475604e08bd969201aa33b"
+    },
+    {
       "path": "tests/test_bailian.py",
       "sha256": "d94e4d744a708e084ed951e5f7e2db34c8ca275c5502ce690a17109643822691"
     },
@@ -528,7 +532,7 @@
     },
     {
       "path": "tests/test_controller_modes.py",
-      "sha256": "d8b52ac04eab013a51775e0e67582f8ec7c38e5e4273b88dbce7a487f81a8872"
+      "sha256": "0477371cff4acbb5710c07d723236521305765ff47889da693f94fd7c6fec976"
     },
     {
       "path": "tests/test_correction.py",
@@ -680,7 +684,7 @@
     },
     {
       "path": "tests/test_serato_adapter.py",
-      "sha256": "2b4f96500a662b22b6d180634ebcdf96fd168937048c50d8198a35b303bb63c9"
+      "sha256": "245efc8ba8198bbdcd6eedfbc0890b6e5afac13d5ac68c5e524b7861ad413b8c"
     },
     {
       "path": "tests/test_serato_overlay.py",
@@ -1212,7 +1216,7 @@
     },
     {
       "path": "worker/index_audio.py",
-      "sha256": "4a3599dd5e65c995f48fdd963d121f534f7c7c8718a632e0c091efdcdc6ca070"
+      "sha256": "2992e7bf2b32271c275717a10f6e395b2bad07ae99ec194e92e9b24aaf033b26"
     },
     {
       "path": "worker/lyric_reference.py",

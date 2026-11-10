@@ -6,6 +6,7 @@ import sys
 import tempfile
 import time
 import uuid
+from collections import ChainMap
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Property, QProcess, QTimer, Signal, Slot
@@ -17,7 +18,7 @@ from app.clock import monotonic_ns
 from app.messages import (MAX_PROGRAM_BYTES, accept_snapshot, accept_serato_frame, encode_program_json,
                           program_timeline_path, read_program_payload, validate_program_timelines)
 from app.native import NativeClock
-from app.serato_adapter import (adapt_serato_frame, assign_serato_lyric_versions, filename_lyric_versions,
+from app.serato_adapter import (adapt_serato_frame, assign_serato_lyric_versions, serato_lyric_index,
                                 proof_is_current, file_signature)
 from app.rekordbox_adapter import accept_rekordbox_frame, adapt_rekordbox_frame
 from app.rekordbox_ax_adapter import accept_ax_frame, adapt_ax_frame, make_ax_binding
@@ -113,18 +114,16 @@ def project_state(state, raw, timelines, clock, now, *, timeline_checks=None):
     for key, deck in raw.items():
         position, status = clock.estimate(deck, now)
         valid[key] = status == 0
-        if result.get('mode') == 'serato' and 'lyricVersionId' in deck:
-            lyric_version = deck['lyricVersionId']
-            identity_ready = bool(deck['path'])
-            timeline = timelines.get(lyric_version)
-            if lyric_version:
-                duration = timeline['durationMs'] if timeline else 0
-                deck = dict(deck, versionId=lyric_version, durationMs=duration if position <= duration else 0)
-        else:
-            identity_ready = deck.get('identityReady', False) and proof_is_current(deck.get('identityProof'), deck['path']) if live else True
-            timeline = timelines.get(deck['versionId'])
+        identity_ready = deck.get('identityReady', False) and proof_is_current(deck.get('identityProof'), deck['path']) if live else True
+        lyric_version = deck.get('lyricVersionId', deck['versionId']) if result.get('mode') == 'serato' else deck['versionId']
+        timeline = timelines.get(lyric_version) if identity_ready else None
+        if timeline and lyric_version != deck['versionId']:
+            # Keep the existing lyric/offset key for an equivalent recording.
+            deck = dict(deck, versionId=lyric_version)
         timeline_check = timeline_checks.setdefault(key, {}) if timeline_checks is not None else None
-        sources[key] = check_source_snapshot(deck, timeline, now, clock_status=status, identity_ready=identity_ready,
+        measured_duration = deck.get('verifiedDurationMs') or deck['durationMs']
+        source_deck = dict(deck, durationMs=measured_duration) if measured_duration != deck['durationMs'] else deck
+        sources[key] = check_source_snapshot(source_deck, timeline, now, clock_status=status, identity_ready=identity_ready,
                                              timeline_check=timeline_check)
         lyric_source = '合成时码' if deck['versionId'].startswith('demo:') else lyric_source_label(timeline)
         fresh_observation = deck['capturedNs'] <= now <= deck['validUntilNs']
@@ -141,11 +140,16 @@ def project_state(state, raw, timelines, clock, now, *, timeline_checks=None):
                                                 'error': '文件核验失败', 'suspended': '播放状态过期 · 已隐藏歌词'}[cache_state])
         if result.get('mode') == 'rekordbox_ax' and not identity_ready and fresh_observation:
             result['deck' + key]['cacheLabel'] = deck.get('bindingMessage', '请确认此盘实际歌曲文件')
-        if result.get('mode') == 'serato' and fresh_observation and deck.get('path') and 'lyricVersionId' in deck:
-            if deck['lyricVersionId'] is None and cache_state == 'missing':
-                result['deck' + key]['cacheLabel'] = '曲库有同名文件 · 请区分文件名后再匹配'
-                if sources[key]['reasonCode'] == 'lyrics_missing':
-                    sources[key].update(reasonCode='lyrics_ambiguous', reason='选中盘在曲库有多个同名文件，已隐藏歌词')
+        if result.get('mode') == 'serato' and fresh_observation and identity_ready:
+            match_reason = deck.get('lyricMatchReason')
+            if match_reason == 'ambiguous':
+                detail = '同一音频有多个歌词版本 · 请在曲库选择'
+                result['deck' + key]['cacheLabel'] = detail
+                sources[key].update(reasonCode='lyrics_ambiguous', reason=detail)
+            elif match_reason == 'duration_mismatch' or sources[key]['reasonCode'] == 'lyrics_invalid':
+                detail = '歌词与当前音频的时长或时码不一致 · 请核对歌词版本'
+                result['deck' + key].update(cacheState='error', cacheLabel=detail, needsReview=False)
+                sources[key].update(reasonCode='lyrics_invalid', reason=detail)
     selected = result['selectedSource']
     if live:
         selection = select_lyric_source(selected, result.get('videoFader', -1), result.get('autoSide'), sources,
@@ -220,6 +224,7 @@ class Controller(QObject):
         self._state['screenContentLibrary'] = load_library(self.runtime)
         self._state['logoImageUrl'] = logo_url(self.runtime, self._state['screenLayers'])
         self.file_proofs = {}
+        self._serato_indexed_proofs = {}
         self._serato_lyric_versions = {}
         self.file_errors = {}
         self.failed_file_signatures = {}
@@ -283,6 +288,7 @@ class Controller(QObject):
         self.raw = {}
         self.timelines = json.loads((self.root / 'fixtures/replay_timelines.json').read_text())
         for track in self.library.tracks():
+            self._serato_indexed_proofs[track['path']] = track
             timeline = self.library.timeline(track['versionId'])
             if timeline:
                 self.timelines[track['versionId']] = timeline
@@ -665,20 +671,24 @@ class Controller(QObject):
                     candidate_state = dict(self._state)
                     if message['epoch'] != self._state.get('bridgeEpoch'):
                         candidate_state['autoSide'] = None
-                    candidate_raw = (adapt_rekordbox_frame if rekordbox else adapt_serato_frame)(message, self.file_proofs)
-                    if not rekordbox:
-                        assign_serato_lyric_versions(candidate_raw, self._serato_lyric_versions)
+                    if rekordbox:
+                        candidate_raw = adapt_rekordbox_frame(message, self.file_proofs)
+                    else:
+                        proofs = ChainMap(self.file_proofs, getattr(self, '_serato_indexed_proofs', {}))
+                        candidate_raw = adapt_serato_frame(message, proofs)
+                        assign_serato_lyric_versions(candidate_raw, self._serato_lyric_versions, self.timelines)
+                    fresh = rekordbox or message['capturedNs'] <= monotonic_ns() <= message['validUntilNs']
                     for deck in candidate_raw.values():
                         path = deck['path']
-                        if not rekordbox:
-                            continue
                         deck['errorText'] = self.file_errors.get(path, '')
-                        if path and not deck['identityReady']:
+                        if fresh and path and not deck['identityReady']:
+                            path = str(Path(path).resolve())
                             try:
                                 signature = file_signature(path)
                             except OSError:
                                 signature = None
-                            if path not in self.index_pending and (path not in self.failed_file_signatures or self.failed_file_signatures[path] != signature):
+                            if (path not in self.index_pending and path not in pending_paths and
+                                    (path not in self.failed_file_signatures or self.failed_file_signatures[path] != signature)):
                                 pending_paths.append(path)
                     fader = message['fader']
                     candidate_state.update(videoFader=fader['normalized'] if fader else -1.0,
@@ -701,7 +711,10 @@ class Controller(QObject):
                 self.raw, self._state = candidate_raw, candidate_state
                 for path in pending_paths:
                     try:
-                        self.index_audio(path)
+                        if self._state['mode'] == 'serato':
+                            self.index_audio(path, register=False)
+                        else:
+                            self.index_audio(path)
                     except Exception as exc:
                         self.file_errors[path] = str(exc)
                         self.notice('已接受播放观测；文件核验排队失败：' + str(exc))
@@ -783,10 +796,11 @@ class Controller(QObject):
                  'durationText': '02:00', 'durationMs': 120000, 'quality': '合成字时码',
                  'status': '用于验证同步；无音频', 'isDemo': True} for key in ('A', 'B')]
         tracks = self.library.offline_tracks()
-        self._serato_lyric_versions = filename_lyric_versions(
-            self.library.bindings(), self.library.tracks(), self.timelines)
+        indexed = self.library.tracks()
+        self._serato_lyric_versions = serato_lyric_index(indexed, self.timelines)
+        self._serato_indexed_proofs = {track['path']: track for track in indexed}
         if self._state['mode'] == 'serato':
-            assign_serato_lyric_versions(self.raw, self._serato_lyric_versions)
+            assign_serato_lyric_versions(self.raw, self._serato_lyric_versions, self.timelines)
         for track in tracks:
             track['durationText'] = stamp(track['durationMs'])[:5] if track.get('durationMs') else '待解析'
         self._offline_rows = tracks
@@ -1944,11 +1958,20 @@ class Controller(QObject):
         deck = dict(self.raw.get(key) or self._state.get('deck' + key) or {})
         path, version = deck.get('path', ''), deck.get('versionId', '')
         proof = self.file_proofs.get(path)
+        if self._state['mode'] == 'serato' and path and not proof:
+            try:
+                resolved = str(Path(path).resolve(strict=True))
+                proof = self.file_proofs.get(resolved) or getattr(self, '_serato_indexed_proofs', {}).get(resolved)
+            except (OSError, RuntimeError):
+                pass
         verified = bool(proof and proof.get('versionId') == version and proof_is_current(proof, path))
         if verified:
-            track = self.library.get_track(version) or {}
-            deck.update(track)
-            deck.update(proof)
+            track = self.library.get_track(version)
+            if self._state['mode'] == 'serato' and track is None:
+                verified = False
+            else:
+                deck.update(track or {})
+                deck.update(proof)
         deck['identityVerified'] = verified
         if require_verified and not verified:
             raise ValueError('当前盘实际音频尚未核验，或文件已变化；先完成版本核验再继续准备')
@@ -2387,33 +2410,55 @@ class Controller(QObject):
         if path:
             self.index_audio(path)
 
-    def index_audio(self, path, callback=None, error_callback=None):
+    def index_audio(self, path, callback=None, error_callback=None, *, register=True):
         path = str(Path(path).expanduser().resolve())
         if path in self.index_pending:
+            entry = self.index_pending[path]
+            if register and not entry['register']:
+                self.library.record_job(entry['job'], 'running' if entry['started'] else 'queued',
+                                        {'path': path, 'type': 'file_identity'})
+                entry['register'] = True
             if callback:
-                self.index_pending[path]['callbacks'].append(callback)
+                entry['callbacks'].append(callback)
             if error_callback:
-                self.index_pending[path]['errorCallbacks'].append(error_callback)
-            self.notice('该文件核验已在队列中，复用现有任务')
+                entry['errorCallbacks'].append(error_callback)
+            if register:
+                self.notice('该文件核验已在队列中，复用现有任务')
             return
         job = str(uuid.uuid4())
-        entry = {'path': path, 'job': job, 'callbacks': [callback] if callback else [],
+        entry = {'path': path, 'job': job, 'register': register, 'started': False,
+                 'callbacks': [callback] if callback else [],
                  'errorCallbacks': [error_callback] if error_callback else []}
+        if register:
+            self.library.record_job(job, 'queued', {'path': path, 'type': 'file_identity'})
         self.index_pending[path] = entry
         self.index_queue.append(entry)
-        self.library.record_job(job, 'queued', {'path': path, 'type': 'file_identity'})
         self.start_next_index()
 
     def start_next_index(self):
-        if self.jobs or not self.index_queue:
+        if self.jobs:
             return
-        entry = self.index_queue.pop(0)
+        while self.index_queue:
+            entry = self.index_queue.pop(0)
+            if entry['register'] or (self._state['mode'] == 'serato' and any(
+                    deck.get('path') and str(Path(deck['path']).resolve()) == entry['path']
+                    for deck in self.raw.values())):
+                break
+            del self.index_pending[entry['path']]
+        else:
+            return
         path, job = entry['path'], entry['job']
         process = QProcess(self)
         process.setWorkingDirectory(str(self.root))
         process.setProgram(sys.executable)
         process.setArguments(['-m', 'worker.index_audio', path])
-        self.library.record_job(job, 'running', {'path': path, 'type': 'file_identity'})
+        if entry['register']:
+            self.library.record_job(job, 'running', {'path': path, 'type': 'file_identity'})
+        entry['started'] = True
+        try:
+            signature = file_signature(path)
+        except OSError:
+            signature = None
         def finished(code, *_):
             if self.shutting_down:
                 process.deleteLater()
@@ -2422,42 +2467,46 @@ class Controller(QObject):
                 response = json.loads(bytes(process.readAllStandardOutput()))
                 if not response['ok']:
                     raise ValueError(response.get('error', '文件核验失败'))
-                self.library.add_track(response['track'])
-                self.file_proofs[path] = response['track']
-                version = response['track']['versionId']
-                cached = self.library.timeline(version)
+                track = response['track']
+                if not proof_is_current(track, path):
+                    raise ValueError('文件已变化，请重新核验')
+                if entry['register']:
+                    self.library.add_track(track)
+                self.file_proofs[path] = track
+                version = track['versionId']
+                cached = self.library.timeline(version, expected_duration=track.get('durationMs'))
                 if cached:
                     self.timelines[version] = cached
                 else:
                     self.timelines.pop(version, None)
                 self.file_errors.pop(path, None)
                 self.failed_file_signatures.pop(path, None)
-                self.library.record_job(job, 'ready', response)
-                self.refresh_library()
-                self.notice('文件已核验并索引；可在歌曲准备导入字幕或审阅识别计划')
+                if entry['register']:
+                    self.library.record_job(job, 'ready', response)
+                    self.notice('文件已核验并索引；可在歌曲准备导入字幕或审阅识别计划')
                 for callback in entry['callbacks']:
-                    callback(response['track'])
+                    callback(track)
             except Exception as exc:
                 self.file_errors[path] = str(exc)
-                try:
-                    self.failed_file_signatures[path] = file_signature(path)
-                except OSError:
-                    self.failed_file_signatures[path] = None
-                self.library.record_job(job, 'failed', {'error': str(exc)})
-                self.notice(str(exc))
+                self.failed_file_signatures[path] = signature
+                if entry['register']:
+                    self.library.record_job(job, 'failed', {'error': str(exc)})
+                    self.notice(str(exc))
                 for callback in entry['errorCallbacks']:
                     callback(str(exc))
             self.jobs.remove(process)
             del self.index_pending[path]
             process.deleteLater()
             self.start_next_index()
-            self.refresh_library()
+            if entry['register']:
+                self.refresh_library()
             self.refresh_preparation()
             self.stateChanged.emit()
         process.finished.connect(finished)
         self.jobs.append(process)
         process.start()
-        self.notice('后台正在计算实际文件身份，演出画面继续运行')
+        if entry['register']:
+            self.notice('后台正在计算实际文件身份，演出画面继续运行')
 
     @Slot()
     def importTimeline(self):

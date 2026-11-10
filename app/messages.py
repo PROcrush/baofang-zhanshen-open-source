@@ -70,6 +70,12 @@ def _deck(value, name, live=False):
         _boolean(deck.get('identityReady'), f'{name}.identityReady')
         if deck.get('lyricVersionId') is not None:
             _string(deck['lyricVersionId'], f'{name}.lyricVersionId', 256, allow_empty=True)
+        if 'verifiedDurationMs' in deck:
+            _number(deck['verifiedDurationMs'], f'{name}.verifiedDurationMs', 0)
+        if 'audioContentId' in deck:
+            _string(deck['audioContentId'], f'{name}.audioContentId', 128)
+        if 'audioClockDurationMs' in deck:
+            _number(deck['audioClockDurationMs'], f'{name}.audioClockDurationMs', 0)
     return deck
 
 

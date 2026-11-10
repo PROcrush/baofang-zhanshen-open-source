@@ -14,7 +14,7 @@ from PySide6.QtCore import QProcess
 from app.controller import Controller, FileController, initial_state, project_state
 from app.messages import read_program_payload, validate_program_payload
 from app.native import NativeClock
-from app.serato_adapter import adapt_serato_frame, filename_lyric_versions, proof_is_current
+from app.serato_adapter import adapt_serato_frame, proof_is_current, serato_lyric_index
 from app.storage import Library, inspect_audio
 
 
@@ -117,7 +117,11 @@ class ControllerLifecycleTests(unittest.TestCase):
             clock=NativeClock(self.root), output=None, file_proofs={}, file_errors={}, _serato_lyric_versions={},
             index_pending={}, failed_file_signatures={}, notices=[], indexed=[])
         self.harness.notice = lambda value: self.harness.notices.append(value)
-        self.harness.index_audio = lambda path: self.harness.indexed.append(path)
+        def index_audio(path, *, register=True):
+            self.harness.indexed.append((path, register))
+            self.harness.index_pending[path] = True
+
+        self.harness.index_audio = index_audio
         # tick now refreshes preparation; use its safe manager-absent path here.
         for name in ('send', 'read_bridge', 'stopBridge', 'start_bridge', 'tick', 'setInputMode', 'connectSerato',
                      'refresh_preparation'):
@@ -139,81 +143,82 @@ class ControllerLifecycleTests(unittest.TestCase):
         self.harness.send({'type': 'seek', 'seconds': 10})
         self.assertEqual(self.harness.bridge.writes, [])
 
-    def test_serato_reuses_old_lyrics_by_filename_without_indexing_or_choosing_a_duplicate(self):
+    def test_serato_verifies_each_recording_before_reusing_lyrics(self):
         harness = self.harness
         harness._state.update(mode='serato', inputMode='serato', selectedSource='A')
-        source = self.runtime / 'set' / '原创 Remix.mp3'
-        source.parent.mkdir()
-        source.write_bytes(b'audio with updated play count')
-        current = inspect_audio(source)
-        old_version = 'sha256:' + 'a' * 64
-        old = dict(current, versionId=old_version)
-        harness.timelines[old_version] = dict(timeline(), versionId=old_version)
-        harness.timelines[current['versionId']] = dict(
-            timeline(), versionId=current['versionId'], timingProvenance='local_asr_sentence')
+        original, remix, renamed = (self.runtime.resolve() / name for name in ('set/song.wav', 'usb/song.wav', 'moved/renamed.wav'))
+        for path, sample in ((original, b'\x00\x00'), (remix, b'\x01\x00'), (renamed, b'\x00\x00')):
+            path.parent.mkdir()
+            with wave.open(str(path), 'wb') as stream:
+                stream.setparams((1, 2, 8000, 0, 'NONE', 'not compressed'))
+                stream.writeframes(sample * 32000)
+        original_proof = inspect_audio(original)
+        version = original_proof['versionId']
+        harness.timelines[version] = dict(timeline(), versionId=version)
         frame = live_frame()
-        frame['decks'][0]['audio_path'] = str(source)
 
-        def observe(tracks):
-            bindings = {row['path']: row['versionId'] for row in reversed(tracks)}
-            harness._serato_lyric_versions = filename_lyric_versions(bindings, tracks, harness.timelines)
+        def observe(path, now=NOW):
+            frame['decks'][0]['audio_path'] = str(path)
             frame['sequence'] += 1
             harness.bridge.queue(frame)
-            harness.read_bridge()
-            with patch('app.controller.monotonic_ns', return_value=NOW):
+            with patch('app.controller.monotonic_ns', return_value=now):
+                harness.read_bridge()
                 harness.tick()
             payload = read_program_payload(self.runtime / 'program.json')
-            return project_state(payload['state'], payload['raw'], payload['timelines'], harness.clock, NOW)
+            return project_state(payload['state'], payload['raw'], payload['timelines'], harness.clock, now)
 
-        projected = observe([current, old])
-        self.assertEqual(projected['effectiveSource'], 'A')
-        self.assertEqual(projected['deckA']['versionId'], old_version)
-        self.assertTrue(projected['lyric']['visible'])
-        self.assertFalse(harness.raw['A']['identityReady'])
+        self.assertFalse(observe(remix, NOW + 1_000_000_000)['lyric']['visible'])
         self.assertEqual(harness.indexed, [])
-        fallback = observe([current])
-        self.assertEqual(fallback['effectiveSource'], 'A')
-        self.assertEqual(fallback['deckA']['lyricSource'], '本地识别')
-        self.assertTrue(fallback['deckA']['needsReview'])
+        self.assertFalse(observe(remix)['lyric']['visible'])
+        self.assertFalse(observe(remix)['lyric']['visible'])
+        self.assertEqual(harness.indexed, [(str(remix), False)])
 
-        frame['decks'][0]['audio_path'] = str(self.runtime / 'moved' / source.name)
-        self.assertEqual(observe([current, old])['deckA']['versionId'], old_version)
+        harness.file_proofs[str(remix)] = inspect_audio(remix)
+        different = observe(remix)
+        self.assertEqual(different['selection']['reasonCode'], 'lyrics_missing')
+        self.assertEqual(different['deckA']['durationMs'], 4000)
+        self.assertFalse(different['lyric']['visible'])
 
-        frame['decks'][1]['audio_path'] = str(source)
-        projected = observe([current, old])
-        self.assertEqual(projected['selection']['reasonCode'], 'lyrics_ambiguous')
-        self.assertEqual([harness.raw[key]['lyricVersionId'] for key in ('A', 'B')], [None, None])
+        # A late proof for the previous song cannot light the new deck. A
+        # byte-identical file may use the original lyrics with a new name.
+        self.assertFalse(observe(renamed)['lyric']['visible'])
+        self.assertEqual(harness.indexed[-1], (str(renamed), False))
+        harness.file_proofs[str(renamed)] = inspect_audio(renamed)
+        matched = observe(renamed)
+        self.assertTrue(matched['lyric']['visible'])
+        self.assertEqual(matched['deckA']['versionId'], version)
+
+        harness.timelines[version] = dict(timeline(), versionId=version, durationMs=4500)
+        mismatch = observe(renamed)
+        self.assertFalse(mismatch['lyric']['visible'])
+        self.assertEqual(mismatch['deckA']['durationMs'], 4000)
+        self.assertEqual(mismatch['selection']['reasonCode'], 'lyrics_invalid')
+
+    def test_serato_accepts_proven_pcm_equivalence_in_the_renderer(self):
+        harness = self.harness
+        harness._state.update(mode='serato', inputMode='serato', selectedSource='A')
+        source = self.runtime / 'new tags.wav'
+        with wave.open(str(source), 'wb') as stream:
+            stream.setparams((1, 2, 8000, 0, 'NONE', 'not compressed'))
+            stream.writeframes(b'\0\0' * 32000)
+        content = 'pcm-sha256-v1:' + 'a' * 64
+        proof = dict(inspect_audio(source), audioContentId=content, audioClockDurationMs=4000)
+        harness.file_proofs[str(source)] = proof
+        old_version = 'sha256:' + 'b' * 64
+        harness.timelines[old_version] = dict(timeline(), versionId=old_version)
+        harness._serato_lyric_versions = serato_lyric_index(
+            [{'versionId': old_version, 'audioContentId': content, 'audioClockDurationMs': 4000}], harness.timelines)
+        frame = live_frame()
         frame['decks'][0]['audio_path'] = str(source)
-        self.assertEqual(observe([current, old])['deckA']['versionId'], old_version)
-        frame['decks'][1]['audio_path'] = ''
-
-        duplicate = dict(old, path=str(self.runtime / 'other' / source.name), versionId='sha256:' + 'b' * 64)
-        projected = observe([current, old, duplicate])
-        self.assertEqual(projected['effectiveSource'], 'none')
-        self.assertEqual(projected['selection']['reasonCode'], 'lyrics_ambiguous')
-
-        frame['decks'][0]['audio_path'] = str(source.with_suffix('.wav'))
-        projected = observe([old])
-        self.assertEqual(projected['selection']['reasonCode'], 'lyrics_missing')
-        self.assertEqual(harness.indexed, [])
+        harness.bridge.queue(frame)
         with patch('app.controller.monotonic_ns', return_value=NOW):
-            Controller.verifySeratoPreparation(harness, 'A')
-        self.assertEqual(harness.indexed, [str(source.with_suffix('.wav'))])
-
-    def test_serato_checks_all_bound_paths_even_when_their_version_is_identical(self):
-        library = Library(self.runtime / 'library')
-        self.addCleanup(library.close)
-        paths = [self.runtime / folder / '同名.mp3' for folder in ('one', 'two')]
-        for path in paths:
-            path.parent.mkdir()
-            path.write_bytes(b'identical audio')
-            library.add_track(inspect_audio(path))
-        tracks = library.tracks()
-        self.assertEqual(len(tracks), 1)
-        self.assertEqual(len(library.bindings()), 2)
-        version = tracks[0]['versionId']
-        timelines = {version: dict(timeline(), versionId=version)}
-        self.assertEqual(filename_lyric_versions(library.bindings(), tracks, timelines), {'同名.mp3': None})
+            harness.read_bridge()
+            harness.tick()
+        payload = read_program_payload(self.runtime / 'program.json')
+        self.assertEqual(payload['raw']['A']['versionId'], proof['versionId'])
+        self.assertTrue(project_state(payload['state'], payload['raw'], payload['timelines'], harness.clock, NOW)['lyric']['visible'])
+        source.unlink()
+        self.assertFalse(project_state(payload['state'], payload['raw'], payload['timelines'], harness.clock, NOW)['lyric']['visible'])
 
     def test_stop_drops_buffered_frames_before_wait_and_keeps_lyrics_hidden(self):
         self.harness.bridge.queue(replay())
