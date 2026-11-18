@@ -43,23 +43,19 @@ def main():
         window.setProperty('currentPage', 0)
         QTest.qWait(100)
         items = named_items(window)
+        if not items['programPreviewFrame'].isVisible():
+            click(window, items['liveMonitorToggle'])
         preview, rail, source = (items[name] for name in ('programPreviewFrame', 'monitorRail', 'sourceControlBar'))
         p, r, s = bounds(preview), bounds(rail), bounds(source)
         assert preview.width() >= 320, 'Guest preview collapsed'
         assert abs(p[0] - r[0]) < 1 and abs(p[2] - r[2]) < 1, 'Monitor and preview must align'
         assert r[3] < p[1] and p[2] < s[0], 'Preview overlaps monitor or inspector'
         assert s[2] <= width + 1 and max(p[3], r[3], s[3]) <= height + 1, 'Workspace extends beyond window'
-        shelf = bounds(items['liveStyleShelf'])
         connection = bounds(items['liveToolbar'])
-        assert connection[2] < p[0] and max(p[3], connection[3]) < shelf[1]
-        assert shelf[2] < s[0] and shelf[3] <= height
-        if width == 1000:
-            tile = next(item for name, item in items.items() if name.startswith('liveShelfPreset-') and item.isVisible() and not item.property('selected'))
-            click(window, tile)
-            assert model.data['style']['presetId'] == tile.objectName().removeprefix('liveShelfPreset-')
-            click(window, items['liveShelfToggle'])
-            assert items['programPreviewFrame'].height() > p[3] - p[1] and not items['liveStyleShelf'].property('expanded')
-            click(window, items['liveShelfToggle'])
+        header = bounds(items['liveLinkHeader'])
+        routing = bounds(items['liveRoutingCard'])
+        assert connection[2] < header[0] and header[3] < r[1]
+        assert r[3] < routing[1] and routing[3] < p[1]
         a, b = (bounds(items['deckCard-' + deck]) for deck in ('A', 'B'))
         assert abs(a[1] - b[1]) < 1 and a[2] < b[0], 'Decks must be side by side'
         for deck in ('A', 'B'):
@@ -106,6 +102,7 @@ def main():
     # Lyrics being ready must not imply that a guest output is open.
     window.resize(1000, 700)
     window.setProperty('currentPage', 0)
+    click(window, named_items(window)['liveMonitorToggle'])
     model.data = synthetic_state('serato')
     model.data.update(outputOpen=False)
     model.emit_state()
@@ -140,6 +137,20 @@ def main():
     model.emit_state()
     QTest.qWait(80)
     assert items['liveUpcomingLyric'].property('text') != model.data['lyric']['nextText'], 'Stale lyrics remain in the next-line monitor'
+    window.resize(1496,885)
+    model.data.update(deckA={}, deckB={}, outputOpen=False, effectiveSource='none', selectedSource='auto',
+                      videoFader=-1, bridgeRunning=False, bridgeStatus='尚未连接', outputDestination='standalone',
+                      preparation={'route': 'domestic'}, style=dict(model.data['style'], dynamicBackground=False))
+    model.emit_state()
+    click(window, items['liveTab-style'])
+    assert not items['programPreviewFrame'].isVisible()
+    assert items['liveFontCombo'].isVisible() and items['videoFaderMeter'].property('value') == -1
+    assert window.grabWindow().save(str(target / 'Serato-88104.png'))
+    click(window, items['liveMonitorToggle'])
+    assert items['programPreviewFrame'].isVisible()
+    click(window, items['liveMonitorToggle'])
+    click(window, items['exitLiveLink'])
+    assert window.property('currentPage') == 5 and model.data['stale']
     checks.append({'outputStates':'closed, waiting, failed and attached remain distinct from lyric readiness', 'hiddenAndStale':'upcoming lyric monitor clears immediately'})
     assert not warnings, '\n'.join(warnings)
     report = {'passed': True, 'syntheticOnly': True, 'realDJValidated': False,

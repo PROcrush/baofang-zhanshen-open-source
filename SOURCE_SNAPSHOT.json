@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "beff41542722ec92f498db2fcf9b34169c849713",
+  "sourceRevision": "85552a62209d47d1570f545ca4983333da41e3b5",
   "files": [
     {
       "path": ".gitignore",
@@ -24,7 +24,7 @@
     },
     {
       "path": "DESIGN.md",
-      "sha256": "5a0d142ce55fdd6d03922fa8912ba6ce656ebf36d1220ba9bf537a355a100863"
+      "sha256": "075b7979382ac1e8b6328cc9b40182f524e946975fd804b18411549c35ebf942"
     },
     {
       "path": "LICENSE",
@@ -264,7 +264,7 @@
     },
     {
       "path": "docs/macOS使用手册.md",
-      "sha256": "105bf2e6c17f997eb792084a04291e6f77d1bfc7a2a042a0280242cfebfaf30d"
+      "sha256": "c3990ce862e386686be269d04b5acd5d8f9f75a777e2f403b62c0946e85354b9"
     },
     {
       "path": "docs/macOS构建说明.md",
@@ -772,7 +772,7 @@
     },
     {
       "path": "tools/check_console_layout.py",
-      "sha256": "6c29730af40796c3c61c8ff7acfef6c5adb90327b5d086c8ffcfec3f159ba873"
+      "sha256": "15958c849d7ba78575a49b795ce451228aa90cefb731f464c586962c82063ec8"
     },
     {
       "path": "tools/check_keychain.py",
@@ -788,7 +788,7 @@
     },
     {
       "path": "tools/check_live_karaoke.py",
-      "sha256": "ac953b951439ef50ebd2714646e9aeb07de66de2668113191763b89ebad4f415"
+      "sha256": "af3ba1ef78c2c1255e9653a529145650dba94a6aed3be6bda9fed555858f58d2"
     },
     {
       "path": "tools/check_live_restart.py",
@@ -796,11 +796,11 @@
     },
     {
       "path": "tools/check_live_tools.py",
-      "sha256": "da4ce8af8b5790e387d43d6a1ee6f81a2d40d3d6f0ab8383344e7ce3b3e7ff2f"
+      "sha256": "ee1558661d39d2124aae8c7fd4d46de14dc2cc69b798ad2d4b0d86b6e7656ee3"
     },
     {
       "path": "tools/check_live_workflow.py",
-      "sha256": "7b39961a3f08a5898a5bac755afbcd8109002853cfab28459a4b0a294de90edb"
+      "sha256": "34e21b37ad40d1c1f5df56f3ea3784c145e436eb89afd6c97194281e356311c8"
     },
     {
       "path": "tools/check_macos_package.py",
@@ -816,7 +816,7 @@
     },
     {
       "path": "tools/check_rekordbox_ax_ui.py",
-      "sha256": "ddca0a8d05520ec0802207ed852daf7027f6b978caacb9945115eae10dadb5b0"
+      "sha256": "52fa149143cfd0991ea893f8dd2325813bfb2ad5e3496e9d69b7b7f037c60ec4"
     },
     {
       "path": "tools/check_rekordbox_ui.py",
@@ -932,7 +932,7 @@
     },
     {
       "path": "tools/ui_state_smoke.py",
-      "sha256": "be67c7ad8a3e26d6d89477ae54d34feb7683762a83f6c9f4b114bd0a2977c2a6"
+      "sha256": "f0d55a9bb6b87c4197fc09afea8f7484feae78ecc32734ef9c61418bb259ef78"
     },
     {
       "path": "ui/APISettingsPanel.qml",
@@ -964,7 +964,7 @@
     },
     {
       "path": "ui/DeckCard.qml",
-      "sha256": "4be286eadeea15b3cce08b9e982a8364a4e156267e17bf1f880e244c7e78e4f7"
+      "sha256": "d5323707198e0ce364c530180e631f9759b092420cc44d6636686cd5fa2e21ec"
     },
     {
       "path": "ui/DiagnosticsPanel.qml",
@@ -983,12 +983,16 @@
       "sha256": "6ac4660202431c11bdadb1100c389c1dde40a2d56b1093475d07527177a7a535"
     },
     {
-      "path": "ui/LivePanel.qml",
-      "sha256": "bd08ac7576f93eefb21fdd11939841cd9695e75c6f74038cd0e23ee6f7100168"
+      "path": "ui/LiveControlGroup.qml",
+      "sha256": "6dd35004cd0a0649a36379c05a7c0d0cabbb61dbeaadf24dee93793e9a8bb72e"
     },
     {
-      "path": "ui/LiveStyleShelf.qml",
-      "sha256": "1eb7fc1b8e9dcfa83773b9181dc1fab704cda4519b6b19f365e98bcf9efe53f6"
+      "path": "ui/LivePanel.qml",
+      "sha256": "124c2d439d85def3a04a3b4536049c0640f41ba97c7bf057efc7f77bff131654"
+    },
+    {
+      "path": "ui/LiveTypeInspector.qml",
+      "sha256": "47d5ff94b632299db540fb77e96d85828de303b82456b62a3e94c9cd832fcdcb"
     },
     {
       "path": "ui/LyricText.qml",
@@ -996,7 +1000,7 @@
     },
     {
       "path": "ui/Main.qml",
-      "sha256": "c716f5e7195011f4b57eafc0c94770c2a4f172f23572f4cdf6875990470cb96e"
+      "sha256": "3854229686ffba464e86d73312688f060a0e508f3041906b5b4851b1c37eca04"
     },
     {
       "path": "ui/OfflineLibraryPanel.qml",
@@ -1020,7 +1024,7 @@
     },
     {
       "path": "ui/PresetPreview.js",
-      "sha256": "02b14897b799484b26e423bda5dce3d9bd21e70ef0985fc28ef0ae5735d5edbb"
+      "sha256": "a20a822d4f50f651204aa0ff6b5ed5c5cfca41789e2645cb96a6d6404e79cde1"
     },
     {
       "path": "ui/Program.qml",
@@ -1156,7 +1160,7 @@
     },
     {
       "path": "ui/StyleColorControl.qml",
-      "sha256": "2e4945a9ac66952986adc7469f9e77735f3620a13a00212bfa93348ed48457f6"
+      "sha256": "df92407f291d136b3cb5924620b3b99d83e2d274e88da40f0dec78623c8a460b"
     },
     {
       "path": "ui/StylePresetLibrary.qml",
@@ -1164,7 +1168,7 @@
     },
     {
       "path": "ui/StyleSlider.qml",
-      "sha256": "0d2bd8c26cc131eb1dbd14e788183bcbab6f5d52b1bbfec69c1c486e9f2629a1"
+      "sha256": "c3e0c3714c5ea65397f735e2978444eba36ee4dddb9bdc7c3865eda364a05829"
     },
     {
       "path": "ui/TextTab.qml",
@@ -1176,7 +1180,7 @@
     },
     {
       "path": "ui/VideoFader.qml",
-      "sha256": "edd59d5b721681c157c4372a12f691cd9601672a6fd209831bddc1b82c24a59a"
+      "sha256": "b41241aae7ea127a6903b9ce90ab3035c5b5c276fcaeeee7e16ffc8d46eed50a"
     },
     {
       "path": "ui/WorkbenchBar.qml",

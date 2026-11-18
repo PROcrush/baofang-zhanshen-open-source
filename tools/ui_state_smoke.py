@@ -305,6 +305,7 @@ def main():
             outcome['checks'].append('missing lyrics and unavailable playback guide to distinct actionable pages')
             if args.input_mode == 'serato':
                 main_window.setProperty('currentPage', 0)
+                click(main_window, main_items['liveMonitorToggle'])
                 controller.data['activeDeck'] = 'B'
                 controller.data['speed'] = 0
                 controller.data['deckB']['durationMs'] = 0

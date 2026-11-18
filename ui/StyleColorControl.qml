@@ -4,6 +4,8 @@ import QtQuick.Layouts
 
 RowLayout {
     id: control
+    property bool compact: false
+    property string prefix: "style-"
     property string label: ""
     property string styleKey: "baseColor"
     property string colorValue: "#FFFFFF"
@@ -13,7 +15,7 @@ RowLayout {
     Rectangle { width: 24; height: 24; radius: 6; color: control.colorValue; border.color: "#77808B" }
     TextField {
         id: hexInput
-        objectName: "style-" + control.styleKey + "Input"
+        objectName: control.prefix + control.styleKey + "Input"
         Layout.preferredWidth: 97
         implicitHeight: 34
         text: control.colorValue
@@ -30,10 +32,10 @@ RowLayout {
         }
     }
     Repeater {
-        model: control.swatches
+        model: control.compact ? [] : control.swatches
         delegate: Button {
             required property string modelData
-            objectName: "style-" + control.styleKey + "-" + modelData
+            objectName: control.prefix + control.styleKey + "-" + modelData
             Layout.preferredWidth: 25
             Layout.preferredHeight: 25
             Accessible.name: control.label + " " + modelData

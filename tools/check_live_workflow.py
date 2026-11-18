@@ -54,6 +54,7 @@ def main():
                 assert node is not None and node.isVisible() and node.isEnabled(), name+' is not reachable'
                 click(window,node)
 
+            press('liveTab-sync')
             controller.seek(3)
             QTest.qWait(120)
             position = controller.state['deckA']['positionMs']
@@ -129,6 +130,11 @@ def main():
             assert not items['liveQuickStandard'].property('selected')
             assert not named_items(guest)['nextLyricText'].isVisible()
             press('liveTab-style')
+            press('liveValue-fontSize')
+            items['liveValue-fontSize'].setProperty('text', '63')
+            QTest.keyClick(window, Qt.Key.Key_Return)
+            QTest.qWait(120)
+            assert output.state['style']['fontSize'] == 63
             press('liveQuickStandard')
             assert output.state['style']['lineMode']=='double'
             assert output.state['style']['outputMode']=='standard'
@@ -168,6 +174,7 @@ def main():
             assert guest.visibility()!=QWindow.Visibility.FullScreen, 'Missing monitor did not leave fullscreen'
             QTest.keyClick(window,Qt.Key.Key_Escape)
             QTest.qWait(80)
+            press('liveMonitorToggle')
             press('disconnectButton')
             QTest.qWait(400)
             assert not output.state['lyric']['visible'] and controller.state['stale']

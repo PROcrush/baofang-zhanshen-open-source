@@ -75,6 +75,7 @@ def main():
                 assert output.state['lyric'].get('karaoke') == controller.state['lyric'].get('karaoke')
                 return overlay.grabWindow()
 
+            click(main_window, items['liveMonitorToggle'])
             live_view=next(node for node in visual_items(items['programPreviewFrame']) if node.objectName()=='programView')
             views = [live_view, named_items(guest)['programView'], named_items(overlay)['programView']]
             zero = seek(0)

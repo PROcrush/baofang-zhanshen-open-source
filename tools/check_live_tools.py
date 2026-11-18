@@ -87,6 +87,7 @@ def main():
                 QTest.qWait(80)
 
             # --- 打拍对齐：演示 A 盘第一句在 2000ms 开唱 ---
+            press('liveTab-sync')
             tap = find(window, 'liveTapSync')
             assert tap is not None and tap.isVisible(), 'tap button missing'
             controller.seek(2.25)

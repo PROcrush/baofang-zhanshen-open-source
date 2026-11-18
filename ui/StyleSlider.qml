@@ -11,6 +11,7 @@ RowLayout {
     property real maximum: 100
     property real interval: 1
     property real fallback: 0
+    property bool percentage: false
     property string suffix: ""
     readonly property real settingValue: settings[field] === undefined ? fallback : Number(settings[field])
     Layout.fillWidth: true
@@ -30,7 +31,7 @@ RowLayout {
     Text {
         Layout.preferredWidth: 63
         horizontalAlignment: Text.AlignRight
-        text: (row.interval < 1 ? row.settingValue.toFixed(row.interval < .1 ? 2 : 1) : Math.round(row.settingValue)) + row.suffix
+        text: row.percentage ? Math.round(row.settingValue * 100) + "%" : (row.interval < 1 ? row.settingValue.toFixed(row.interval < .1 ? 2 : 1) : Math.round(row.settingValue)) + row.suffix
         color: Theme.accent
         font.family: Theme.numberFont
         font.pixelSize: 11

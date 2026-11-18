@@ -78,6 +78,7 @@ def main():
         items = named_items(window)
         assert items['deckPlaybackState-A'].property('text') == '播放中'
         assert items['deckPlaybackState-B'].property('text') == '已暂停'
+        click(window, items['liveMonitorToggle'])
         assert items['speedValueText'].isVisible()
         click(window, items['liveInputModeCombo'])
         QTest.keyClick(window, Qt.Key.Key_End)

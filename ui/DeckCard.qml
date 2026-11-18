@@ -19,10 +19,10 @@ Rectangle {
     signal loadRequested()
     signal preparationRequested()
     signal confirmRequested()
-    color: active ? Theme.cardTint : Theme.canvas
-    border.color: active ? Theme.cardTintLine : Theme.hairline
+    color: active ? "#201c2a" : "#16171e"
+    border.color: active ? Theme.cardTintLine : "#3b3c47"
     border.width: 1
-    radius: Theme.radiusCard
+    radius: 13
     implicitHeight: observedOnly ? 142 : 108
     AccentBar {
         visible: card.active; vertical: true
@@ -34,31 +34,31 @@ Rectangle {
         anchors.fill: parent; anchors.margins: card.dense ? 9 : 14; anchors.leftMargin: card.dense ? 11 : 16; spacing: card.dense ? 4 : 7
         RowLayout {
             Layout.fillWidth: true; spacing: 8
-            PillFrame {
-                Layout.preferredWidth: card.dense ? 24 : 28; Layout.preferredHeight: Layout.preferredWidth
-                accentRing: card.active; fill: card.active ? Theme.accentSoft : Theme.wash
-                Text { anchors.centerIn: parent; text: card.deckId; Accessible.name: card.deckId + " 盘"; color: card.active ? Theme.text : Theme.secondary; font.family: Theme.numberFont; font.pixelSize: card.dense ? 12 : 13; font.weight: Font.Medium }
-            }
-            Text {
-                Layout.fillWidth: true
-                text: !card.deck.valid && !card.replay ? "等待 DJ 曲目" : (card.deck.title || "等待载入曲目")
-                color: Theme.text; font.pixelSize: card.dense ? 13 : 15; font.weight: Font.Medium
-                elide: Text.ElideRight
-                ToolTip.visible: titleHover.containsMouse && !!card.deck.title
-                ToolTip.text: card.deck.title || ""
-                MouseArea { id: titleHover; anchors.fill: parent; acceptedButtons: Qt.NoButton; hoverEnabled: true }
-            }
-            Text { text: card.active ? "当前歌词来源" : "待命"; color: card.active ? Theme.accent : Theme.muted; font.pixelSize: 11; font.weight: card.active ? Font.Medium : Font.Normal }
+            Text { Layout.fillWidth: true; text: card.deckId === "A" ? "DECK 1" : "DECK 2"; Accessible.name: card.deckId + " 盘"; color: card.deckId === "A" ? "#b379ff" : "#39cbd7"; font.family: Theme.numberFont; font.pixelSize: 13; font.bold: true }
+            Text { text: card.active ? "当前歌词来源" : "待命"; color: card.active ? Theme.accent : Theme.secondary; font.pixelSize: 11 }
+        }
+        Text {
+            Layout.fillWidth: true
+            text: !card.deck.valid && !card.replay ? "等待加载曲目" : (card.deck.title || "等待载入曲目")
+            color: Theme.text; font.pixelSize: card.dense ? 13 : 16; font.weight: Font.Medium
+            elide: Text.ElideRight
+            ToolTip.visible: titleHover.containsMouse && !!card.deck.title
+            ToolTip.text: card.deck.title || ""
+            MouseArea { id: titleHover; anchors.fill: parent; acceptedButtons: Qt.NoButton; hoverEnabled: true }
         }
         RowLayout {
             Layout.fillWidth: true
-            Text { text: card.deck.positionText || "--:--.---"; color: Theme.text; font.family: Theme.numberFont; font.pixelSize: card.dense ? 13 : 15 }
-            Rectangle {
-                Layout.fillWidth: true; Layout.preferredHeight: 3; radius: 1; color: Theme.stroke
-                opacity: Number(card.deck.durationMs || 0) > 0 ? 1 : 0
-                Rectangle { height:parent.height; radius:1; width:parent.width*Math.max(0,Math.min(1,Number(card.deck.positionMs || 0)/Math.max(1,Number(card.deck.durationMs || 0)))); color:card.active ? Theme.accent : Theme.secondary }
+            Text {
+                Layout.fillWidth: true
+                text: !card.deck.valid ? "--:--.---" : card.deck.positionText || "--:--.---"
+                color: card.deck.valid ? Theme.text : Theme.secondary
+                font.family: Theme.numberFont; font.pixelSize: card.dense ? 17 : 26; font.weight: Font.DemiBold
             }
-            Text { objectName:"deckPlaybackState-"+card.deckId; text: !card.deck.valid ? "等待播放状态" : card.observedOnly ? "位置直读" : card.deck.playing ? "播放中" : "已暂停"; color: !card.deck.valid ? Theme.amber : card.observedOnly ? Theme.secondary : card.deck.playing ? Theme.green : Theme.secondary; font.pixelSize: 11 }
+            Text { objectName:"deckPlaybackState-"+card.deckId; visible: !!card.deck.valid; text: card.observedOnly ? "位置直读" : card.deck.playing ? "播放中" : "已暂停"; color: card.deck.playing ? Theme.green : Theme.secondary; font.pixelSize: 11 }
+        }
+        Rectangle {
+            Layout.fillWidth: true; implicitHeight: 2; color: Theme.strokeStrong
+            Rectangle { visible: !!card.deck.valid; height:parent.height; width:parent.width*Math.max(0,Math.min(1,Number(card.deck.positionMs || 0)/Math.max(1,Number(card.deck.durationMs || 0)))); color:card.active ? Theme.accent : Theme.secondary }
         }
         RowLayout {
             visible: card.observedOnly

@@ -13,7 +13,7 @@ Item {
         width: parent.width
         height: 7
         radius: 3
-        color: "#3e4855"
+        gradient: Gradient { orientation: Gradient.Horizontal; GradientStop { position: 0; color: "#8247b5" } GradientStop { position: 1; color: "#237a87" } }
         Rectangle {
             x: parent.width * 0.48
             width: parent.width * 0.04

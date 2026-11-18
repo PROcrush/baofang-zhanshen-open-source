@@ -324,8 +324,10 @@ ApplicationWindow {
                 Layout.fillWidth: true; Layout.fillHeight: true
                 currentIndex: app.currentPage
                 LivePanel {
-                    id: livePanel
+                    id: livePanel; commandHost: workBar.commandHost
+                    onApiRequested: app.currentPage = 7
                     stateData: app.appState
+                    onEditorRequested: app.currentPage = 5
                     onPreshowRequested: preshowDialog.open()
                     onPreparationRequested: app.currentPage = 4
                     onStyleRequested: app.openLiveEffects()
