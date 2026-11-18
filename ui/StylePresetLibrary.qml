@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "PresetPreview.js" as PresetPreview
 
 Item {
     id: library
@@ -31,19 +32,6 @@ Item {
         var count = 0
         for (var i = 0; i < entries.length; i++) count += entries[i].schemes.length
         return count
-    }
-    function cardState(entry) {
-        var appearance = Object.assign({}, entry.previewStyle)
-        appearance.fontSize = 72
-        appearance.verticalPosition = 34
-        appearance.horizontalMargin = 8
-        appearance.lineMode = "single"
-        appearance.outputMode = "standard"
-        appearance.dynamicBackground = true
-        return {selectedSource: "A", effectiveSource: "A", stale: false, outputBlocked: false,
-            inputMode: "style-preview", scene: "amber", deckA: {cacheState: "ready"},
-            style: appearance, lyric: {visible: true, text: "让旋律照亮此刻", nextText: "一起唱出心中的歌",
-                quality: "sentence", progress: 0.48}}
     }
     function resetFilters() { selectedCategory="全部"; search.text=""; }
 
@@ -108,11 +96,11 @@ Item {
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
-                Flow {
+                GridLayout {
                     visible: !!library.activePreset
                     Layout.fillWidth: true
-                    Layout.preferredHeight: visible ? childrenRect.height : 0
-                    spacing: 8
+                    columns: Math.max(1, Math.floor((library.width - 315) / 130))
+                    columnSpacing: 8; rowSpacing: 8
                     Repeater {
                         model: library.activePreset ? library.activePreset.schemes : []
                         Button {
@@ -187,7 +175,7 @@ Item {
                         compact: true
                         presetThumbnail: true
                         radius: 7
-                        stateData: library.cardState(card.modelData)
+                        stateData: PresetPreview.cardState(card.modelData)
                     }
                     RowLayout {
                         Layout.fillWidth: true

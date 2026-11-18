@@ -55,12 +55,12 @@ def main(lyrics_only=False):
         for width,height in [(1440,900),(1000,700)]:
             window.resize(width,height);QTest.qWait(70)
             start=item('studioStartAudio');assert start.isVisible() and start.isEnabled()
-            assert not item('studioInspector').isVisible()
-            assert not item('studioLibrary').isVisible() and not item('studioTimeline').isVisible()
+            assert item('studioInspector').isVisible()
+            assert item('studioLibrary').isVisible() and item('studioTimeline').isVisible()
             screens.append(shot(f'empty-{width}.png'))
-        tap('studioWelcomeLive');assert window.property('currentPage')==0
+        tap('nav-0');assert window.property('currentPage')==0
         tap('nav-5');assert window.property('currentPage')==5
-        checks.append('empty state has usable song/example/project actions without irrelevant editing tools; direct live entry works in two sizes')
+        checks.append('empty editor shows the three panes, visible timeline and song import; direct live entry works in two sizes')
         from tests.test_studio import synthesize_audio
         audio=run/'新手流程音频.wav';synthesize_audio(audio)
         with patch('app.studio.QFileDialog.getOpenFileName',return_value=(str(audio),'')):tap('studioStartAudio')
@@ -80,6 +80,7 @@ def main(lyrics_only=False):
             assert not warnings,'\n'.join(warnings)
             print('云端识别入口与本地字幕导入通过')
             return
+        tap('studioInspectorTab-2')
         assert item('templateTile-headline').isVisible()
         assert not item('styleLayout-amplitude').isVisible()
         tap('templateTile-headline');assert studio.state['settings']['templateId']=='headline'
@@ -89,13 +90,13 @@ def main(lyrics_only=False):
         assert studio.state['settings']['textColor']=='#FFD890'
         tap_text('模板')
         checks.append('welcome and library recognition buttons open cloud settings; local subtitle import reveals real template previews')
-        tap('studioStep-2')
+        tap('studioSourcesTab-0')
         background=run/'背景 #1.png';image=QImage(400,225,QImage.Format_RGBA8888);image.fill(QColor('#294449'));assert image.save(str(background))
         with patch('app.studio.QFileDialog.getOpenFileName',return_value=(str(background),'')):tap('studioChooseBackground')
         assert studio.state['backgroundPath']==str(background)
         for width,height in [(1440,900),(1000,700)]:
             window.resize(width,height);QTest.qWait(70);screens.append(shot(f'editor-{width}.png'))
-        tap('studioStep-3')
+        tap('studioOutputSettings')
         direct=run/'直接导出的成品.mp4'
         with patch('app.studio.QFileDialog.getSaveFileName',return_value=(str(direct),'')):tap('studioGenerateVideo')
         wait();assert studio.state['resultPath'] and direct.is_file(),studio.state['status']

@@ -11,7 +11,7 @@ Button {
     property string hint: ""
     property int textAlignment: Text.AlignHCenter
     implicitHeight: 34
-    implicitWidth: iconOnly ? 34 : Math.max(60, Math.ceil(label.implicitWidth) + (iconName.length > 0 ? 23 : 0) + 2 * padding + 2)
+    implicitWidth: iconOnly ? 34 : Math.max(60, Math.ceil(labelMetrics.advanceWidth) + (iconName.length > 0 ? 23 : 0) + 2 * padding + 2)
     padding: iconOnly ? 8 : 13
     leftPadding: padding
     rightPadding: padding
@@ -26,6 +26,7 @@ Button {
     Accessible.description: hint
     ToolTip.visible: hovered && (iconOnly || hint.length > 0)
     ToolTip.text: hint || text
+    TextMetrics { id: labelMetrics; font: control.font; text: control.text }
     contentItem: Item {
         AppIcon {
             id: navigationIcon

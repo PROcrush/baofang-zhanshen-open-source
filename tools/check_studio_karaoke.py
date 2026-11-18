@@ -77,6 +77,7 @@ def main():
         screenshots.append(str(path))
     try:
         QTest.qWait(150)
+        click(window, item('studioInspectorTab-2')); QTest.qWait(50)
         control = item('studioKaraokeMode')
         assert control.isVisible() and control.isEnabled()
         click(window, control); QTest.qWait(100)

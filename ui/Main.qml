@@ -283,80 +283,15 @@ ApplicationWindow {
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
-        Rectangle {
-            objectName: "globalNavigation"
-            Layout.fillWidth: true; Layout.preferredHeight: Theme.navHeight
-            color: Theme.surface
-            Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: Theme.hairline }
-            RowLayout {
-                anchors.fill: parent; anchors.leftMargin: 18; anchors.rightMargin: 14; spacing: 8
-                AppIcon { Layout.preferredWidth: 24; Layout.preferredHeight: 24; name: "prepare"; ink: Theme.accent }
-                Text { text: "包房战神"; color: Theme.text; font.pixelSize: 17; font.weight: Font.Medium; font.letterSpacing: Theme.titleSpacing; Layout.rightMargin: app.narrow ? 6 : 18 }
-                // 与工作区工具分层的全局导航。
-                Rectangle {
-                    objectName: "navCapsule"
-                    Layout.preferredHeight: 40; Layout.preferredWidth: navRow.implicitWidth + 8
-                    color: "transparent"
-                    RowLayout {
-                        id: navRow
-                        anchors.centerIn: parent; spacing: 2
-                        Repeater {
-                            model: [{page:0,label:"现场",icon:"stage",key:"Ctrl+1"},{page:5,label:"制作",icon:"studio",key:"Ctrl+6"},{page:1,label:"曲库",icon:"library",key:"Ctrl+2"}]
-                            delegate: Button {
-                                id: navTab
-                                required property var modelData
-                                readonly property bool selected: app.currentPage===modelData.page || (modelData.page===5 && app.currentPage===6)
-                                objectName: "nav-"+modelData.page
-                                text: modelData.label
-                                implicitHeight: 36; implicitWidth: 80
-                                hoverEnabled: true; activeFocusOnTab: true
-                                Accessible.name: modelData.label
-                                Accessible.description: modelData.key
-                                ToolTip.visible: hovered; ToolTip.text: modelData.label + " · " + modelData.key; ToolTip.delay: 600
-                                onClicked: app.currentPage=modelData.page
-                                contentItem: Item {
-                                    Row {
-                                        anchors.centerIn: parent; spacing: 7
-                                        AppIcon { width: 16; height: 16; anchors.verticalCenter: parent.verticalCenter; name: navTab.modelData.icon; ink: navTab.selected ? Theme.text : navTab.hovered ? Theme.text : Theme.muted }
-                                        Text { anchors.verticalCenter: parent.verticalCenter; text: navTab.text; color: navTab.selected ? Theme.text : navTab.hovered ? Theme.text : Theme.secondary; font.pixelSize: 13; font.weight: navTab.selected ? Font.Medium : Font.Normal }
-                                    }
-                                    AccentBar { visible: navTab.selected; anchors.bottom: parent.bottom; anchors.bottomMargin: -3; anchors.horizontalCenter: parent.horizontalCenter; width: 22; height: 2 }
-                                }
-                                background: Rectangle {
-                                    radius: Theme.radiusControl
-                                    color: navTab.selected ? Theme.accentSoft : navTab.hovered ? Theme.wash : "transparent"
-                                    border.color: navTab.activeFocus ? Theme.focus : "transparent"; border.width: 2
-                                }
-                            }
-                        }
-                    }
-                }
-                Item { Layout.fillWidth: true }
-                Button {
-                    id: liveChip
-                    objectName: "globalLiveStatus"
-                    visible: app.currentPage !== 0
-                    implicitHeight: 30
-                    implicitWidth: chipText.implicitWidth + 34
-                    hoverEnabled: true; activeFocusOnTab: true
-                    Accessible.name: "现场状态：" + app.liveChipText + "，前往现场"
-                    ToolTip.visible: hovered; ToolTip.text: "现场歌词来源与客屏状态 · 点击前往现场"
-                    onClicked: app.currentPage = 0
-                    contentItem: Item {
-                        Rectangle { x: 2; anchors.verticalCenter: parent.verticalCenter; width: 7; height: 7; radius: 4; color: Theme.toneInk(app.liveChipTone) }
-                        Text { id: chipText; x: 15; anchors.verticalCenter: parent.verticalCenter; text: app.liveChipText; color: Theme.toneInk(app.liveChipTone); font.pixelSize: 12; font.weight: Font.Medium }
-                    }
-                    background: Rectangle { radius: 15; color: liveChip.hovered ? Theme.hoverSurface : Theme.toneSoft(app.liveChipTone); border.color: liveChip.activeFocus ? Theme.focus : Theme.toneLine(app.liveChipTone); border.width: liveChip.activeFocus ? 2 : 1 }
-                }
-                ActionButton {
-                    objectName: "globalLyricsToggle"; visible: app.currentPage !== 0
-                    text: app.liveHidden ? "恢复现场歌词" : "隐藏现场歌词"
-                    hint: "Ctrl+H，在各页面隐藏或恢复现场歌词；保留原来源，不影响制作预览"
-                    tone: app.liveHidden ? "primary" : "danger"; implicitHeight: 32
-                    onClicked: app.toggleLiveLyrics()
-                }
-                StudioButton { id:settingsButton; objectName: "appSettingsMenu"; text: app.narrow && app.currentPage !== 0 ? "设置" : "设置与帮助"; iconName: "tools"; selected: [2,3,4,6,7].indexOf(app.currentPage)>=0; hint: "歌曲准备、现场字幕、百炼设置与连接检查"; implicitHeight: 32; onClicked: settingsMenu.popup(settingsButton,Math.min(0,settingsButton.width-settingsMenu.width),settingsButton.height+6) }
-                Text { visible: !app.narrow; text: "0.13"; color: Theme.muted; font.pixelSize: 11; Accessible.name: "版本 0.13 测试版" }
+        WorkbenchBar {
+            id: workBar
+            Layout.fillWidth: true; Layout.preferredHeight: implicitHeight
+            page: app.currentPage; liveStatus: app.liveChipText; liveTone: app.liveChipTone
+            lyricsHidden: app.liveHidden
+            onNavigate: function(page) { app.currentPage = page; }
+            onToggleLyrics: app.toggleLiveLyrics()
+            onSettingsRequested: function(anchor) {
+                settingsMenu.popup(anchor, Math.min(0,anchor.width-settingsMenu.width),anchor.height+4);
             }
         }
         ColumnLayout {
@@ -397,11 +332,11 @@ ApplicationWindow {
                     onSetlistRequested: app.currentPage = 1
                     onDiagnosticsRequested: app.currentPage = 2
                 }
-                OfflineLibraryPanel { stateData: app.appState; onPreparationRequested: app.currentPage = 4 }
+                OfflineLibraryPanel { commandHost: workBar.commandHost; stateData: app.appState; onPreparationRequested: app.currentPage = 4 }
                 DiagnosticsPanel { stateData: app.appState }
                 OutputStylePanel { id:outputStyles; stateData: app.appState }
                 RecognitionPanel { stateData: app.appState; onApiRequested:app.currentPage=7; onSpeechRequested:function(deck){apiPanel.kind="speech";app.currentPage=7;if(apiPanel.apiModel)apiPanel.apiModel.setScope(deck);} }
-                StudioPanel { onToolsRequested: app.currentPage = 6; onLiveRequested: app.currentPage = 0; onApiRequested:function(kind){apiPanel.kind=kind;app.currentPage=7;if(apiPanel.apiModel)apiPanel.apiModel.setScope("studio");} }
+                StudioPanel { commandHost: workBar.commandHost; onToolsRequested: app.currentPage = 6; onLiveRequested: app.currentPage = 0; onApiRequested:function(kind){apiPanel.kind=kind;app.currentPage=7;if(apiPanel.apiModel)apiPanel.apiModel.setScope("studio");} }
                 StudioToolsPanel {}
                 APISettingsPanel { id:apiPanel }
             }

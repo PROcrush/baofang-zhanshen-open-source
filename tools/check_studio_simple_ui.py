@@ -78,6 +78,8 @@ def main():
 
         try:
             QTest.qWait(180)
+            assert item('studioWorkspace').property('advancedEditing')
+            tap('studioEmptyReturnSimple')
             assert not item('studioWorkspace').property('advancedEditing')
             for width,height in [(1440,900),(1000,700)]:
                 window.resize(width,height); QTest.qWait(100)

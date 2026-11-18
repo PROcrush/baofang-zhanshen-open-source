@@ -9,14 +9,14 @@ os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 os.environ.setdefault('QT_QUICK_BACKEND', 'software')
 from scripts.repair_qt_metadata import repair_qt_metadata
 repair_qt_metadata()
-from PySide6.QtCore import QPointF, QUrl
+from PySide6.QtCore import QPointF, Qt, QUrl
 from PySide6.QtQml import QQmlApplicationEngine, QQmlExpression
 from PySide6.QtQuickControls2 import QQuickStyle
 from PySide6.QtTest import QTest
 from app.studio import StudioController
 from app.studio_preview import StudioPreviewProvider
 from tests.test_studio import APPLICATION, ROOT, synthesize_audio, wait_idle
-from tools.ui_state_smoke import named_items, visual_items, click
+from tools.ui_state_smoke import SmokeController, named_items, visual_items, click
 
 
 def main():
@@ -43,12 +43,12 @@ def main():
         engine.rootContext().setContextProperty('studio', studio)
         provider = StudioPreviewProvider(studio)
         engine.addImageProvider('studioPreview', provider)
-        engine.loadData(('import QtQuick\nimport QtQuick.Controls\nimport "' +
-                         QUrl.fromLocalFile(str(ROOT / 'ui')).toString() +
-                         '"\nApplicationWindow { visible: true; color: "#17171b"; width: 1440; height: 900; StudioPanel { anchors.fill: parent } }').encode())
+        controller = SmokeController('replay')
+        engine.rootContext().setContextProperty('controller', controller)
+        engine.load(QUrl.fromLocalFile(str(ROOT / 'ui/Main.qml')))
         assert engine.rootObjects(), warnings
         window = engine.rootObjects()[0]
-        named_items(window)['studioWorkspace'].setProperty('advancedEditing', True)
+        window.setProperty('currentPage', 5)
         def item(name):
             result = named_items(window).get(name)
             assert result, 'Missing '+name
@@ -66,18 +66,20 @@ def main():
             QTest.qWait(150)
             for width, height in [(1440,900),(1000,700)]:
                 window.resize(width,height); QTest.qWait(100)
+                tap('studioProjectMenu')
                 assert not item('studioRecentProject-0').isEnabled(), 'Missing recent project must be marked unavailable'
-                for name in ('studioStartAudio','studioRecentProject-1','studioWelcomeLive'):
+                for name in ('studioStartAudio','studioRecentProject-1','nav-0'):
                     control = item(name)
                     assert control.isVisible() and control.y() >= 0
                 shot(f'welcome-{width}.png')
+                QTest.keyClick(window, Qt.Key.Key_Escape); QTest.qWait(50)
+            tap('studioProjectMenu')
             tap('studioRecentProject-1')
             assert len(studio.state['segments']) == 2
             assert studio.state['projectPath'].endswith('演出准备.bfstudio.json')
             tap('studioProjectMenu')
             assert any(node.isVisible() and str(node.property('text') or '').startswith('最近：')
                        for node in visual_items(window.contentItem())), 'Recent projects are missing from the actual menu'
-            from PySide6.QtCore import Qt
             QTest.keyClick(window, Qt.Key.Key_Escape); QTest.qWait(50)
             with patch('app.studio.QFileDialog.getSaveFileName') as dialog:
                 studio.updateSegment(0,'让今晚的每一句都有回忆')
@@ -90,7 +92,7 @@ def main():
             tap('studioJumpToLyrics')
             assert studio.state['currentText']
             assert not item('studioJumpToLyrics').isVisible()
-            tap('studioStep-3')
+            tap('studioOutputSettings')
             assert item('studioGenerateVideo').isEnabled(), 'Default picture must support immediate export'
             assert not studio.state['backgroundPath']
             for width, height in [(1440,900),(1000,700)]:
@@ -105,9 +107,13 @@ def main():
             assert output.is_file() and studio.state['savedVideoPath'] == str(output), studio.state['status']
             shot('saved-1000.png')
             studio.seek(0); item('studioWorkspace').setProperty('showRendered', False); QTest.qWait(100)
-            QTest.qWait(400)
             frame = item('studioLiveFrame')
-            assert QQmlExpression(engine.rootContext(), frame, 'Number(status)').evaluate()[0] == 1
+            frame_status = QQmlExpression(engine.rootContext(), frame, 'Number(status)')
+            for _ in range(100):
+                if frame_status.evaluate()[0] == 1:
+                    break
+                QTest.qWait(50)
+            assert frame_status.evaluate()[0] == 1, 'Editor preview did not finish loading'
             screenshot = window.grabWindow()
             point = frame.mapToScene(QPointF(frame.width()/2,frame.height()/2))
             pixel = screenshot.pixelColor(round(point.x()*screenshot.width()/window.width()),

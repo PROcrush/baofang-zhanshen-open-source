@@ -23,25 +23,57 @@ Item {
     function sourceTitle(source) { return source.title || source.label || String((source.identity || {}).path || source.path || "素材").split('/').pop(); }
     function clock(ms) { var seconds=Math.floor(Number(ms || 0)/1000); return Math.floor(seconds/60).toString().padStart(2,"0")+":"+(seconds%60).toString().padStart(2,"0"); }
     ColumnLayout {
-        anchors.fill: parent; anchors.margins: 14; spacing: 10
+        anchors.fill: parent; anchors.margins: 8; spacing: 8
         RowLayout {
-            Layout.fillWidth: true; spacing: 1
-            Repeater { model: ["歌曲素材","歌词","演唱会"]; delegate: StudioButton { required property string modelData; required property int index; Layout.fillWidth: true; implicitWidth: 42; implicitHeight: 29; padding: 5; text: modelData; hint: index===2 ? "演唱会视频与来源字幕对齐" : ""; selected: library.selectedPage===index; onClicked: library.pageSelected(index) } }
-        }
-        Rectangle {
-            Layout.fillWidth: true; Layout.preferredHeight: 110; radius: 8; color: Theme.elevated
-            ColumnLayout {
-                anchors.fill: parent; anchors.margins: 12; spacing: 7
-                RowLayout {
-                    StudioIcon { Layout.preferredWidth: 23; Layout.preferredHeight: 23; name: "audio"; ink: Theme.accent }
-                    ColumnLayout { Layout.fillWidth: true; spacing: 3
-                        Text { text: "歌曲音频"; color: Theme.text; font.pixelSize: 13; font.weight: Font.Medium }
-                        Text { Layout.fillWidth: true; text: library.stateData.audioTitle || "还没有选择歌曲"; color: Theme.secondary; font.pixelSize: 11; elide: Text.ElideMiddle }
+            Layout.fillWidth: true; spacing: 0
+            Repeater {
+                model: [{label:"歌曲素材",icon:"audio"}, {label:"歌词片段",icon:"lyrics"}, {label:"演唱会对齐",icon:"film"}]
+                delegate: Button {
+                    id: category
+                    required property var modelData
+                    required property int index
+                    Layout.fillWidth: true; Layout.preferredHeight: 48; padding: 2
+                    objectName: "studioSourcesTab-"+index
+                    readonly property bool selected: library.selectedPage===index
+                    text: modelData.label; Accessible.name: text
+                    hoverEnabled: true; activeFocusOnTab: true
+                    onClicked: library.pageSelected(index)
+                    contentItem: Column {
+                        spacing: 2
+                        StudioIcon { anchors.horizontalCenter: parent.horizontalCenter; width: 18; height: 18; name: category.modelData.icon; ink: category.selected ? Theme.accent : Theme.secondary }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: category.text; font.pixelSize: 11; color: category.selected ? Theme.accent : Theme.secondary }
+                    }
+                    background: Rectangle {
+                        color: category.selected ? Theme.elevated : category.hovered ? Theme.wash : "transparent"
+                        border.color: category.activeFocus ? Theme.focus : "transparent"
+                        Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: category.selected ? 2 : 1; color: category.selected ? Theme.accent : Theme.stroke }
                     }
                 }
-                RowLayout { Layout.fillWidth: true
-                    Text { Layout.fillWidth: true; text: library.stateData.audioPath ? library.clock(library.stateData.durationMs)+" · "+((library.stateData.segments || []).length ? (library.stateData.segments || []).length+"句歌词" : "待添加歌词") : "支持 MP3、WAV、M4A 等"; color: (library.stateData.segments || []).length ? Theme.green : Theme.muted; font.pixelSize: 10; elide: Text.ElideRight }
-                    StudioButton { objectName: "studioChooseAudio"; text: library.stateData.audioPath ? "制作下一首" : "选择歌曲"; tone: library.stateData.audioPath ? "neutral" : "primary"; implicitHeight: 30; enabled: library.editable; onClicked: if(!library.commitEdits || library.commitEdits()) library.studioModel.chooseAudio() }
+            }
+        }
+        Rectangle {
+            Layout.fillWidth: true; Layout.preferredHeight: 112; radius: 9
+            color: "#202630"; border.color: "#34526e"
+            ColumnLayout {
+                anchors.fill: parent; spacing: 0
+                RowLayout {
+                    Layout.fillWidth: true; Layout.fillHeight: true; Layout.leftMargin: 12; Layout.rightMargin: 10; spacing: 10
+                    Rectangle { Layout.preferredWidth: 38; Layout.preferredHeight: 38; radius: 19; color: "#203d59"
+                        StudioIcon { anchors.centerIn: parent; width: 21; height: 21; name: "audio"; ink: "#68baff" }
+                    }
+                    ColumnLayout {
+                        Layout.fillWidth: true; spacing: 3
+                        Text { text: "歌曲音频"; color: Theme.text; font.pixelSize: 15; font.bold: true }
+                        Text { Layout.fillWidth: true; text: library.stateData.audioTitle || "仅支持 1 首歌曲"; color: Theme.secondary; font.pixelSize: 11; elide: Text.ElideMiddle }
+                    }
+                    Text { visible: !!library.stateData.audioPath; text: library.clock(library.stateData.durationMs); color: Theme.secondary; font.family: Theme.numberFont; font.pixelSize: 11 }
+                }
+                Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#34526e" }
+                StudioButton {
+                    objectName: library.stateData.audioPath ? "studioChooseAudio" : "studioStartAudio"
+                    Layout.fillWidth: true; implicitHeight: 36; iconName: "import"
+                    text: library.stateData.audioPath ? "更换歌曲" : "点击导入歌曲"
+                    enabled: library.editable; onClicked: if(!library.commitEdits || library.commitEdits()) library.studioModel.chooseAudio()
                 }
             }
         }
@@ -61,7 +93,7 @@ Item {
                 Button {
                     id: backgroundImport
                     objectName: "studioChooseBackground"
-                    Layout.fillWidth: true; Layout.preferredHeight: library.stateData.backgroundPath ? 96 : 104
+                    Layout.fillWidth: true; Layout.preferredHeight: library.stateData.backgroundPath ? 96 : 126
                     enabled: library.editable && !!library.stateData.audioPath; hoverEnabled: true; opacity: enabled ? 1 : 0.5
                     Accessible.name: library.stateData.backgroundPath ? "更换背景" : "导入背景图片或视频"
                     onClicked: library.studioModel.chooseBackground()
@@ -70,16 +102,19 @@ Item {
                         Image { anchors.fill: parent; visible: !!library.stateData.backgroundIsImage; source: visible ? library.stateData.backgroundUrl || "" : ""; fillMode: Image.PreserveAspectCrop }
                         Rectangle { anchors.fill: parent; color: "#aa211c2a"; visible: !!library.stateData.backgroundIsImage }
                         Column { anchors.centerIn: parent; width: parent.width-16; spacing: 5
-                            StudioIcon { anchors.horizontalCenter: parent.horizontalCenter; width: 23; height: 23; name: "background"; ink: Theme.accent }
+                            Rectangle { anchors.horizontalCenter: parent.horizontalCenter; width: 40; height: 40; radius: 20; color: "#47315e"
+                                StudioIcon { anchors.centerIn: parent; width: 23; height: 23; name: "background"; ink: Theme.accent }
+                            }
                             Text { width: parent.width; text: library.stateData.backgroundPath ? "更换背景画面" : "点击导入背景"; color: Theme.text; font.pixelSize: 13; font.weight: Font.Medium; horizontalAlignment: Text.AlignHCenter }
                             Text { width: parent.width; text: library.stateData.backgroundTitle || "选择视频或图片"; color: Theme.secondary; font.pixelSize: 10; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideMiddle }
                         }
                     }
                 }
-                RowLayout { Layout.fillWidth: true; Text { text: "分镜素材"; color: Theme.text; font.pixelSize: 12; font.weight: Font.Medium } Item { Layout.fillWidth: true } StudioButton { objectName: "studioChooseMaterial"; text: "导入素材"; iconName: "import"; implicitHeight: 28; enabled: library.editable && !!library.stateData.audioPath; onClicked: library.studioModel.chooseMaterial() } }
+                RowLayout { visible: !!library.stateData.audioPath; Layout.fillWidth: true; Text { text: "分镜素材"; color: Theme.text; font.pixelSize: 12; font.weight: Font.Medium } Item { Layout.fillWidth: true } StudioButton { objectName: "studioChooseMaterial"; text: "导入素材"; iconName: "import"; implicitHeight: 28; enabled: library.editable && !!library.stateData.audioPath; onClicked: library.studioModel.chooseMaterial() } }
                 TextField { id: materialSearch; objectName: "studioMaterialSearch"; visible: library.sources.length>3; Layout.fillWidth: true; implicitHeight: 30; placeholderText: "搜索素材"; placeholderTextColor: Theme.muted; color: Theme.text; font.pixelSize: 11; selectByMouse: true; background: Rectangle { radius: 6; color: Theme.canvas; border.color: materialSearch.activeFocus ? Theme.focus : Theme.stroke } }
                 ListView {
                     id: sourceList
+                    visible: !!library.stateData.audioPath
                     objectName: "studioMaterialList"
                     Layout.fillWidth: true; Layout.preferredHeight: Math.max(66,count*58); interactive: false; clip: true; spacing: 4
                     model: library.sources.filter(function(source){return !materialSearch.text || library.sourceTitle(source).toLowerCase().indexOf(materialSearch.text.toLowerCase())>=0;})

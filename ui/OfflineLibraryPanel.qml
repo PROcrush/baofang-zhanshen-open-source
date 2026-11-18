@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Item {
     id: panel
+    property Item commandHost
     property var stateData: ({})
     signal preparationRequested()
     readonly property var libraryData: stateData.offlineLibrary || ({})
@@ -85,34 +86,35 @@ Item {
     }
     component ToolLink: StudioButton { implicitHeight: 30; font.pixelSize: 12; padding: 9 }
 
+    RowLayout {
+        objectName: "libraryToolbar"
+        parent: panel.commandHost; visible: panel.visible; anchors.fill: parent; spacing: 2
+        ToolLink { iconOnly: panel.width < 1450; objectName: "offlineImportFolder"; iconName: "project"; text: "导入文件夹"; onClicked: controller.importAudioFolder() }
+        ToolLink { iconOnly: panel.width < 1450; objectName: "offlineImportTimeline"; iconName: "lyrics"; text: "导入本地字幕"; onClicked: controller.importTimeline() }
+        Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; color: Theme.hairline; Layout.leftMargin: 6; Layout.rightMargin: 6 }
+        ToolLink { iconOnly: panel.width < 1450; objectName: "offlineVerify"; iconName: "check"; text: "核验曲库"; hint: "重新核验离线曲库的实际音频版本"; onClicked: controller.verifyOfflineLibrary() }
+        ToolLink { iconOnly: panel.width < 1450; objectName: "offlineExportCache"; iconName: "export"; text: "备份歌词库"; hint: "备份本地时间轴与版本索引，不复制原始音频"; onClicked: controller.exportLyricCache() }
+        ToolLink { iconOnly: panel.width < 1450; objectName: "offlineImportCache"; iconName: "import"; text: "导入歌词库"; onClicked: controller.importLyricCache() }
+        ToolLink { iconOnly: panel.width < 1450; objectName: "offlineRefresh"; iconName:"redo"; text: "刷新"; onClicked: controller.rescanLibrary() }
+        Item { Layout.fillWidth: true }
+        DarkCheckBox {
+            id: offlineToggle
+            objectName: "offlineOnlyToggle"
+            text: "离线演出"
+            checked: panel.offlineOnly
+            ToolTip.visible: hovered; ToolTip.text: "只读取本机缓存，暂停云端新提交和续查"
+            onClicked: controller.setOfflineOnly(checked)
+        }
+        ActionButton { objectName: "offlineImportAudio"; Layout.leftMargin: 8; text: "导入音频"; tone: "primary"; implicitHeight: 30; font.pixelSize: 12; padding: 12; onClicked: controller.importAudioBatch() }
+    }
+
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 10; anchors.topMargin: 6
-        spacing: 8
-        RowLayout {
-            objectName: "libraryToolbar"
-            Layout.fillWidth: true; Layout.preferredHeight: 34; spacing: 2
-            ToolLink { objectName: "offlineImportFolder"; iconName: "project"; text: "导入文件夹"; onClicked: controller.importAudioFolder() }
-            ToolLink { objectName: "offlineImportTimeline"; iconName: "lyrics"; text: "导入本地字幕"; onClicked: controller.importTimeline() }
-            Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 16; color: Theme.hairline; Layout.leftMargin: 6; Layout.rightMargin: 6 }
-            ToolLink { objectName: "offlineVerify"; iconName: "check"; text: "核验曲库"; hint: "重新核验离线曲库的实际音频版本"; onClicked: controller.verifyOfflineLibrary() }
-            ToolLink { objectName: "offlineExportCache"; iconName: "export"; text: "备份歌词库"; hint: "备份本地时间轴与版本索引，不复制原始音频"; onClicked: controller.exportLyricCache() }
-            ToolLink { objectName: "offlineImportCache"; iconName: "import"; text: "导入歌词库"; onClicked: controller.importLyricCache() }
-            ToolLink { objectName: "offlineRefresh"; text: "刷新"; onClicked: controller.rescanLibrary() }
-            Item { Layout.fillWidth: true }
-            DarkCheckBox {
-                id: offlineToggle
-                objectName: "offlineOnlyToggle"
-                text: "离线演出"
-                checked: panel.offlineOnly
-                ToolTip.visible: hovered; ToolTip.text: "只读取本机缓存，暂停云端新提交和续查"
-                onClicked: controller.setOfflineOnly(checked)
-            }
-            ActionButton { objectName: "offlineImportAudio"; Layout.leftMargin: 8; text: "导入音频（多选）"; tone: "primary"; implicitHeight: 30; font.pixelSize: 12; padding: 12; onClicked: controller.importAudioBatch() }
-        }
+        anchors.margins: 1
+        spacing: 1
         RowLayout {
             objectName: "libraryColumns"
-            Layout.fillWidth: true; Layout.fillHeight: true; spacing: 8
+            Layout.fillWidth: true; Layout.fillHeight: true; spacing: 1
             // 左：状态筛选
             PanelCard {
                 objectName: "libraryStatusColumn"

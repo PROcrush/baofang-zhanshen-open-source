@@ -106,30 +106,8 @@ Item {
     component HeaderLine: Rectangle { anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom; height: 1; color: Theme.hairline }
 
     ColumnLayout {
-        anchors.fill: parent; anchors.margins: 10; anchors.topMargin: 6
-        spacing: 8
-        // ① 工具栏：输入源与连接在左，工具排开，客屏主操作在最右
-        RowLayout {
-            objectName: "liveToolbar"
-            Layout.fillWidth: true; Layout.preferredHeight: 34; spacing: 2
-            DarkComboBox {
-                objectName:"liveInputModeCombo"; Layout.preferredWidth:160; implicitHeight:30
-                model:["回放体验 · 无声音", "Serato 现场跟随", "rekordbox 测试副本", "rekordbox 原版跟随"]
-                currentIndex:live.replay ? 0 : live.rekordboxAx ? 3 : live.rekordbox ? 2 : 1
-                onActivated:function(index){controller.setInputMode(["replay","serato","rekordbox","rekordbox_ax"][index]);}
-            }
-            ToolLink { objectName:"connectSeratoButton"; iconName:"import"; text:live.compact ? (live.connected && !live.replay ? "重连" : "连接") : live.connected && !live.replay ? "重新连接" : "连接 " + live.djName; hint:"连接 / 重新连接 " + live.djName; onClicked:live.rekordboxAx ? controller.connectRekordboxAX() : live.rekordbox ? controller.connectRekordbox() : controller.connectSerato() }
-            ToolLink { objectName:"bridgeStopButton"; iconName:"close"; text:live.compact ? "停止" : "停止跟随"; hint:"停止跟随 DJ 播放状态"; visible:!live.replay; enabled:stateData.bridgeRunning!==false; onClicked:controller.stopBridge() }
-            Rectangle { Layout.preferredWidth:1; Layout.preferredHeight:16; color:Theme.hairline; Layout.leftMargin:6; Layout.rightMargin:6 }
-            ToolLink { objectName:"liveLayersButton"; iconName:"lyrics"; text:"客屏内容"; selected:live.rightTab===2; hint:"喊话、DJ 标识和扫码祝福"; onClicked:live.openScreenContent() }
-            ToolLink { objectName:"liveKeyHelpButton"; iconName:"tools"; text:"快捷键"; hint:"查看现场快捷键 · ?"; visible:!live.compact; onClicked:keyHelp.open() }
-            ToolLink { objectName:"livePreshowButton"; iconName:"check"; text:"开场自检"; hint:"开演前一眼看全：打碟机、客屏、歌单、MIDI"; onClicked:live.preshowRequested() }
-            ToolLink { objectName:"liveDiagnosticsButton"; iconName:"correct"; text:"诊断"; hint:stateData.bridgeStatus || "查看连接详情"; onClicked:live.diagnosticsRequested() }
-            ToolLink { id:screenButton; objectName:"liveScreenSettings"; iconName:"film"; text:"显示器"; onClicked:live.openScreenSettings() }
-            Item { Layout.fillWidth:true }
-            ToolLink { objectName:"liveOverlayButton"; visible:!live.rekordbox; text:live.compact ? (live.outputWanted && live.overlayOutput ? "关闭叠加" : "Serato 叠加") : live.outputWanted && live.overlayOutput ? "关闭 Serato 字幕" : "叠加到 Serato"; selected:live.overlayOutput && live.outputWanted; hint:"将透明字幕叠加到 Serato Video Output 窗口"; onClicked:live.outputWanted && live.overlayOutput ? controller.closeOutput() : controller.openSeratoOverlay() }
-            ActionButton { objectName:"liveOutputButton"; implicitHeight:30; font.pixelSize:12; padding:12; text:live.outputWanted && !live.overlayOutput ? "关闭客屏" : live.compact ? "打开客屏" : "打开独立客屏"; tone:!live.overlayOutput && !live.outputWanted ? "primary" : "neutral"; selected:!live.overlayOutput && live.outputWanted; hint:"在独立窗口显示包房战神背景与字幕"; onClicked:live.outputWanted && !live.overlayOutput ? controller.closeOutput() : controller.openStandaloneOutput() }
-        }
+        anchors.fill: parent; anchors.margins: 5
+        spacing: 4
         RowLayout {
             visible: !!stateData.outputOpen && live.overlayOutput
             Layout.fillWidth: true; Layout.preferredHeight: 24; spacing: 8
@@ -141,12 +119,52 @@ Item {
         GridLayout {
             objectName: "liveWorkspace"
             Layout.fillWidth: true; Layout.fillHeight: true
-            columns: 2; rowSpacing: 6; columnSpacing: 6
-            // 下方的双盘与上方客屏共用一条视线，右侧始终可以接管。
+            columns: 3; rowSpacing: 5; columnSpacing: 5
+            PanelCard {
+                objectName: "liveToolbar"
+                Layout.row: 0; Layout.column: 0; Layout.rowSpan: 2
+                Layout.preferredWidth: live.compact ? 206 : Math.min(320, live.width*.25)
+                Layout.fillHeight: true
+                ColumnLayout {
+                    anchors.fill: parent; anchors.margins: 10; spacing: 8
+                    ColumnHeader { Layout.fillWidth: true; text: "联动控制"; detail: live.replay ? "演示模式" : live.connected ? "已连接" : "等待连接" }
+            DarkComboBox {
+                objectName:"liveInputModeCombo"; Layout.fillWidth:true; implicitHeight:30
+                model:["回放体验 · 无声音", "Serato 现场跟随", "rekordbox 测试副本", "rekordbox 原版跟随"]
+                currentIndex:live.replay ? 0 : live.rekordboxAx ? 3 : live.rekordbox ? 2 : 1
+                onActivated:function(index){controller.setInputMode(["replay","serato","rekordbox","rekordbox_ax"][index]);}
+            }
+                    StudioButton { Layout.fillWidth:true; tone:"primary"; objectName:"connectSeratoButton"; iconName:"import"; text:live.compact ? (live.connected && !live.replay ? "重连" : "连接") : live.connected && !live.replay ? "重新连接" : "连接 " + live.djName; hint:"连接 / 重新连接 " + live.djName; onClicked:live.rekordboxAx ? controller.connectRekordboxAX() : live.rekordbox ? controller.connectRekordbox() : controller.connectSerato() }
+                    GridLayout {
+                        Layout.fillWidth: true; columns: 2; columnSpacing: 4; rowSpacing: 4
+                        ToolLink { Layout.fillWidth:true; objectName:"bridgeStopButton"; iconName:"close"; text:live.compact ? "停止" : "停止跟随"; hint:"停止跟随 DJ 播放状态"; visible:!live.replay; enabled:stateData.bridgeRunning!==false; onClicked:controller.stopBridge() }
+                        ToolLink { Layout.fillWidth:true; objectName:"liveDiagnosticsButton"; iconName:"correct"; text:"诊断"; hint:stateData.bridgeStatus || "查看连接详情"; onClicked:live.diagnosticsRequested() }
+                        ToolLink { Layout.fillWidth:true; objectName:"livePreshowButton"; iconName:"check"; text:"开场自检"; hint:"开演前一眼看全：打碟机、客屏、歌单、MIDI"; onClicked:live.preshowRequested() }
+                        ToolLink { Layout.fillWidth:true; objectName:"liveKeyHelpButton"; iconName:"tools"; text:"快捷键"; hint:"查看现场快捷键 · ?";  onClicked:keyHelp.open() }
+                    }
+                    ColumnHeader { Layout.fillWidth: true; text: "字幕输出" }
+                    ActionButton { Layout.fillWidth:true; objectName:"liveOutputButton"; implicitHeight:30; font.pixelSize:12; padding:12; text:live.outputWanted && !live.overlayOutput ? "关闭客屏" : live.compact ? "打开客屏" : "打开独立客屏"; tone:!live.overlayOutput && !live.outputWanted ? "primary" : "neutral"; selected:!live.overlayOutput && live.outputWanted; hint:"在独立窗口显示包房战神背景与字幕"; onClicked:live.outputWanted && !live.overlayOutput ? controller.closeOutput() : controller.openStandaloneOutput() }
+                    ToolLink { Layout.fillWidth:true; objectName:"liveOverlayButton"; visible:!live.rekordbox; text:live.compact ? (live.outputWanted && live.overlayOutput ? "关闭叠加" : "Serato 叠加") : live.outputWanted && live.overlayOutput ? "关闭 Serato 字幕" : "叠加到 Serato"; selected:live.overlayOutput && live.outputWanted; hint:"将透明字幕叠加到 Serato Video Output 窗口"; onClicked:live.outputWanted && live.overlayOutput ? controller.closeOutput() : controller.openSeratoOverlay() }
+                    ToolLink { id:screenButton; Layout.fillWidth:true; objectName:"liveScreenSettings"; iconName:"film"; text:"显示器"; onClicked:live.openScreenSettings() }
+                    ToolLink { Layout.fillWidth:true; objectName:"liveLayersButton"; iconName:"lyrics"; text:"客屏内容"; selected:live.rightTab===2; hint:"喊话、DJ 标识和扫码祝福"; onClicked:live.openScreenContent() }
+                    Text {
+                        Layout.fillWidth: true; text: live.outputDetail; color: Theme.muted
+                        font.pixelSize: 11; wrapMode: Text.Wrap
+                    }
+                    Item { Layout.fillHeight: true }
+                }
+            }
+            LiveStyleShelf {
+                Layout.row: 2; Layout.column: 0; Layout.columnSpan: 2
+                Layout.fillWidth: true; Layout.preferredHeight: implicitHeight
+                settings: live.settings; presets: controller ? controller.stylePresets || [] : []
+                onPresetRequested: function(presetId) { controller.setStylePreset(presetId); }
+                onDetailsRequested: live.styleRequested()
+            }
             PanelCard {
                 objectName: "monitorRail"
-                Layout.row: 1; Layout.column: 0; Layout.fillWidth: true
-                Layout.preferredHeight: live.rekordboxAx ? 204 : live.small ? 172 : 188
+                Layout.row: 0; Layout.column: 1; Layout.fillWidth: true
+                Layout.preferredHeight: live.rekordboxAx ? 204 : live.small ? 174 : 196
                 ColumnLayout {
                     anchors.fill:parent; spacing:0
                     Item {
@@ -221,7 +239,7 @@ Item {
             }
             // 中：顶部是现场状态，预览下面居中放播放控制
             PanelCard {
-                Layout.row: 0; Layout.column: 0
+                Layout.row: 1; Layout.column: 1
                 objectName:"programPreviewFrame"; Layout.fillWidth:true; Layout.fillHeight:true; Layout.minimumWidth:320
                 ColumnLayout {
                     anchors.fill:parent; spacing:0
@@ -233,7 +251,7 @@ Item {
                         RowLayout {
                             anchors.fill:parent; anchors.leftMargin:14; anchors.rightMargin:8; spacing:10
                             Rectangle { width:7; height:7; radius:4; color:Theme.toneInk(live.bannerTone) }
-                            Text { objectName:"liveReadinessTitle"; text:live.liveError ? "设置未保存，请检查" : live.readinessTitle; color:Theme.text; font.pixelSize:14; font.weight:Font.Medium; elide:Text.ElideRight; Layout.maximumWidth:parent.width*0.45; Accessible.role:Accessible.StaticText; Accessible.name:text }
+                            Text { objectName:"liveReadinessTitle"; text:live.liveError ? "设置未保存，请检查" : live.readinessTitle; color:Theme.text; font.pixelSize:14; font.weight:Font.Medium; elide:Text.ElideRight; Layout.maximumWidth:parent.width*.56; Accessible.role:Accessible.StaticText; Accessible.name:text }
                             Text {
                                 objectName:"liveReadinessDetail"; Layout.fillWidth:true; text:live.readinessDetail; color:live.liveError ? Theme.red : Theme.muted; font.pixelSize:11; elide:Text.ElideRight
                                 Accessible.role:Accessible.StaticText; Accessible.name:text
@@ -292,15 +310,16 @@ Item {
                     }
                     // 播放条：时间在左，播放键居中，速度在右（同歌暮播放器）
                     Item {
-                        Layout.fillWidth:true; Layout.preferredHeight:40
+                        Layout.fillWidth:true; id: liveTransport; readonly property bool stacked: width < 570 && live.replay
+                        Layout.preferredHeight: stacked ? 64 : 40
                         RowLayout {
-                            anchors.left:parent.left; anchors.leftMargin:14; anchors.verticalCenter:parent.verticalCenter; spacing:6
+                            anchors.left:parent.left; anchors.leftMargin:14; anchors.verticalCenter:parent.verticalCenter; anchors.verticalCenterOffset:liveTransport.stacked ? -15 : 0; spacing:6
                             Text { objectName:"sourcePositionTitle"; text:live.positionDeckId + " 盘" + (live.replay ? " · 回放" : " · 只读"); color:Theme.muted; font.pixelSize:11 }
                             Text { text:live.positionDeck.positionText || "--:--.---"; color:Theme.accent; font.family: Theme.numberFont; font.pixelSize:12 }
                             Text { objectName:"unknownDurationNotice"; visible:live.duration<=0; text:"总时长未解析"; color:Theme.muted; font.pixelSize:11 }
                         }
                         Row {
-                            anchors.centerIn:parent; spacing:4
+                            anchors.centerIn:parent; anchors.verticalCenterOffset:liveTransport.stacked ? 15 : 0; spacing:4
                             visible:live.replay
                             StudioButton { objectName:"replayRestartButton"; iconName:"previous"; iconOnly:true; text:"回到起点"; implicitHeight:30; enabled:live.replay && live.connected; onClicked:controller.seek(0) }
                             ActionButton { objectName:"playbackButton"; text:stateData.playing ? "暂停演示" : "播放演示"; tone:"primary"; implicitHeight:30; font.pixelSize:12; padding:12; enabled:live.replay && live.connected; onClicked:controller.togglePlayback() }
@@ -309,7 +328,7 @@ Item {
                         Text { objectName:"speedValueText"; visible:!live.replay && !live.rekordboxAx; anchors.centerIn:parent; text:"速度 " + live.speed.toFixed(2)+"×"; color:Theme.secondary; font.family: Theme.numberFont; font.pixelSize:12 }
                         Text { objectName:"rekordboxAXPlaybackNotice"; visible:live.rekordboxAx; anchors.centerIn:parent; text:"播停与速度未提供"; color:Theme.muted; font.pixelSize:11 }
                         RowLayout {
-                            anchors.right:parent.right; anchors.rightMargin:8; anchors.verticalCenter:parent.verticalCenter; spacing:6
+                            anchors.right:parent.right; anchors.rightMargin:8; anchors.verticalCenter:parent.verticalCenter; anchors.verticalCenterOffset:liveTransport.stacked ? -15 : 0; spacing:6
                             visible:live.replay
                             ControlSlider { objectName:"speedSlider"; Layout.preferredWidth:live.compact ? 54 : 80; Layout.preferredHeight:22; from:0.8; to:1.2; stepSize:0.01; value:live.speed; enabled:live.replay && live.connected; Accessible.name:"回放速度"; onMoved:controller.setSpeed(value) }
                             Text { text:live.speed.toFixed(2)+"×"; color:Theme.secondary; font.family: Theme.numberFont; font.pixelSize:11 }
@@ -329,7 +348,7 @@ Item {
                         Text { visible:!live.compact; text:live.sourceAvailable && !live.hiddenLyrics ? live.lyricDeckId + " 盘" + (live.qualityText ? " · " + live.qualityText : "") : "歌词未显示"; color:Theme.muted; font.pixelSize:11 }
                         StatusPill { objectName:"liveOutputStatus"; text:live.outputTitle; tone:live.outputTone }
                         Text {
-                            objectName:"liveOutputDetail"; visible:!live.compact; Layout.maximumWidth:150; text:live.outputDetail; color:Theme.muted; font.pixelSize:11; elide:Text.ElideRight
+                            objectName:"liveOutputDetail"; visible:live.width>1600; Layout.maximumWidth:140; text:live.outputDetail; color:Theme.muted; font.pixelSize:11; elide:Text.ElideRight
                             Accessible.role:Accessible.StaticText; Accessible.name:text
                             ToolTip.visible:outputDetailHover.containsMouse; ToolTip.text:text
                             MouseArea { id:outputDetailHover; anchors.fill:parent; acceptedButtons:Qt.NoButton; hoverEnabled:true }
@@ -339,7 +358,7 @@ Item {
             }
             // 右：来源和隐藏常驻顶部；下面是「同步 / 样式 / 插字」标签
             PanelCard {
-                Layout.row: 0; Layout.column: 1; Layout.rowSpan: 2
+                Layout.row: 0; Layout.column: 2; Layout.rowSpan: 3
                 objectName:"sourceControlBar"; Layout.preferredWidth:live.controlWidth; Layout.minimumWidth:live.controlWidth; Layout.maximumWidth:live.controlWidth; Layout.fillHeight:true
                 ColumnLayout {
                     anchors.fill:parent; spacing:0
@@ -398,6 +417,13 @@ Item {
                                 StudioButton { objectName:"liveTapUndo"; text:"撤销打拍"; hint:"撤销上一次打拍 · Shift+T"; enabled:!!(stateData.lyricTap || {}).canUndo; implicitHeight:28; font.pixelSize:12; onClicked:controller.undoLyricTap() }
                                 Item { Layout.fillWidth:true }
                                 StudioButton { objectName:"liveOffsetReset"; text:"归零"; hint:"同步微调归零 · \\ 键"; enabled:live.ready && live.offset!==0; implicitHeight:28; font.pixelSize:12; onClicked:controller.setLyricOffset(0) }
+                            }
+                            ColumnLayout {
+                                Layout.fillWidth: true; Layout.leftMargin: 12; Layout.rightMargin: 12; Layout.topMargin: 8; spacing: 2
+                                ColumnHeader { Layout.fillWidth: true; text: "字体文本"; detail: "实时生效" }
+                                StyleSlider { title:"字号"; field:"fontSize"; minimum:24; maximum:96; fallback:48; suffix:" px"; settings:live.settings; controlPrefix:"live-" }
+                                StyleSlider { title:"垂直位置"; field:"verticalPosition"; minimum:8; maximum:90; fallback:56; suffix:"%"; settings:live.settings; controlPrefix:"live-" }
+                                DarkCheckBox { text:"文字阴影"; checked:!!live.settings.shadowEnabled; onClicked:controller.setStyle("shadowEnabled", checked) }
                             }
                             Item { Layout.fillHeight:true }
                         }

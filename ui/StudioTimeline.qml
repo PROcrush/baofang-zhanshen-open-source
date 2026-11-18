@@ -14,13 +14,17 @@ Rectangle {
     property string rowSignature: ""
     readonly property var composition: stateData.composition || ({})
     readonly property real duration: Math.max(1, Number(stateData.durationMs || 0))
-    readonly property real trackWidth: Math.max(180, viewport.width-75)*zoom
+    readonly property int labelWidth: Math.min(174, Math.round(width * .135))
+    readonly property real laneHeight: Math.max(34, Math.min(72, (viewport.height - 29) / Math.max(4, rowDefinitions.length)))
+    readonly property real trackWidth: Math.max(180, viewport.width-labelWidth)*zoom
     signal seekRequested(real position)
     signal segmentSelected(int index)
     signal objectSelected(string kind)
     signal itemSelected(string kind,string id)
     signal clipMoveRequested(string id,real startMs)
     signal clipRangeRequested(string id,real startMs,real durationMs,real sourceInMs)
+    signal undoRequested()
+    signal redoRequested()
     signal analyzeRequested()
     signal markerRequested(real position)
     radius: 2; color: Theme.surface; border.color: Theme.stroke
@@ -33,7 +37,8 @@ Rectangle {
         var signature=JSON.stringify([clips,texts,audio,lyrics,stateData.audioTitle]);
         if(signature===rowSignature) return;
         rowSignature=signature;
-        var rows=[{kind:"clip",label:"画面",rows:clips},{kind:"lyrics",label:"歌词",rows:lyrics}];
+        var rows=[{kind:"lyrics",label:"字幕",rows:lyrics},{kind:"clip",label:"素材",rows:clips}];
+        if (!texts.length) rows.unshift({kind:"text",label:"文本",rows:[]});
         rows.push({kind:"audio",label:"主音频",rows:[]});
         texts.forEach(function(text,index){rows.push({kind:"text",label:"文字 "+(index+1),rows:[text]});});
         audio.forEach(function(clip,index){rows.push({kind:"audioClip",label:"附音 "+(index+1),rows:[clip]});});
@@ -43,11 +48,13 @@ Rectangle {
     onCompositionChanged: rebuild()
     Component.onCompleted: rebuild()
     ColumnLayout {
-        anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; anchors.topMargin: 8; anchors.bottomMargin: 7; spacing: 3
+        anchors.fill: parent; anchors.margins: 1; spacing: 1
         RowLayout {
             Layout.fillWidth: true; Layout.preferredHeight: 28; spacing: 3
-            Text { text: "时间轴"; color: Theme.text; font.pixelSize: 12; font.weight: Font.Medium }
+            Text { Layout.leftMargin: 12; text: "时间轴"; color: Theme.text; font.pixelSize: 12; font.weight: Font.Medium }
             Text { text: (timeline.composition.clips || []).length+" 镜 · "+(timeline.stateData.segments || []).length+" 句"; color: Theme.muted; font.pixelSize: 10 }
+            StudioButton { text: "撤销"; iconName: "undo"; iconOnly: true; enabled: !!timeline.stateData.canUndo && !timeline.stateData.busy; onClicked: timeline.undoRequested() }
+            StudioButton { text: "重做"; iconName: "redo"; iconOnly: true; enabled: !!timeline.stateData.canRedo && !timeline.stateData.busy; onClicked: timeline.redoRequested() }
             Item { Layout.fillWidth: true }
             StudioButton { objectName: "studioAnalyzeAudio"; text: "分析波形"; iconName: "audio"; implicitHeight: 26; enabled: !!timeline.stateData.audioPath && !timeline.stateData.busy; onClicked: timeline.analyzeRequested() }
             StudioButton { objectName: "studioAddMarker"; text: "添加标记"; iconName: "check"; implicitHeight: 26; enabled: !!timeline.stateData.audioPath && !timeline.stateData.busy; onClicked: timeline.markerRequested(Number(timeline.stateData.positionMs || 0)) }
@@ -55,14 +62,12 @@ Rectangle {
             Text { text: Math.round(timeline.zoom*100)+"%"; color: Theme.secondary; font.family: Theme.numberFont; font.pixelSize: 10; Layout.preferredWidth: 34; horizontalAlignment: Text.AlignHCenter }
             StudioButton { text: "放大时间轴"; iconName: "zoomIn"; iconOnly: true; implicitHeight: 26; implicitWidth: 26; enabled: timeline.zoom<8 && !!timeline.stateData.audioPath; onClicked: timeline.zoom=Math.min(8,timeline.zoom*1.5) }
         }
-        Text { visible: !timeline.stateData.audioPath; Layout.fillWidth: true; Layout.fillHeight: true; text: "导入歌曲后，在这里安排歌词与画面。"; color: Theme.muted; font.pixelSize: 11; verticalAlignment: Text.AlignVCenter }
         Flickable {
             id: viewport
-            visible: !!timeline.stateData.audioPath
             objectName: "studioTimelineViewport"
             Layout.fillWidth: true; Layout.fillHeight: true
-            contentWidth: 75+timeline.trackWidth
-            contentHeight: 30+timeline.rowDefinitions.length*35
+            contentWidth: timeline.labelWidth+timeline.trackWidth
+            contentHeight: 30+timeline.rowDefinitions.length*timeline.laneHeight
             boundsBehavior: Flickable.StopAtBounds; clip: true
             ScrollBar.horizontal: ScrollBar { policy: timeline.zoom>1 ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded; height: 5 }
             ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded; width: 4 }
@@ -70,12 +75,12 @@ Rectangle {
                 id: tracks
                 width: viewport.contentWidth; height: viewport.contentHeight
                 Item {
-                    x: 75; width: timeline.trackWidth; height: 27
-                    Repeater { model: 9; delegate: Item { required property int index; x: index/8*(timeline.trackWidth-1); width: 1; height: tracks.height; Rectangle { width: 1; height: parent.height; color: "#282f39" } Text { x: parent.index===8 ? -implicitWidth-3 : 3; y: 1; text: timeline.clock(parent.index/8*timeline.duration); color: Theme.muted; font.family: Theme.numberFont; font.pixelSize: 9 } } }
+                    x: timeline.labelWidth; width: timeline.trackWidth; height: 27
+                    Repeater { model: 9; delegate: Item { required property int index; x: index/8*(timeline.trackWidth-1); width: 1; height: tracks.height; Rectangle { width: 1; height: parent.height; color: "#282f39" } Text { x: parent.index===8 ? -implicitWidth-3 : 3; y: 1; text: timeline.stateData.audioPath ? timeline.clock(parent.index/8*timeline.duration) : (parent.index===0 ? "00:00" : ""); color: Theme.muted; font.family: Theme.numberFont; font.pixelSize: 9 } } }
                     Repeater { model: timeline.stateData.beatsMs || []; delegate: Rectangle { required property var modelData; x: Number(modelData)/timeline.duration*timeline.trackWidth; y: 17; width: 1; height: 7; color: "#658477" } }
                     MouseArea {
                         objectName: "studioTimelineScrub"
-                        anchors.fill: parent; enabled: !timeline.stateData.busy; cursorShape: Qt.PointingHandCursor
+                        anchors.fill: parent; enabled: !!timeline.stateData.audioPath && !timeline.stateData.busy; cursorShape: Qt.PointingHandCursor
                         preventStealing: true
                         onPressed: function(mouse) { timeline.seekRelative(mouse.x); }
                         onPositionChanged: function(mouse) { if (pressed) timeline.seekRelative(mouse.x); }
@@ -100,13 +105,13 @@ Rectangle {
                         id: lane
                         required property var modelData
                         required property int index
-                        x: 75; y: 29+index*35; width: timeline.trackWidth; height: 31
-                        Rectangle { anchors.fill: parent; radius: 5; color: lane.modelData.kind==="audio" && timeline.stateData.audioPath ? "#223730" : Theme.canvas }
-                        MouseArea { anchors.fill: parent; enabled: !timeline.stateData.busy; onClicked: function(mouse) { timeline.objectSelected(lane.modelData.kind); timeline.seekRelative(mouse.x); } }
+                        x: timeline.labelWidth; y: 29+index*timeline.laneHeight; width: timeline.trackWidth; height: timeline.laneHeight-2
+                        Rectangle { anchors.fill: parent; radius: 0; color: lane.modelData.kind==="audio" && timeline.stateData.audioPath ? "#223730" : Theme.canvas }
+                        MouseArea { anchors.fill: parent; enabled: !!timeline.stateData.audioPath && !timeline.stateData.busy; onClicked: function(mouse) { timeline.objectSelected(lane.modelData.kind); timeline.seekRelative(mouse.x); } }
                         Canvas {
                             id: waveform
                             anchors.fill: parent
-                            visible: lane.modelData.kind==="audio"
+                            visible: !!timeline.stateData.audioPath && lane.modelData.kind==="audio"
                             onWidthChanged: requestPaint()
                             Connections { target: timeline; function onStateDataChanged() { waveform.requestPaint(); } }
                             onPaint: {
@@ -137,9 +142,9 @@ Rectangle {
                                 property bool selected: lane.modelData.kind==="lyrics" ? timeline.selectedObject==="lyrics" && timeline.selectedSegment===index : timeline.selectedObject===lane.modelData.kind && timeline.selectedItemId===modelData.id
                                 x: Number(dragging || resizing ? draftStartMs : modelData.startMs || 0)/timeline.duration*timeline.trackWidth
                                 width: Math.max(6,Number(resizing ? draftDurationMs : lane.modelData.kind==="lyrics" ? modelData.endMs-modelData.startMs : modelData.durationMs || 0)/timeline.duration*timeline.trackWidth-2)
-                                height: 31; leftPadding: 6; rightPadding: 6
+                                height: timeline.laneHeight-2; leftPadding: 6; rightPadding: 6
                                 text: lane.modelData.kind==="lyrics" || lane.modelData.kind==="text" ? modelData.text || "文字" : lane.modelData.kind==="audioClip" ? "附加音轨" : modelData.kind==="color" ? "纯色" : String((((timeline.composition.sources || {})[modelData.sourceId] || {}).identity || {}).path || "分镜").split('/').pop()
-                                enabled: !timeline.stateData.busy; hoverEnabled: true; activeFocusOnTab: true
+                                enabled: !!timeline.stateData.audioPath && !timeline.stateData.busy; hoverEnabled: true; activeFocusOnTab: true
                                 Accessible.name: text+(modelData.locked ? "，已锁定" : "")
                                 ToolTip.visible: hovered; ToolTip.text: text
                                 onClicked: selectClip()
@@ -213,21 +218,21 @@ Rectangle {
                                 Rectangle { visible: lane.modelData.kind==="clip" && (timelineClip.modelData.transition || {}).id!=="cut" && Number((timelineClip.modelData.transition || {}).durationMs || 0)>0; x: 0; width: Math.min(parent.width,Number((timelineClip.modelData.transition || {}).durationMs || 0)/timeline.duration*timeline.trackWidth); height: parent.height; color: "#44677d"; opacity: 0.45 }
                             }
                         }
-                        Text { visible: !(lane.modelData.rows || []).length; anchors.left: parent.left; anchors.leftMargin: 8; anchors.verticalCenter: parent.verticalCenter; text: lane.modelData.kind==="audio" ? (timeline.stateData.waveform || []).length ? "" : timeline.stateData.audioTitle || "导入主歌曲" : lane.modelData.kind==="clip" ? "添加素材分镜或自动分镜" : lane.modelData.kind==="text" ? "添加独立文字" : "导入字幕"; color: Theme.muted; font.pixelSize: 10 }
+                        Text { visible: !!timeline.stateData.audioPath && !(lane.modelData.rows || []).length; anchors.left: parent.left; anchors.leftMargin: 8; anchors.verticalCenter: parent.verticalCenter; text: lane.modelData.kind==="audio" ? (timeline.stateData.waveform || []).length ? "" : timeline.stateData.audioTitle || "导入主歌曲" : lane.modelData.kind==="clip" ? "添加素材分镜或自动分镜" : lane.modelData.kind==="text" ? "添加独立文字" : "导入字幕"; color: Theme.muted; font.pixelSize: 10 }
                     }
                 }
                 Rectangle {
-                    x: 75+Math.min(timeline.trackWidth-1,Math.max(0,Number(timeline.stateData.positionMs || 0)/timeline.duration*timeline.trackWidth)); y: 23; width: 1; height: tracks.height-23; color: Theme.text
+                    x: timeline.labelWidth+Math.min(timeline.trackWidth-1,Math.max(0,Number(timeline.stateData.positionMs || 0)/timeline.duration*timeline.trackWidth)); y: 23; width: 1; height: tracks.height-23; color: Theme.text
                     Rectangle { x: -3; y: -3; width: 7; height: 7; radius: 2; color: Theme.text }
                 }
-                Rectangle { x: viewport.contentX; width: 70; height: tracks.height; color: Theme.surface; z: 3 }
+                Rectangle { x: viewport.contentX; width: timeline.labelWidth - 1; height: tracks.height; color: Theme.surface; z: 3 }
                 Repeater {
                     model: timeline.rowDefinitions
                     delegate: StudioButton {
                         required property var modelData
                         required property int index
-                        x: viewport.contentX; y: 29+index*35; width: 65; height: 31; z: 4
-                        text: modelData.label; padding: 3; font.pixelSize: 10
+                        x: viewport.contentX; y: 29+index*timeline.laneHeight; width: timeline.labelWidth - 4; height: timeline.laneHeight-2; z: 4
+                        text: modelData.label; enabled: !!timeline.stateData.audioPath; textAlignment: Text.AlignLeft; iconName: modelData.kind==="audio" || modelData.kind==="audioClip" ? "audio" : modelData.kind==="clip" ? "film" : "lyrics"; padding: 12; font.pixelSize: 10
                         selected: timeline.selectedObject===modelData.kind
                         onClicked: { if((modelData.rows || []).length && modelData.kind!=="lyrics") timeline.itemSelected(modelData.kind,modelData.rows[0].id); else timeline.objectSelected(modelData.kind); }
                     }

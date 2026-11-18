@@ -146,7 +146,7 @@ def main():
         workspace=item('studioWorkspace')
         workspace.setProperty('advancedEditing',True)
         QTest.qWait(100)
-        text_button('歌曲素材')
+        tap('studioSourcesTab-0')
         choose('studioChooseMaterial',video)
         source=studio.state['materialSources'][-1]; source_id=source.get('sourceId',source.get('id'))
         tap('studioMaterial-'+source_id); tap('studioAddSelectedClip')
@@ -223,7 +223,7 @@ def main():
         text_button('撤销'); assert studio.state['composition']['audioClips']
         checks.append('QML independent text, undo field sync, position, PNG and actual additive audio gain/removal')
 
-        text_button('歌词'); tap('studioLyricRow-1'); text_button('模板')
+        tap('studioSourcesTab-1'); tap('studioLyricRow-1'); text_button('模板')
         tap('templateTile-headline'); tap('styleAdvancedToggle'); catalog('styleEffect','fade'); catalog('styleLayout','wave-06')
         enter('styleLayout-amplitude','.230')
         assert studio.state['settings']['layoutParameters'].get('amplitude')==.23,studio.state['status']
@@ -246,7 +246,7 @@ def main():
         tap('studioAddMarker'); assert studio.state['composition']['markers']
         checks.append('actual waveform and beat analysis with QML marker addition')
 
-        text_button('演唱会'); choose('concertChooseVideo',video); tap('concertAnalyzeMotion'); wait_idle(); assert studio.state['concertAnalysis']['sampledFrames']>0; choose('concertChooseLyrics',concert_subtitles)
+        tap('studioSourcesTab-2'); choose('concertChooseVideo',video); tap('concertAnalyzeMotion'); wait_idle(); assert studio.state['concertAnalysis']['sampledFrames']>0; choose('concertChooseLyrics',concert_subtitles)
         tap('concertGeneratePlan'); wait_idle()
         assert studio.state['concertRows'],studio.state['concertStatus']
         paired=next(index for index,row in enumerate(studio.state['concertRows']) if row['purpose']=='paired')
@@ -259,7 +259,7 @@ def main():
         assert studio.state['concertCoverage']['coverageRatio']==1,studio.state['concertCoverage']
         checks.append('QML concert source import, candidate review/rate edit, explicit whole-plan confirmation and apply with full candidate coverage')
 
-        text_button('歌曲素材'); tap('studioAutoStoryboard')
+        tap('studioSourcesTab-0'); tap('studioAutoStoryboard')
         assert len(studio.state['composition']['clips'])>=3,studio.state['status']
         studio.seek(4200); tap('studioOutputSettings')
         format_control=tap('studioOutputFormat'); QTest.keyClick(window,Qt.Key.Key_End); QTest.keyClick(window,Qt.Key.Key_Return); QTest.qWait(40)
@@ -273,7 +273,7 @@ def main():
         text_button('生成预览'); wait_idle(180)
         assert studio.state['resultPath'] and Path(studio.state['resultPath']).is_file(),studio.state['status']
         workspace.setProperty('showRendered',False)
-        text_button('歌词'); tap('studioLyricRow-2'); text_button('模板'); studio.seek(4200)
+        tap('studioSourcesTab-1'); tap('studioLyricRow-2'); text_button('模板'); studio.seek(4200)
         for node in visual_items(window.contentItem()):
             if node.isVisible() and node.property('contentY') is not None and node.property('contentHeight') is not None:
                 node.setProperty('contentY',0)

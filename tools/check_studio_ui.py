@@ -57,7 +57,9 @@ def main():
     named_items(window)['studioWorkspace'].setProperty('advancedEditing', True)
     QTest.qWait(150)
     items = named_items(window)
-    click(window,items['studioLyricRow-0']);QTest.qWait(50)
+    row = items['studioInspectorLyric-0']
+    assert row.isVisible()
+    click(window, row)
     editor = items['studioLyricEditor']
     click(window, editor)
     QTest.keyClick(window, Qt.Key.Key_A, Qt.KeyboardModifier.ControlModifier)

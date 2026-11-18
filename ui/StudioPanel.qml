@@ -34,7 +34,9 @@ Item {
     property string editorSourcePath: ""
     property string observedResultUrl: ""
     property bool showRendered: false
-    property bool advancedEditing: false
+    property real timelineFraction: hasAudio ? .32 : .48
+    property Item commandHost
+    property bool advancedEditing: true
     readonly property bool hasLyricDraft: advancedEditing && segments.length>0 && lyricsEdit.text!==String(selectedLine.text || "")
     property string guidedAudioPath: ""
     property int previousSegmentCount: 0
@@ -79,7 +81,7 @@ Item {
     }
     function selectLine(index, seekToLine) {
         selectedSegment = Math.max(0, Math.min(Number(index), Math.max(0, segments.length-1)));
-        selectedObject = "lyrics"; libraryPage = 1; if(inspectorPage===2) inspectorPage=0;
+        selectedObject = "lyrics"; if(inspectorPage===2) inspectorPage=0;
         if (seekToLine && editable && segments.length) studioModel.seek(Number((segments[selectedSegment] || {}).startMs || 0));
     }
     function selectObject(kind) {
@@ -110,7 +112,7 @@ Item {
         var newRows=studioState.segments || [];
         if(audio!==guidedAudioPath) { guidedAudioPath=audio; selectedObject="lyrics"; libraryPage=0; inspectorPage=2; selectedSegment=0; previousSegmentCount=0; }
         if(previousSegmentCount===0 && newRows.length>0) {
-            libraryPage=1; inspectorPage=2;
+            libraryPage=0; inspectorPage=0;
             if(Number(studioState.positionMs || 0)===0) Qt.callLater(function() {
                 var fresh=panel.studioModel.state,rows=fresh.segments || [];
                 if(!fresh.busy && String(fresh.audioPath || "")===audio && rows.length && Number(fresh.positionMs || 0)===0)
@@ -154,7 +156,12 @@ Item {
 
     component StudioMenu: Menu {
         id: popupMenu
-        padding: 6
+        width: 246; padding: 6
+        palette.windowText: Theme.text
+        palette.text: Theme.text
+        palette.buttonText: Theme.text
+        palette.highlight: Theme.accentSoft
+        palette.highlightedText: Theme.text
         background: Rectangle { color: Theme.elevated; radius: 14; border.color: "#49515d" }
         delegate: MenuItem {
             id: menuControl
@@ -167,6 +174,7 @@ Item {
     StudioMenu {
         id: projectMenu
         MenuItem { text: "打开工程…"; enabled: panel.editable; onTriggered: if(panel.commitPendingLyrics()) panel.studioModel.openProject() }
+        MenuItem { text: "打开示例工程"; enabled: panel.editable; onTriggered: if(panel.commitPendingLyrics()) panel.studioModel.openExampleProject() }
         MenuItem { text: "保存工程"; enabled: panel.editable && !!panel.studioState.audioPath; onTriggered: panel.saveProgress(false) }
         MenuItem { text: "工程另存为…"; enabled: panel.editable && panel.hasAudio; onTriggered: panel.saveProgress(true) }
         MenuSeparator { visible: (panel.studioState.recentProjects || []).length>0 }
@@ -174,6 +182,8 @@ Item {
             model: panel.studioState.recentProjects || []
             delegate: MenuItem {
                 required property var modelData
+                required property int index
+                objectName: "studioRecentProject-"+index
                 text: "最近：" + modelData.title + (modelData.available ? "" : "（文件不可用）")
                 enabled: panel.editable && modelData.available
                 onTriggered: if(panel.commitPendingLyrics()) panel.studioModel.openProject(modelData.path)
@@ -204,54 +214,23 @@ Item {
         onLiveRequested: panel.liveRequested()
         onApiRequested: function(kind) { panel.apiRequested(kind); }
     }
+    RowLayout {
+        parent: panel.commandHost || localCommandHost
+        visible: panel.visible && panel.advancedEditing
+        anchors.fill: parent; spacing: 2
+        StudioButton { id: projectButton; objectName: "studioProjectMenu"; text: "工程"; iconName: "project"; iconOnly: panel.compact; enabled: panel.editable; onClicked: projectMenu.popup(projectButton,0,height+4) }
+        StudioButton { objectName: "studioSaveProject"; text: "保存工程"; iconName: "save"; iconOnly: true; enabled: panel.editable && panel.hasAudio; onClicked: panel.saveProgress(false) }
+        StudioButton { id: importButton; text: "导入"; iconName: "import"; iconOnly: panel.compact; enabled: panel.editable; onClicked: importMenu.popup(importButton,0,height+4) }
+        StudioButton { text: "素材工具"; iconName: "tools"; iconOnly: true; enabled: panel.editable; onClicked: panel.toolsRequested() }
+        StudioButton { objectName: panel.hasAudio ? "studioReturnSimple" : "studioEmptyReturnSimple"; text: "简洁制作"; enabled: panel.editable; onClicked: if(panel.commitPendingLyrics()) panel.advancedEditing=false }
+        Item { Layout.fillWidth: true }
+        Text { objectName: "studioSaveStatus"; visible: !panel.compact; text: panel.studioState.dirty || panel.hasLyricDraft ? "未保存" : panel.studioState.projectPath ? "已保存" : "新工程"; color: Theme.muted; font.pixelSize: 10 }
+        StudioButton { objectName: "studioOutputSettings"; text: "导出视频"; iconName: "export"; tone: "primary"; enabled: panel.canRender; onClicked: if(panel.commitPendingLyrics()) panel.selectObject("export") }
+    }
     ColumnLayout {
         visible: panel.advancedEditing
-        anchors.fill: parent
-        anchors.leftMargin: 12; anchors.rightMargin: 12; anchors.bottomMargin: 8
-        spacing: 0
-        RowLayout {
-            visible: !panel.hasAudio
-            Layout.fillWidth: true; Layout.preferredHeight: 38
-            StudioButton { objectName: "studioEmptyReturnSimple"; text: "返回简洁界面"; onClicked: panel.advancedEditing=false }
-            Item { Layout.fillWidth: true }
-        }
-        Rectangle {
-            visible: panel.hasAudio
-            Layout.fillWidth: true; Layout.preferredHeight: 42
-            radius: 0
-            color: Theme.surface
-            border.color: Theme.hairline
-            RowLayout {
-                anchors.fill: parent; anchors.leftMargin: 7; anchors.rightMargin: 7; spacing: 2
-                StudioButton { id: projectButton; objectName: "studioProjectMenu"; text: "工程"; iconName: "project"; hint: "打开、另存为或继续最近的工程"; enabled: panel.editable; onClicked: projectMenu.popup(projectButton, 0, height+7) }
-                StudioButton { objectName: "studioReturnSimple"; text: "返回简洁界面"; enabled: panel.editable; onClicked: if(panel.commitPendingLyrics()) panel.advancedEditing=false }
-                StudioButton { id: importButton; text: "更多导入"; iconName: "import"; enabled: panel.editable; onClicked: importMenu.popup(importButton, 0, height+7) }
-                Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 18; Layout.leftMargin: 5; Layout.rightMargin: 5; color: "#46505c" }
-                StudioButton { text: "撤销"; iconName: "undo"; iconOnly: true; hint: "撤销上次修改"; enabled: panel.editable && !!panel.studioState.canUndo; onClicked: panel.studioModel.undo() }
-                StudioButton { text: "重做"; iconName: "redo"; iconOnly: true; enabled: panel.editable && !!panel.studioState.canRedo; onClicked: panel.studioModel.redo() }
-                RowLayout {
-                    Layout.fillWidth: true; Layout.leftMargin: 12; Layout.rightMargin: 12; spacing: 6
-                    Text { Layout.fillWidth: true; text: panel.studioState.projectPath ? panel.fileName(panel.studioState.projectPath).replace(/\.bfstudio\.json$/, "") : panel.studioState.audioTitle ? panel.studioState.audioTitle.replace(/\.[^.]+$/, "") : "新建歌词视频"; color: Theme.text; font.pixelSize: 12; elide: Text.ElideMiddle; horizontalAlignment: Text.AlignHCenter }
-                    Text { objectName:"studioSaveStatus"; text:panel.studioState.dirty || panel.hasLyricDraft ? "未保存" : panel.studioState.projectPath ? "已保存" : "新工程"; color:panel.studioState.dirty || panel.hasLyricDraft ? Theme.amber : Theme.muted; font.pixelSize:11 }
-                }
-                StudioButton { text: "工具"; iconName: "tools"; enabled: panel.editable; onClicked: panel.toolsRequested() }
-                StudioButton { objectName: "studioSaveProject"; text: "保存"; iconName: "save"; hint: "保存当前工程，⌘S；另存为在工程菜单中"; enabled: panel.editable && !!panel.studioState.audioPath; onClicked: panel.saveProgress(false) }
-                StudioButton { objectName: "studioOutputSettings"; text: "导出设置"; iconName: "tools"; enabled: panel.editable; onClicked: panel.selectObject("export") }
-                StudioButton { text: "导出视频"; iconName: "export"; tone: "primary"; enabled: panel.canRender; onClicked: panel.selectObject("export") }
-            }
-        }
-        StudioWorkflow {
-            visible: panel.hasAudio
-            Layout.fillWidth: true; stateData: panel.studioState
-            hasPicture: !!panel.studioState.backgroundPath || (panel.composition.clips || []).length>0
-            currentStep: panel.selectedObject==="export" ? 3 : panel.selectedObject==="audio" ? 0 : panel.selectedObject==="lyrics" && (!panel.segments.length || panel.inspectorPage!==2) ? 1 : 2
-            onRequested: function(step) {
-                if(step===0 && panel.commitPendingLyrics()) { panel.libraryPage=0; panel.studioModel.chooseAudio(); }
-                else if(step===1) { panel.selectObject("lyrics"); panel.inspectorPage=0; }
-                else if(step===2) { panel.selectedObject="lyrics"; panel.inspectorPage=2; panel.libraryPage=0; }
-                else panel.selectObject("export");
-            }
-        }
+        anchors.fill: parent; spacing: 0
+        Item { id: localCommandHost; visible: !panel.commandHost; Layout.fillWidth: true; Layout.preferredHeight: 40 }
         RowLayout {
             visible: !!panel.studioState.busy || panel.hasError || !!panel.studioState.recoveryPath
             Layout.fillWidth: true; Layout.preferredHeight: visible ? 28 : 0; spacing: 7
@@ -272,15 +251,14 @@ Item {
             Text { text: panel.studioState.dirty ? "未保存" : panel.studioState.projectPath ? "已保存" : "新工程"; color: panel.studioState.dirty ? Theme.amber : Theme.muted; font.pixelSize: 10 }
         }
         Rectangle {
-            Layout.fillWidth: true; Layout.fillHeight: true; Layout.minimumHeight: 255
-            radius: 0; color: panel.hasAudio ? Theme.surface : Theme.canvas; border.color: panel.hasAudio ? Theme.stroke : "transparent"
+            Layout.fillWidth: true; Layout.fillHeight: true; Layout.minimumHeight: 310
+            radius: 0; color: Theme.surface
             RowLayout {
                 anchors.fill: parent; spacing: 0
                 StudioLibraryPane {
                     id: libraryPane
                     objectName: "studioLibrary"
-                    visible: panel.hasAudio
-                    Layout.preferredWidth: panel.compact ? 236 : 270; Layout.minimumWidth: 236; Layout.maximumWidth: panel.compact ? 236 : 270; Layout.fillHeight: true
+                    Layout.preferredWidth: Math.round(panel.width * .265); Layout.fillHeight: true
                     studioModel: panel.studioModel; stateData: panel.studioState; commitEdits: panel.commitPendingLyrics
                     selectedPage: panel.libraryPage; selectedSegment: panel.selectedSegment; selectedObject: panel.selectedObject
                     selectedSourceId: panel.selectedSourceId; selectedConcertRow: panel.selectedConcertRow
@@ -291,29 +269,27 @@ Item {
                     onSourceSelected: function(id) { panel.selectedSourceId=id; panel.selectedObject="source"; }
                     onConcertSelected: function(index) { panel.selectedConcertRow=index; panel.selectObject("concert"); panel.showRendered=false; if(panel.editable) panel.studioModel.seek(Number((panel.studioState.concertRows || [])[index].startMs || 0)); }
                 }
-                Rectangle { visible: panel.hasAudio; Layout.preferredWidth: 1; Layout.fillHeight: true; color: Theme.stroke }
+                Rectangle { Layout.preferredWidth: 1; Layout.fillHeight: true; color: Theme.stroke }
                 Item {
                     objectName: "studioPreviewFrame"
                     Layout.fillWidth: true; Layout.fillHeight: true; Layout.minimumWidth: 238
                     ColumnLayout {
-                        anchors.fill: parent; anchors.margins: panel.compact ? 12 : 18; spacing: 10
+                        anchors.fill: parent; anchors.margins: 6; spacing: 4
                         RowLayout {
-                            visible: panel.hasAudio
                             Layout.fillWidth: true; spacing: 4
-                            Text { text: "播放器"; color: Theme.text; font.pixelSize: 12; font.weight: Font.Medium }
-                            Item { Layout.fillWidth: true }
-                            StudioButton { objectName:"studioEffectsButton"; text:"字幕特效"; iconName:"style"; implicitHeight:28; enabled:panel.segments.length>0; hint:panel.segments.length ? "选择字幕样式和文字动画" : "添加歌词后选择字幕特效"; onClicked: { panel.selectedObject="lyrics"; panel.inspectorPage=2; panel.showRendered=false; templateInspector.openEffects(); } }
+                            Text { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: "播放器"; color: Theme.text; font.pixelSize: 12; font.weight: Font.Medium }
+                            StudioButton { objectName:"studioEffectsButton"; visible: panel.hasAudio; text:"字幕特效"; iconName:"style"; implicitHeight:28; enabled:panel.segments.length>0; hint:panel.segments.length ? "选择字幕样式和文字动画" : "添加歌词后选择字幕特效"; onClicked: { panel.selectedObject="lyrics"; panel.inspectorPage=2; panel.showRendered=false; templateInspector.openEffects(); } }
                             StudioButton { objectName: "studioPreviewBackground"; text: "添加背景"; iconName: "background"; implicitHeight: 28; enabled: panel.editable && !!panel.studioState.audioPath; visible: !!panel.studioState.audioPath; onClicked: panel.studioModel.chooseBackground() }
-                            StudioButton { text: "编辑"; padding: 8; implicitHeight: 26; implicitWidth: 47; selected: !panel.showRendered; onClicked: panel.showRendered = false }
-                            StudioButton { text: "成片"; padding: 8; implicitHeight: 26; implicitWidth: 47; selected: panel.showRendered; enabled: !!panel.studioState.resultUrl; onClicked: panel.showRendered = true }
+                            StudioButton { text: "编辑"; visible: panel.hasAudio; padding: 8; implicitHeight: 26; implicitWidth: 47; selected: !panel.showRendered; onClicked: panel.showRendered = false }
+                            StudioButton { text: "成片"; visible: panel.hasAudio; padding: 8; implicitHeight: 26; implicitWidth: 47; selected: panel.showRendered; enabled: !!panel.studioState.resultUrl; onClicked: panel.showRendered = true }
                         }
                         Item {
                             Layout.fillWidth: true; Layout.fillHeight: true
                             Rectangle {
                                 id: canvas
                                 anchors.centerIn: parent
-                                width: parent.width; height: parent.height
-                                radius: 2; color: Theme.canvas; clip: true
+                                width: Math.min(parent.width, parent.height * 16 / 9); height: width * 9 / 16
+                                radius: 3; color: "black"; clip: true
                                 Image {
                                     id: editorFrame
                                     objectName: "studioLiveFrame"
@@ -327,13 +303,6 @@ Item {
                                     fillMode: Image.PreserveAspectFit
                                 }
                                 Image { anchors.fill: parent; visible: !panel.showRendered && !panel.hasFrameProvider && !!panel.studioState.backgroundIsImage; source: visible ? panel.studioState.backgroundUrl || "" : ""; fillMode: Image.PreserveAspectCrop }
-                                StudioWelcome {
-                                    anchors.fill: parent; studioModel: panel.studioModel; stateData: panel.studioState
-                                    visible: !panel.showRendered && (!panel.studioState.audioPath || (!panel.segments.length && !(panel.composition.clips || []).length && !(panel.composition.texts || []).length))
-                                    onSubtitlesRequested: { panel.selectObject("lyrics"); panel.studioModel.chooseSubtitles(); }
-                                    onLiveRequested: panel.liveRequested()
-                                    onApiRequested:panel.apiRequested("speech")
-                                }
                                 Loader {
                                     id: mediaLoader
                                     anchors.fill: parent
@@ -375,7 +344,6 @@ Item {
                             }
                         }
                         RowLayout {
-                            visible: panel.hasAudio
                             Layout.fillWidth: true; spacing: 4
                             StudioButton { text: "上一句"; iconName: "previous"; iconOnly: true; implicitHeight: 29; implicitWidth: 29; visible: !panel.showRendered; enabled: panel.editable && panel.segments.length>0 && panel.selectedSegment>0; onClicked: panel.navigateLine(-1) }
                             StudioButton { objectName: "studioPlayPreview"; text: panel.studioState.playbackPlaying ? "暂停" : "播放"; iconName: panel.studioState.playbackPlaying ? "pause" : "play"; hint: "实时播放歌曲和画面，空格播放 / 暂停"; implicitHeight: 29; implicitWidth: 82; visible: !panel.showRendered; enabled: panel.editable && panel.hasAudio; onClicked: panel.studioModel.togglePreview() }
@@ -411,14 +379,22 @@ Item {
                         }
                     }
                 }
-                Rectangle { visible: panel.hasAudio && studioInspector.visible; Layout.preferredWidth: 1; Layout.fillHeight: true; color: Theme.stroke }
+                Rectangle { Layout.preferredWidth: 1; Layout.fillHeight: true; color: Theme.stroke }
                 Item {
                     id: studioInspector
                     objectName: "studioInspector"
-                    visible: !!panel.studioState.audioPath && (panel.segments.length>0 || panel.selectedObject!=="lyrics")
-                    Layout.preferredWidth: panel.compact ? 268 : 318; Layout.minimumWidth: panel.compact ? 268 : 318; Layout.maximumWidth: panel.compact ? 268 : 318; Layout.fillHeight: true
+                    visible: true
+                    Layout.preferredWidth: Math.round(panel.width * .287); Layout.fillHeight: true
+                    StudioWelcome {
+                        anchors.fill: parent
+                        visible: !panel.hasAudio || (!panel.segments.length && panel.selectedObject === "lyrics")
+                        studioModel: panel.studioModel; stateData: panel.studioState
+                        onSubtitlesRequested: panel.studioModel.chooseSubtitles()
+                        onApiRequested: panel.apiRequested("speech")
+                    }
                     ColumnLayout {
-                        anchors.fill: parent; anchors.margins: 12; spacing: 8
+                        visible: panel.hasAudio && (panel.segments.length>0 || panel.selectedObject!=="lyrics")
+                        anchors.fill: parent; anchors.margins: 9; spacing: 5
                         RowLayout {
                             Layout.fillWidth: true; Layout.preferredHeight: 26
                             StudioIcon { Layout.preferredWidth: 17; Layout.preferredHeight: 17; name: panel.selectedObject==="lyrics" ? "lyrics" : panel.selectedObject==="audio" || panel.selectedObject==="audioClip" ? "audio" : "tools"; ink: Theme.secondary }
@@ -431,6 +407,11 @@ Item {
                             ColumnLayout {
                                 spacing: 8
                                 RowLayout {
+                                    Layout.fillWidth: true; spacing: 1
+                                    Repeater { model: ["改词","字体","模板","时码"]; delegate: StudioButton { required property string modelData; required property int index; Layout.fillWidth: true; implicitWidth: 44; implicitHeight: 28; padding: 5; objectName: "studioInspectorTab-"+index; text: modelData; selected: panel.inspectorPage===index; onClicked: panel.inspectorPage=index } }
+                                }
+                                RowLayout {
+                                    visible: panel.inspectorPage===2
                                     Layout.fillWidth: true; spacing: 6
                                     StudioButton {
                                         objectName: "studioKaraokeMode"
@@ -459,7 +440,7 @@ Item {
                                 Text {
                                     objectName: "studioKaraokeTiming"
                                     Layout.fillWidth: true
-                                    visible: !!panel.settings.lyricSweep
+                                    visible: !!panel.settings.lyricSweep && panel.inspectorPage!==0
                                     text: {
                                         var info=panel.studioState.karaokeTiming || {}, count=Number(info.timed || 0), total=panel.segments.length;
                                         if(!count) return "按句估算扫色；导入增强 LRC / 逐字 JSON 可更贴合人声。";
@@ -468,14 +449,25 @@ Item {
                                     color: Number((panel.studioState.karaokeTiming || {}).timed || 0)>0 ? Theme.green : Theme.amber
                                     font.pixelSize: 10; wrapMode: Text.Wrap; lineHeight: 1.25
                                 }
-                                RowLayout {
-                                    Layout.fillWidth: true; spacing: 1
-                                    Repeater { model: ["改词","字体","模板","时码"]; delegate: StudioButton { required property string modelData; required property int index; Layout.fillWidth: true; implicitWidth: 44; implicitHeight: 28; padding: 5; text: modelData; selected: panel.inspectorPage===index; onClicked: panel.inspectorPage=index } }
-                                }
                                 StackLayout {
                                     Layout.fillWidth: true; Layout.fillHeight: true; currentIndex: panel.inspectorPage
                                     ColumnLayout {
                                         spacing: 7
+                                        ListView {
+                                            objectName: "studioInspectorLyrics"
+                                            Layout.fillWidth: true; Layout.preferredHeight: Math.min(108, panel.segments.length * 32)
+                                            clip: true; model: panel.segments
+                                            ScrollBar.vertical: ScrollBar {}
+                                            delegate: StudioButton {
+                                                required property var modelData
+                                                required property int index
+                                                objectName: "studioInspectorLyric-" + index
+                                                width: ListView.view.width; height: 32; textAlignment: Text.AlignLeft
+                                                text: panel.timeLabel(modelData.startMs).slice(0,5)+"     "+modelData.text
+                                                selected: index===panel.selectedSegment
+                                                onClicked: if(panel.commitPendingLyrics()) panel.selectLine(index,true)
+                                            }
+                                        }
                                         RowLayout { Layout.fillWidth: true; Text { text: "当前句"; color: Theme.secondary; font.pixelSize: 10 } Item { Layout.fillWidth: true } Text { text: panel.timeLabel(panel.selectedLine.startMs).slice(0,8)+" → "+panel.timeLabel(panel.selectedLine.endMs).slice(0,8); color: Theme.muted; font.family: Theme.numberFont; font.pixelSize: 9 } }
                                         TextArea {
                                             id: lyricsEdit
@@ -549,10 +541,25 @@ Item {
                 }
             }
         }
+        Rectangle {
+            Layout.fillWidth: true; Layout.preferredHeight: 5
+            color: divider.containsMouse || divider.pressed ? Theme.accentLine : Theme.stroke
+            MouseArea {
+                id: divider; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.SplitVCursor
+                property real startY
+                property real startFraction
+                onPressed: function(mouse) {
+                    startY = mapToItem(panel, mouse.x, mouse.y).y; startFraction = panel.timelineFraction;
+                }
+                onPositionChanged: function(mouse) {
+                    if (pressed) panel.timelineFraction = Math.max(.20, Math.min(.52, startFraction + (startY - mapToItem(panel, mouse.x, mouse.y).y) / panel.height));
+                }
+            }
+        }
         StudioTimeline {
-            visible: panel.hasAudio
-            Layout.topMargin: 8
-            Layout.fillWidth: true; Layout.preferredHeight: !panel.studioState.audioPath ? 85 : panel.height < 680 ? 180 : 220
+            Layout.fillWidth: true; Layout.preferredHeight: Math.max(152, Math.min(panel.height-340, panel.height*panel.timelineFraction))
+            onUndoRequested: panel.studioModel.undo()
+            onRedoRequested: panel.studioModel.redo()
             stateData: panel.showRendered && panel.renderedPlayer ? Object.assign({}, panel.studioState, {positionMs: panel.renderedPosition}) : panel.studioState
             selectedSegment: panel.selectedSegment
             selectedObject: panel.selectedObject

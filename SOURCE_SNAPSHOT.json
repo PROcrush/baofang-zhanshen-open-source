@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "f8d4ea83036c1b35cb8dac32b78677b14535d2ab",
+  "sourceRevision": "beff41542722ec92f498db2fcf9b34169c849713",
   "files": [
     {
       "path": ".gitignore",
@@ -24,7 +24,7 @@
     },
     {
       "path": "DESIGN.md",
-      "sha256": "bf5a31f010dd1e9fd062446b47c766e9cbfcfd59762466288beb28937ecfbbf7"
+      "sha256": "5a0d142ce55fdd6d03922fa8912ba6ce656ebf36d1220ba9bf537a355a100863"
     },
     {
       "path": "LICENSE",
@@ -32,7 +32,7 @@
     },
     {
       "path": "PRODUCT.md",
-      "sha256": "ad0fae3340b0f1501f891626dc14254d8faeb3b18c0b02177398b75d96ca449a"
+      "sha256": "1cbe107bef72375507ea6eeb2e87ad3df39b721a6a46870fc82c1f3103073f8d"
     },
     {
       "path": "README.md",
@@ -264,7 +264,7 @@
     },
     {
       "path": "docs/macOS使用手册.md",
-      "sha256": "6e00d553f1def7edb77055468e585d1c469a7d53a83a0bbd66dc8ae2a449e984"
+      "sha256": "105bf2e6c17f997eb792084a04291e6f77d1bfc7a2a042a0280242cfebfaf30d"
     },
     {
       "path": "docs/macOS构建说明.md",
@@ -772,7 +772,7 @@
     },
     {
       "path": "tools/check_console_layout.py",
-      "sha256": "2b48735906aa56f8fc3823ff211fd0bbf26dde38de45f4770f1fa909c4cf3e81"
+      "sha256": "6c29730af40796c3c61c8ff7acfef6c5adb90327b5d086c8ffcfec3f159ba873"
     },
     {
       "path": "tools/check_keychain.py",
@@ -840,15 +840,15 @@
     },
     {
       "path": "tools/check_studio_advanced_ui.py",
-      "sha256": "e1442f538f2b44c2a4b258f280a4fcd43995cdae0cfb6c41c8b1c9c8506621fa"
+      "sha256": "bd9ce2827d093e8348bdc3e10a344bc020d887cf075998fe3de3ca3826427392"
     },
     {
       "path": "tools/check_studio_karaoke.py",
-      "sha256": "b82e7c05a7ca8bb141a38758baa1497f1bfd37a41a14394f70aa1e4b7013c631"
+      "sha256": "1f8a3cb5bc9bfee95afa91c6aa4d7b3d1a764536a4c35d7a85a66af1de91e261"
     },
     {
       "path": "tools/check_studio_onboarding.py",
-      "sha256": "8e169995e958cb33732e1e1ce935d3c3bbbea813868aebb875fc90fbde25f0b2"
+      "sha256": "6f0dedde0c948591afb7cb2dfbf67cb70b5e0f84d28d40e8ae0a60c36da56af5"
     },
     {
       "path": "tools/check_studio_playback.py",
@@ -856,7 +856,7 @@
     },
     {
       "path": "tools/check_studio_simple_ui.py",
-      "sha256": "bfb10abc0213730fc47ced5deb03eda918c98889cc62ab0d1f4311076861ff9f"
+      "sha256": "14fa9ed0a17d454ca360ba11dad7f321826a930d8931b73b6926034894c3e622"
     },
     {
       "path": "tools/check_studio_templates.py",
@@ -868,11 +868,11 @@
     },
     {
       "path": "tools/check_studio_ui.py",
-      "sha256": "27693f3cf2ebf6c6d743cf1d3b88961721c374d25f96cd91dcd92906a8bf74fb"
+      "sha256": "7fed7bd1b207691d134047e29424cfd6ecff8115fe91cb9abddb128bf98f75d3"
     },
     {
       "path": "tools/check_studio_usability.py",
-      "sha256": "8852387056d7c845fe37f1ad36a162b7922ede6f2372d9e7a0866db38e62a14a"
+      "sha256": "50531e98632099b3ab6d82c660239d168859bc9d964c4e3e9af99050b7acebc7"
     },
     {
       "path": "tools/check_style_presets_render.py",
@@ -984,7 +984,11 @@
     },
     {
       "path": "ui/LivePanel.qml",
-      "sha256": "b3f75df9741dad200d063449719802a99bece9a14831ff341991073e759df13c"
+      "sha256": "bd08ac7576f93eefb21fdd11939841cd9695e75c6f74038cd0e23ee6f7100168"
+    },
+    {
+      "path": "ui/LiveStyleShelf.qml",
+      "sha256": "1eb7fc1b8e9dcfa83773b9181dc1fab704cda4519b6b19f365e98bcf9efe53f6"
     },
     {
       "path": "ui/LyricText.qml",
@@ -992,15 +996,15 @@
     },
     {
       "path": "ui/Main.qml",
-      "sha256": "5d6799ae0dce82338b812ed5022c85c2e34847929e43969f7a635ac2e674814d"
+      "sha256": "c716f5e7195011f4b57eafc0c94770c2a4f172f23572f4cdf6875990470cb96e"
     },
     {
       "path": "ui/OfflineLibraryPanel.qml",
-      "sha256": "578b6d3232babe31c1bc4bc3e7256d26c5ecbf1578f840b1fcb138e08ecc24c9"
+      "sha256": "6d5c3bbe354611e29063a3506c0fdc91ce4725ab16cd6ca9976a96fce43ddf0b"
     },
     {
       "path": "ui/OutputStylePanel.qml",
-      "sha256": "c69fa7accbc48ba9556f2845d7b7d39a960cd9d17d5df3bfb6b34e19305c8aa6"
+      "sha256": "61ce406297d6453e716c494be4149d09a5ff5a81ee98b48df9f6d666b40ef3d1"
     },
     {
       "path": "ui/PanelCard.qml",
@@ -1013,6 +1017,10 @@
     {
       "path": "ui/PresetDecoration.qml",
       "sha256": "25c4f47118852b91cef427ad72f07bdd9525acf4179896b83054d348aee13c46"
+    },
+    {
+      "path": "ui/PresetPreview.js",
+      "sha256": "02b14897b799484b26e423bda5dce3d9bd21e70ef0985fc28ef0ae5735d5edbb"
     },
     {
       "path": "ui/Program.qml",
@@ -1080,7 +1088,7 @@
     },
     {
       "path": "ui/StudioButton.qml",
-      "sha256": "cdeed431f91ec68469c3983b4a61e2277be9630d578ae0e309c2a3e09b9982f5"
+      "sha256": "3092474a82ad3a26d5b53277b7251336738dc19ded0d5f031348f4b81b02c40f"
     },
     {
       "path": "ui/StudioCatalogPicker.qml",
@@ -1108,7 +1116,7 @@
     },
     {
       "path": "ui/StudioLibraryPane.qml",
-      "sha256": "5e9cf1b27cd26ce40c87ff871225ea65752a52cd8866e17005afbb960ec70ec9"
+      "sha256": "aae7bef1127c2c999db5c726994978f26f8db10105ed38cac534ba2241a6745b"
     },
     {
       "path": "ui/StudioLyricTimingInspector.qml",
@@ -1116,7 +1124,7 @@
     },
     {
       "path": "ui/StudioPanel.qml",
-      "sha256": "e5ef99bb139c08ba7e2031613caab1b80d6d721cdc7aafacacf1d9e36e655e75"
+      "sha256": "3be73e60c5cf2024921295a4eb0f2c2784ce9552ac475ac94e5a8effc2929ee6"
     },
     {
       "path": "ui/StudioSimplePanel.qml",
@@ -1132,7 +1140,7 @@
     },
     {
       "path": "ui/StudioTimeline.qml",
-      "sha256": "e2e73eff866c88b3ea13f8899daf247ca6ce6fbc143e4b7311686e27e7ddae86"
+      "sha256": "7c570b1a487a8daed153aa3aac37125d5d952c81c504994fc5c806d0a9965426"
     },
     {
       "path": "ui/StudioToolsPanel.qml",
@@ -1144,11 +1152,7 @@
     },
     {
       "path": "ui/StudioWelcome.qml",
-      "sha256": "58920e16bca9e0d7c4654beb01d35bf58e7c1945d148caaa5d3307ab59c16f72"
-    },
-    {
-      "path": "ui/StudioWorkflow.qml",
-      "sha256": "3efe5f67fd183812024a0392d3a072248cf9f3edb8627a0fda28d418b0256bb1"
+      "sha256": "25743c6f22643dffb066c7df5d510b0a9bd3037c7b0201faacf79a2fb92c98a1"
     },
     {
       "path": "ui/StyleColorControl.qml",
@@ -1156,7 +1160,11 @@
     },
     {
       "path": "ui/StylePresetLibrary.qml",
-      "sha256": "2c56e7f396ea5cb8559db2c63a0b90dd2e1e0658724007e4c530c17bf8f958ad"
+      "sha256": "2dd2fd2abbff19adc01cff84fc6fb5f4d1eef374c4398c211e35cdf34fc3f696"
+    },
+    {
+      "path": "ui/StyleSlider.qml",
+      "sha256": "0d2bd8c26cc131eb1dbd14e788183bcbab6f5d52b1bbfec69c1c486e9f2629a1"
     },
     {
       "path": "ui/TextTab.qml",
@@ -1164,11 +1172,15 @@
     },
     {
       "path": "ui/Theme.qml",
-      "sha256": "a30c94a8fc21cddfcc399a4b5d9fa5ef4886dbd3c7623f140fb1c5458a8ee6d2"
+      "sha256": "594c89204b6048e4c5e611787554406edcf23983e3a9ff1187ecc876b644315b"
     },
     {
       "path": "ui/VideoFader.qml",
       "sha256": "edd59d5b721681c157c4372a12f691cd9601672a6fd209831bddc1b82c24a59a"
+    },
+    {
+      "path": "ui/WorkbenchBar.qml",
+      "sha256": "11bd4d02e1450c7ed04da89cb28d1e5dedabdd78e9131f9deb00dba1040f2a0c"
     },
     {
       "path": "ui/qmldir",
