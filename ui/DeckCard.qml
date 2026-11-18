@@ -19,11 +19,11 @@ Rectangle {
     signal loadRequested()
     signal preparationRequested()
     signal confirmRequested()
-    color: Theme.surface
-    border.color: active ? Theme.hairlineStrong : Theme.hairline
+    color: active ? Theme.cardTint : Theme.canvas
+    border.color: active ? Theme.cardTintLine : Theme.hairline
     border.width: 1
     radius: Theme.radiusCard
-    implicitHeight: 180
+    implicitHeight: observedOnly ? 142 : 108
     AccentBar {
         visible: card.active; vertical: true
         anchors.left: parent.left; anchors.leftMargin: 1; anchors.verticalCenter: parent.verticalCenter
@@ -37,31 +37,28 @@ Rectangle {
             PillFrame {
                 Layout.preferredWidth: card.dense ? 24 : 28; Layout.preferredHeight: Layout.preferredWidth
                 accentRing: card.active; fill: card.active ? Theme.accentSoft : Theme.wash
-                Text { anchors.centerIn: parent; text: card.deckId; color: card.active ? Theme.text : Theme.secondary; font.family: Theme.numberFont; font.pixelSize: card.dense ? 12 : 13; font.weight: Font.Medium }
+                Text { anchors.centerIn: parent; text: card.deckId; Accessible.name: card.deckId + " 盘"; color: card.active ? Theme.text : Theme.secondary; font.family: Theme.numberFont; font.pixelSize: card.dense ? 12 : 13; font.weight: Font.Medium }
             }
-            Text { text: card.deckId + " 盘"; color: Theme.secondary; font.pixelSize: 12 }
-            Item { Layout.fillWidth: true }
+            Text {
+                Layout.fillWidth: true
+                text: !card.deck.valid && !card.replay ? "等待 DJ 曲目" : (card.deck.title || "等待载入曲目")
+                color: Theme.text; font.pixelSize: card.dense ? 13 : 15; font.weight: Font.Medium
+                elide: Text.ElideRight
+                ToolTip.visible: titleHover.containsMouse && !!card.deck.title
+                ToolTip.text: card.deck.title || ""
+                MouseArea { id: titleHover; anchors.fill: parent; acceptedButtons: Qt.NoButton; hoverEnabled: true }
+            }
             Text { text: card.active ? "当前歌词来源" : "待命"; color: card.active ? Theme.accent : Theme.muted; font.pixelSize: 11; font.weight: card.active ? Font.Medium : Font.Normal }
-        }
-        Text {
-            Layout.fillWidth: true
-            text: !card.deck.valid && !card.replay ? "等待 DJ 曲目" : (card.deck.title || "等待载入曲目")
-            color: Theme.text; font.pixelSize: card.dense ? 13 : 15; font.weight: Font.Medium
-            elide: Text.ElideRight; maximumLineCount: card.dense ? 1 : 2; wrapMode: card.dense ? Text.NoWrap : Text.Wrap
-            ToolTip.visible: titleHover.containsMouse && !!card.deck.title
-            ToolTip.text: card.deck.title || ""
-            MouseArea { id: titleHover; anchors.fill: parent; acceptedButtons: Qt.NoButton; hoverEnabled: true }
         }
         RowLayout {
             Layout.fillWidth: true
-            Text { text: card.deck.positionText || "--:--.---"; color: Theme.text; font.family: Theme.numberFont; font.pixelSize: card.dense ? 11 : 13 }
-            Item { Layout.fillWidth: true }
+            Text { text: card.deck.positionText || "--:--.---"; color: Theme.text; font.family: Theme.numberFont; font.pixelSize: card.dense ? 13 : 15 }
+            Rectangle {
+                Layout.fillWidth: true; Layout.preferredHeight: 3; radius: 1; color: Theme.stroke
+                opacity: Number(card.deck.durationMs || 0) > 0 ? 1 : 0
+                Rectangle { height:parent.height; radius:1; width:parent.width*Math.max(0,Math.min(1,Number(card.deck.positionMs || 0)/Math.max(1,Number(card.deck.durationMs || 0)))); color:card.active ? Theme.accent : Theme.secondary }
+            }
             Text { objectName:"deckPlaybackState-"+card.deckId; text: !card.deck.valid ? "等待播放状态" : card.observedOnly ? "位置直读" : card.deck.playing ? "播放中" : "已暂停"; color: !card.deck.valid ? Theme.amber : card.observedOnly ? Theme.secondary : card.deck.playing ? Theme.green : Theme.secondary; font.pixelSize: 11 }
-        }
-        Rectangle {
-            Layout.fillWidth: true; Layout.preferredHeight: 3; radius: 1; color: Theme.stroke
-            visible: Number(card.deck.durationMs || 0)>0
-            Rectangle { height:parent.height; radius:1; width:parent.width*Math.max(0,Math.min(1,Number(card.deck.positionMs || 0)/Math.max(1,Number(card.deck.durationMs || 0)))); color:card.active ? Theme.accent : Theme.secondary }
         }
         RowLayout {
             visible: card.observedOnly

@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
-import QtQuick.Shapes
 
 ApplicationWindow {
     id: app
@@ -281,63 +280,23 @@ ApplicationWindow {
         }
     }
 
-    // Zenox 式背景辉光：右上紫、左下蓝，很淡，只在卡片缝隙里露出来
-    Item {
-        objectName: "ambientGlow"
-        anchors.fill: parent
-        visible: !Theme.reduceTransparency
-        opacity: 0.22
-        Shape {
-            anchors.fill: parent
-            preferredRendererType: Shape.CurveRenderer
-            ShapePath {
-                strokeColor: "transparent"
-                fillGradient: RadialGradient {
-                    centerX: app.width * 0.82; centerY: -app.height * 0.05; centerRadius: app.width * 0.45
-                    focalX: centerX; focalY: centerY
-                    GradientStop { position: 0; color: "#bd53fb" }
-                    GradientStop { position: 1; color: "transparent" }
-                }
-                startX: 0; startY: 0
-                PathLine { x: app.width; y: 0 }
-                PathLine { x: app.width; y: app.height }
-                PathLine { x: 0; y: app.height }
-                PathLine { x: 0; y: 0 }
-            }
-            ShapePath {
-                strokeColor: "transparent"
-                fillGradient: RadialGradient {
-                    centerX: app.width * 0.08; centerY: app.height * 1.05; centerRadius: app.width * 0.4
-                    focalX: centerX; focalY: centerY
-                    GradientStop { position: 0; color: "#267ada" }
-                    GradientStop { position: 1; color: "transparent" }
-                }
-                startX: 0; startY: 0
-                PathLine { x: app.width; y: 0 }
-                PathLine { x: app.width; y: app.height }
-                PathLine { x: 0; y: app.height }
-                PathLine { x: 0; y: 0 }
-            }
-        }
-    }
-
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
         Rectangle {
             objectName: "globalNavigation"
             Layout.fillWidth: true; Layout.preferredHeight: Theme.navHeight
-            color: "#b3000000"
+            color: Theme.surface
             Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: Theme.hairline }
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 18; anchors.rightMargin: 14; spacing: 8
-                AppIcon { Layout.preferredWidth: 24; Layout.preferredHeight: 24; name: "prepare"; ink: Theme.gradientStart }
+                AppIcon { Layout.preferredWidth: 24; Layout.preferredHeight: 24; name: "prepare"; ink: Theme.accent }
                 Text { text: "包房战神"; color: Theme.text; font.pixelSize: 17; font.weight: Font.Medium; font.letterSpacing: Theme.titleSpacing; Layout.rightMargin: app.narrow ? 6 : 18 }
-                // Zenox 式胶囊导航：外层半透明胶囊，选中项浅白底 + 渐变短横条
+                // 与工作区工具分层的全局导航。
                 Rectangle {
                     objectName: "navCapsule"
                     Layout.preferredHeight: 40; Layout.preferredWidth: navRow.implicitWidth + 8
-                    radius: height / 2; color: Theme.wash; border.color: Theme.hairline
+                    color: "transparent"
                     RowLayout {
                         id: navRow
                         anchors.centerIn: parent; spacing: 2
@@ -349,7 +308,7 @@ ApplicationWindow {
                                 readonly property bool selected: app.currentPage===modelData.page || (modelData.page===5 && app.currentPage===6)
                                 objectName: "nav-"+modelData.page
                                 text: modelData.label
-                                implicitHeight: 32; implicitWidth: 86
+                                implicitHeight: 36; implicitWidth: 80
                                 hoverEnabled: true; activeFocusOnTab: true
                                 Accessible.name: modelData.label
                                 Accessible.description: modelData.key
@@ -364,8 +323,8 @@ ApplicationWindow {
                                     AccentBar { visible: navTab.selected; anchors.bottom: parent.bottom; anchors.bottomMargin: -3; anchors.horizontalCenter: parent.horizontalCenter; width: 22; height: 2 }
                                 }
                                 background: Rectangle {
-                                    radius: height / 2
-                                    color: navTab.selected ? Theme.washHover : navTab.hovered ? Theme.wash : "transparent"
+                                    radius: Theme.radiusControl
+                                    color: navTab.selected ? Theme.accentSoft : navTab.hovered ? Theme.wash : "transparent"
                                     border.color: navTab.activeFocus ? Theme.focus : "transparent"; border.width: 2
                                 }
                             }

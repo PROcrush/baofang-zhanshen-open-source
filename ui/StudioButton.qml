@@ -31,8 +31,9 @@ Button {
             id: navigationIcon
             visible: ["stage", "library", "prepare", "style", "diagnostics", "studio"].indexOf(control.iconName)>=0
             width: 17; height: 17
+            x: control.iconOnly ? (parent.width-width)/2 : 0
             anchors.verticalCenter: parent.verticalCenter
-            ink: !control.enabled ? Theme.muted : (control.tone === "primary" || control.selected) ? Theme.accent : Theme.secondary
+            ink: !control.enabled ? Theme.muted : (control.tone === "primary") ? Theme.accentText : control.selected ? Theme.accent : Theme.secondary
             name: control.iconName
         }
         StudioIcon {
@@ -41,7 +42,7 @@ Button {
             width: 17; height: 17
             x: control.iconOnly ? (parent.width-width)/2 : 0
             anchors.verticalCenter: parent.verticalCenter
-            ink: !control.enabled ? Theme.muted : (control.tone === "primary" || control.selected) ? Theme.accent : Theme.secondary
+            ink: !control.enabled ? Theme.muted : (control.tone === "primary") ? Theme.accentText : control.selected ? Theme.accent : Theme.secondary
             name: control.iconName
         }
         Text {
@@ -58,7 +59,7 @@ Button {
     background: PillFrame {
         accentRing: control.enabled && control.tone === "primary"
         focusRing: control.activeFocus
-        fill: !control.enabled ? "transparent" : control.tone === "primary" ? (control.hovered ? Theme.accentSoftHover : Theme.accentSoft) : control.selected ? Theme.hairlineStrong : control.down ? Theme.pressedSurface : control.hovered ? Theme.washHover : "transparent"
+        fill: !control.enabled ? "transparent" : control.tone === "primary" ? (control.hovered ? Theme.accentSoftHover : Theme.accentSolid) : control.selected ? Theme.hairlineStrong : control.down ? Theme.pressedSurface : control.hovered ? Theme.washHover : "transparent"
         line: control.hovered && control.enabled ? Theme.hairline : "transparent"
     }
 }

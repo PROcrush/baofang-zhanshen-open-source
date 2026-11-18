@@ -148,8 +148,13 @@ Item {
                         RowLayout {
                             anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 10; spacing: 10
                             Text { text: "歌曲"; color: Theme.text; font.pixelSize: Theme.fontSection; font.weight: Font.Medium }
-                            Text { text: panel.filteredTracks.length + " 首"; color: Theme.muted; font.pixelSize: 12 }
-                            Text { Layout.fillWidth: true; text: panel.libraryData.cacheDirectory || ""; color: Theme.muted; font.family: Theme.numberFont; font.pixelSize: 10; elide: Text.ElideMiddle; ToolTip.visible: dirHover.containsMouse; ToolTip.text: "本地歌词文件库：" + text; MouseArea { id: dirHover; anchors.fill: parent; acceptedButtons: Qt.NoButton; hoverEnabled: true } }
+                            Text {
+                                text: panel.filteredTracks.length + " 首"; color: Theme.muted; font.pixelSize: 12
+                                ToolTip.visible: directoryHover.hovered && !!panel.libraryData.cacheDirectory
+                                ToolTip.text: "本地歌词文件库：" + (panel.libraryData.cacheDirectory || "")
+                                HoverHandler { id: directoryHover }
+                            }
+                            Item { Layout.fillWidth: true }
                             TextField {
                                 id: searchField
                                 objectName: "offlineLibrarySearch"
@@ -161,7 +166,7 @@ Item {
                                 placeholderTextColor: Theme.muted
                                 selectByMouse: true
                                 font.pixelSize: 12
-                                background: Rectangle { radius: height / 2; color: Theme.sunken; border.color: searchField.activeFocus ? Theme.focus : Theme.hairline; border.width: searchField.activeFocus ? 2 : 1 }
+                                background: Rectangle { radius: Theme.radiusControl; color: Theme.sunken; border.color: searchField.activeFocus ? Theme.focus : Theme.hairline; border.width: searchField.activeFocus ? 2 : 1 }
                             }
                         }
                         Rectangle { anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom; height: 1; color: Theme.hairline }
@@ -171,9 +176,9 @@ Item {
                             ListView {
                                 id: trackList
                                 objectName: "offlineTrackList"
-                                anchors.fill: parent; anchors.margins: 10
+                                anchors.fill: parent; anchors.margins: 1
                                 clip: true
-                                spacing: 8
+                                spacing: 0
                                 model: panel.filteredTracks
                                 reuseItems: true
                                 ScrollBar.vertical: ScrollBar {}
@@ -188,12 +193,10 @@ Item {
                                     readonly property bool canExport: modelData.canExport === undefined ? !!modelData.offlineReady : !!modelData.canExport
                                     objectName: "offlineTrack-" + (modelData.versionId || "")
                                     width: trackList.width
-                                    implicitHeight: trackContents.implicitHeight + 22
+                                    implicitHeight: trackContents.implicitHeight + 16
                                     height: implicitHeight
-                                    color: Theme.surface
-                                    radius: Theme.radiusCard
-                                    border.color: Theme.hairline
-                                    Rectangle { anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom; anchors.margins: 1; width: 3; radius: 2; color: Theme.toneInk(panel.trackTone(trackRow.modelData)) }
+                                    color: trackRow.moreOpen ? Theme.elevated : Theme.surface
+                                    Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: Theme.hairline }
                                     onModelDataChanged: moreOpen = false
                                     TapHandler { acceptedButtons: Qt.RightButton; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: trackRow.moreOpen = !trackRow.moreOpen }
                                     ColumnLayout {
@@ -201,7 +204,7 @@ Item {
                                         anchors.left: parent.left
                                         anchors.right: parent.right
                                         anchors.top: parent.top
-                                        anchors.margins: 11; anchors.leftMargin: 16
+                                        anchors.margins: 8; anchors.leftMargin: 14
                                         spacing: 5
                                         RowLayout {
                                             Layout.fillWidth: true

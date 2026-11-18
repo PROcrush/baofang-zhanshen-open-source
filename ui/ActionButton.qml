@@ -34,7 +34,7 @@ Button {
     background: PillFrame {
         accentRing: control.enabled && control.tone === "primary"
         focusRing: control.activeFocus
-        fill: !control.enabled ? Theme.disabledSurface : control.tone === "primary" ? (control.down || control.hovered ? Theme.accentSoftHover : Theme.accentSoft) : control.selected ? Theme.hairlineStrong : control.tone === "danger" ? (control.down ? Theme.pressedSurface : control.hovered ? Theme.redSoft : Theme.wash) : control.down ? Theme.pressedSurface : control.hovered ? Theme.washHover : Theme.wash
+        fill: !control.enabled ? Theme.disabledSurface : control.tone === "primary" ? (control.down || control.hovered ? Theme.accentSoftHover : Theme.accentSolid) : control.selected ? Theme.hairlineStrong : control.tone === "danger" ? (control.down ? Theme.pressedSurface : control.hovered ? Theme.redSoft : Theme.wash) : control.down ? Theme.pressedSurface : control.hovered ? Theme.washHover : Theme.wash
         line: control.tone === "danger" && control.hovered ? Theme.redLine : control.hovered ? Theme.hairlineStrong : Theme.hairline
     }
 }

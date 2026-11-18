@@ -46,11 +46,11 @@ def main():
         preview, rail, source = (items[name] for name in ('programPreviewFrame', 'monitorRail', 'sourceControlBar'))
         p, r, s = bounds(preview), bounds(rail), bounds(source)
         assert preview.width() >= 320, 'Guest preview collapsed'
-        # 歌暮式三栏：左打碟机 / 中预览 / 右歌词控制
-        assert abs(rail.width() - (230 if width < 1180 else 270)) < 1, 'Deck rail lost its bounded width'
-        assert r[2] + 8 <= p[0], 'Deck monitor overlaps preview'
-        assert p[2] + 8 <= s[0], 'Preview overlaps lyric controls'
-        assert s[2] <= width + 1 and max(p[3], r[3], s[3]) <= height + 1, 'Live columns extend beyond window'
+        assert abs(p[0] - r[0]) < 1 and abs(p[2] - r[2]) < 1, 'Monitor and preview must align'
+        assert p[3] < r[1] and p[2] < s[0], 'Preview overlaps monitor or inspector'
+        assert s[2] <= width + 1 and max(p[3], r[3], s[3]) <= height + 1, 'Workspace extends beyond window'
+        a, b = (bounds(items['deckCard-' + deck]) for deck in ('A', 'B'))
+        assert abs(a[1] - b[1]) < 1 and a[2] < b[0], 'Decks must be side by side'
         for deck in ('A', 'B'):
             card = items['deckCard-' + deck]
             content = items['deckContents-' + deck]

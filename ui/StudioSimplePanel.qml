@@ -156,12 +156,9 @@ Item {
             ToolLink { id: projectButton; objectName: "simpleProjectMenu"; text: "工程"; iconName: "project"; enabled: simple.editable; onClicked: projectMenu.popup(projectButton,0,height+5) }
             ToolLink { objectName: "simpleSaveProject"; visible: simple.hasAudio; text: simple.stateData.dirty || simple.hasLyricDraft ? "保存进度" : simple.stateData.projectPath ? "已保存" : "保存进度"; iconName: "save"; hint: simple.stateData.projectPath ? "当前工程："+simple.fileName(simple.stateData.projectPath) : "新工程，保存时选择新位置"; enabled: simple.editable; onClicked: simple.saveProgress(false) }
             Rectangle { visible: simple.hasAudio; Layout.preferredWidth: 1; Layout.preferredHeight: 16; color: Theme.hairline; Layout.leftMargin: 6; Layout.rightMargin: 6 }
-            ToolLink { visible: simple.hasAudio; iconName: "audio"; text: "换歌"; enabled: simple.editable; onClicked: if(simple.commitEditing()) simple.studioModel.chooseAudio() }
-            ToolLink { visible: simple.hasAudio; iconName: "lyrics"; text: "导入歌词"; enabled: simple.editable; onClicked: if(simple.commitEditing()) simple.studioModel.chooseSubtitles() }
-            ToolLink { visible: simple.hasAudio; iconName: "background"; text: "换背景"; enabled: simple.editable; onClicked: simple.studioModel.chooseBackground() }
             ToolLink { objectName: "simpleMoreEditing"; iconName: "tools"; text: "更多编辑"; enabled: simple.editable; hint: "时间轴、完整模板和详细设置"; onClicked: if(simple.commitEditing()) simple.advancedRequested() }
             Item { Layout.fillWidth: true }
-            Text { visible: !simple.compact; Layout.maximumWidth: 260; text: !simple.hasAudio ? "选歌、加歌词，试听后直接导出。" : !simple.rows.length ? "歌曲已选好，接下来添加歌词。" : "歌词已就绪，播放检查后即可导出。"; color: Theme.muted; font.pixelSize: 11; elide: Text.ElideRight; Layout.rightMargin: 8 }
+            Text { visible: simple.hasAudio && !simple.compact; Layout.maximumWidth: 260; text: !simple.rows.length ? "歌曲已选好，接下来添加歌词。" : "歌词已就绪，播放检查后即可导出。"; color: Theme.muted; font.pixelSize: 11; elide: Text.ElideRight; Layout.rightMargin: 8 }
             ActionButton { objectName: "simpleExportVideo"; visible: simple.hasAudio; text: "导出视频"; tone: "primary"; implicitHeight: 30; font.pixelSize: 12; padding: 14; enabled: simple.canExport; onClicked: simple.exportVideo() }
         }
 
@@ -179,57 +176,64 @@ Item {
             StudioButton { visible: !simple.stateData.busy && !!simple.stateData.recoveryPath; text: "恢复修改"; onClicked: if(simple.commitEditing()) simple.studioModel.openProject(simple.stateData.recoveryPath) }
         }
 
-        Item {
+        RowLayout {
             visible: !simple.hasAudio
-            Layout.fillWidth: true; Layout.fillHeight: true
-            ColumnLayout {
-                anchors.centerIn: parent; width: Math.min(parent.width-40,520); spacing: 14
-                // 歌暮式：一张大导入卡就是起点，不放大标题
-                ImportCard {
-                    objectName: "simpleStartAudio"
-                    Layout.fillWidth: true; Layout.preferredHeight: 210
-                    text: "点击选择歌曲"; iconName: "audio"
-                    hint: "传统 KTV 字幕已经配好，选好歌就能加歌词。"
-                    enabled: simple.editable
-                    onClicked: simple.studioModel.chooseAudio()
-                }
-                RowLayout {
-                    objectName: "simpleFlowSteps"
-                    Layout.alignment: Qt.AlignHCenter; spacing: 6
-                    Accessible.role: Accessible.StaticText
-                    Accessible.name: "四步：选歌、加歌词、试听、导出"
-                    Repeater {
-                        model: ["选歌", "加歌词", "试听", "导出"]
-                        delegate: RowLayout {
-                            required property string modelData
-                            required property int index
-                            spacing: 6
-                            Text { visible: index > 0; text: "·"; color: Theme.muted; font.pixelSize: 12 }
-                            Text { text: String(index + 1) + " " + modelData; color: index === 0 ? Theme.accent : Theme.muted; font.pixelSize: 12; font.weight: index === 0 ? Font.Medium : Font.Normal }
+            Layout.fillWidth: true; Layout.fillHeight: true; spacing: 6
+            PanelCard {
+                Layout.preferredWidth: simple.compact ? 212 : 254
+                Layout.fillHeight: true
+                ColumnLayout {
+                    anchors.fill: parent; anchors.margins: 16; spacing: 8
+                    Text { text: "制作工程"; color: Theme.text; font.pixelSize: 16; font.weight: Font.Medium }
+                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; Layout.bottomMargin: 6; color: Theme.hairline }
+                    StudioButton { objectName: "simpleWelcomeOpen"; text: "打开已有工程"; iconName: "project"; textAlignment: Text.AlignLeft; Layout.fillWidth: true; enabled: simple.editable; onClicked: simple.studioModel.openProject() }
+                    StudioButton { objectName: "simpleOpenExample"; text: "先试用示例"; iconName: "play"; textAlignment: Text.AlignLeft; Layout.fillWidth: true; enabled: simple.editable; onClicked: simple.studioModel.openExampleProject() }
+                    ColumnLayout {
+                        visible: (simple.stateData.recentProjects || []).length>0
+                        Layout.fillWidth: true; Layout.topMargin: 16; spacing: 5
+                        Text { text: "继续上次制作"; color: Theme.muted; font.pixelSize: 12 }
+                        Repeater {
+                            model: (simple.stateData.recentProjects || []).slice(0,3)
+                            delegate: StudioButton {
+                                required property var modelData
+                                required property int index
+                                objectName: "simpleRecent-"+index
+                                Layout.fillWidth: true; implicitHeight: 38; textAlignment: Text.AlignLeft
+                                text: modelData.title+(modelData.available ? "" : "（文件不可用）")
+                                hint: modelData.path; enabled: simple.editable && modelData.available
+                                onClicked: simple.studioModel.openProject(modelData.path)
+                            }
                         }
                     }
+                    Item { Layout.fillHeight: true }
+                    StudioButton { objectName: "simpleWelcomeLive"; text: "去现场跟随"; iconName: "stage"; textAlignment: Text.AlignLeft; Layout.fillWidth: true; onClicked: simple.liveRequested() }
                 }
-                RowLayout {
-                    Layout.alignment: Qt.AlignHCenter; Layout.topMargin: 4; spacing: 8
-                    ActionButton { objectName: "simpleWelcomeOpen"; text: "打开已有工程"; enabled: simple.editable; onClicked: simple.studioModel.openProject() }
-                    ActionButton { objectName: "simpleOpenExample"; text: "先试用示例"; enabled: simple.editable; onClicked: simple.studioModel.openExampleProject() }
-                    StudioButton { objectName: "simpleWelcomeLive"; text: "去现场跟随"; implicitHeight: 36; onClicked: simple.liveRequested() }
-                }
+            }
+            PanelCard {
+                Layout.fillWidth: true; Layout.fillHeight: true
                 ColumnLayout {
-                    visible: (simple.stateData.recentProjects || []).length>0
-                    Layout.fillWidth: true; Layout.topMargin: 16; spacing: 5
-                    Text { text: "继续上次制作"; color: Theme.muted; font.pixelSize: 12 }
-                    Repeater {
-                        model: (simple.stateData.recentProjects || []).slice(0,3)
-                        delegate: StudioButton {
-                            required property var modelData
-                            required property int index
-                            objectName: "simpleRecent-"+index
-                            Layout.fillWidth: true; implicitHeight: 38; textAlignment: Text.AlignLeft
-                            text: modelData.title+(modelData.available ? "" : "（文件不可用）")
-                            hint: modelData.path; enabled: simple.editable && modelData.available
-                            onClicked: simple.studioModel.openProject(modelData.path)
+                    anchors.fill: parent; spacing: 0
+                    Text { text: "播放器"; Layout.margins: 14; color: Theme.text; font.pixelSize: 14; font.weight: Font.Medium }
+                    Rectangle {
+                        Layout.fillWidth: true; Layout.fillHeight: true; color: Theme.sunken
+                        ImportCard {
+                            objectName: "simpleStartAudio"
+                            anchors.centerIn: parent
+                            width: Math.min(parent.width - 40, (parent.height - 32) * 16 / 9, 780)
+                            height: width * 9 / 16
+                            text: "选择歌曲"; iconName: "audio"
+                            hint: "从实际演出的音频版本开始制作"
+                            enabled: simple.editable
+                            onClicked: simple.studioModel.chooseAudio()
                         }
+                    }
+                    RowLayout {
+                        objectName: "simpleFlowSteps"
+                        Layout.fillWidth: true; Layout.margins: 14; spacing: 8
+                        Text { text: "选歌"; color: Theme.accent; font.pixelSize: 12; font.weight: Font.Medium }
+                        Text { text: "›    加歌词    ›    试听    ›    导出"; color: Theme.muted; font.pixelSize: 12 }
+                        Item { Layout.fillWidth: true }
+                        Text { text: "默认字幕 · 传统 KTV"; color: Theme.secondary; font.pixelSize: 12 }
                     }
                 }
             }
